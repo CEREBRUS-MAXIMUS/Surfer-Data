@@ -28,7 +28,6 @@ let appIcon: Tray | null = null;
 
 require('dotenv').config();
 const { download } = require('electron-dl');
-const Store = require('electron-store');
 
 const fs = require('fs');
 
