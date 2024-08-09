@@ -1,0 +1,10 @@
+opentelemetry/util/http/__init__.py,sha256=SYPXFgEFKjmxwG0VKO7aBbJQMocl1UVJRcAy6Qz5ICg,7516
+opentelemetry/util/http/__pycache__/__init__.cpython-311.pyc,,
+opentelemetry/util/http/__pycache__/httplib.cpython-311.pyc,,
+opentelemetry/util/http/__pycache__/version.cpython-311.pyc,,
+opentelemetry/util/http/httplib.py,sha256=KKWte9aAEQ_ztcFuEZi8HY5fkcYYGCr2zl4qFeKSMaA,5189
+opentelemetry/util/http/version.py,sha256=HyCKkZGb11xsSYPWI9CHcfWAYU5IqDVTDpTmCwMvfu0,608
+opentelemetry_util_http-0.45b0.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+opentelemetry_util_http-0.45b0.dist-info/METADATA,sha256=gMXr5QrkLaAJO8zdW8Z3mG7aJOBRjLy77aOtPAs5Wn4,2436
+opentelemetry_util_http-0.45b0.dist-info/RECORD,,
+opentelemetry_util_http-0.45b0.dist-info/WHEEL,sha256=uNdcs2TADwSd5pVaP0Z_kcjcvvTUklh2S7bxZMF8Uj0,87

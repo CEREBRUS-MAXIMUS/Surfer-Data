@@ -1,0 +1,27 @@
+Metadata-Version: 2.1
+Name: pulsar-client
+Version: 3.4.0
+Summary: Apache Pulsar Python client library
+Home-page: https://pulsar.apache.org/
+Author: Pulsar Devs
+Author-email: dev@pulsar.apache.org
+License: Apache License v2.0
+License-File: LICENSE
+License-File: NOTICE
+Requires-Dist: certifi
+Provides-Extra: all
+Requires-Dist: apache-bookkeeper-client >=4.16.1 ; extra == 'all'
+Requires-Dist: fastavro >=1.9.2 ; extra == 'all'
+Requires-Dist: grpcio >=1.60.0 ; extra == 'all'
+Requires-Dist: prometheus-client ; extra == 'all'
+Requires-Dist: protobuf <=3.20.3,>=3.6.1 ; extra == 'all'
+Requires-Dist: ratelimit ; extra == 'all'
+Provides-Extra: avro
+Requires-Dist: fastavro >=1.9.2 ; extra == 'avro'
+Provides-Extra: functions
+Requires-Dist: apache-bookkeeper-client >=4.16.1 ; extra == 'functions'
+Requires-Dist: grpcio >=1.60.0 ; extra == 'functions'
+Requires-Dist: prometheus-client ; extra == 'functions'
+Requires-Dist: protobuf <=3.20.3,>=3.6.1 ; extra == 'functions'
+Requires-Dist: ratelimit ; extra == 'functions'
+

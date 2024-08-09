@@ -1,0 +1,16 @@
+httptools-0.6.1.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+httptools-0.6.1.dist-info/LICENSE,sha256=HAKLBZ16WOFMzaOMq87WmMWR_mFP--T3IUMERuhsjWk,1114
+httptools-0.6.1.dist-info/METADATA,sha256=GdqdFlXm7JDAuiqzSz4n3pSHjCxDNU_94fU4IzcbeMk,3726
+httptools-0.6.1.dist-info/RECORD,,
+httptools-0.6.1.dist-info/WHEEL,sha256=badvNS-y9fEq0X-qzdZYvql_JFjI7Xfw-wR8FsjoK0I,102
+httptools-0.6.1.dist-info/top_level.txt,sha256=APjJKTbZcj0OQ4fdgf2eTCk82nK1n2BFXOD7ky41MPY,10
+httptools/__init__.py,sha256=uWLIa0nghlhLGoS8My_6YVhUlFbv3FhYsvxYpZHecS8,153
+httptools/__pycache__/__init__.cpython-311.pyc,,
+httptools/__pycache__/_version.cpython-311.pyc,,
+httptools/_version.py,sha256=dzM__G-_22s1tpTTuEJDSeVCek6HbXB7fVAS5_pqEwc,588
+httptools/parser/__init__.py,sha256=1XGlLzcfsdWYFehxDHaQJUl7RhWnSwG9hWpVkUKK50g,171
+httptools/parser/__pycache__/__init__.cpython-311.pyc,,
+httptools/parser/__pycache__/errors.cpython-311.pyc,,
+httptools/parser/errors.py,sha256=fQeEGiZ6AQH7SIa-7uzMs5QggoXr0A8YBPVHmafSw5Q,596
+httptools/parser/parser.cp311-win_amd64.pyd,sha256=LGkopER4_lysqabye4ISXLSwnTbVzJT4mzRxW3MFQ8w,82432
+httptools/parser/url_parser.cp311-win_amd64.pyd,sha256=rp5Qhf2-tLoFqj9CcfemHXA322V5z2hcR95nNz0rOX8,36352

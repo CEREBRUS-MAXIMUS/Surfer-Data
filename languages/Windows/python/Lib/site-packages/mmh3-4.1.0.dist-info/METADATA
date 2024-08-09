@@ -1,0 +1,235 @@
+Metadata-Version: 2.1
+Name: mmh3
+Version: 4.1.0
+Summary: Python extension for MurmurHash (MurmurHash3), a set of fast and robust hash functions.
+Author-email: Hajime Senuma <hajime.senuma@gmail.com>
+License: MIT License
+        
+        Copyright (c) 2011-2023 Hajime Senuma
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+Project-URL: Homepage, https://pypi.org/project/mmh3/
+Project-URL: Repository, https://github.com/hajimes/mmh3
+Project-URL: Changelog, https://github.com/hajimes/mmh3/blob/master/docs/CHANGELOG.md
+Project-URL: Bug Tracker, https://github.com/hajimes/mmh3/issues
+Keywords: utility,hash,MurmurHash
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Utilities
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Provides-Extra: test
+Requires-Dist: mypy >=1.0 ; extra == 'test'
+Requires-Dist: pytest >=7.0.0 ; extra == 'test'
+
+# mmh3
+[![GitHub Super-Linter](https://github.com/hajimes/mmh3/workflows/Super-Linter/badge.svg?branch=master)](https://github.com/hajimes/mmh3/actions?query=workflow%3ASuper-Linter+branch%3Amaster)
+[![Build](https://github.com/hajimes/mmh3/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/hajimes/mmh3/actions/workflows/build.yml?branch=master)
+[![PyPi Version](https://img.shields.io/pypi/v/mmh3.svg?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/mmh3/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/mmh3.svg)](https://pypi.org/project/mmh3/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/license/mit/)
+[![Total Downloads](https://static.pepy.tech/badge/mmh3)](https://pepy.tech/project/mmh3?versions=*&versions=4.*&versions=3.*&versions=2.*)
+[![Recent Downloads](https://static.pepy.tech/badge/mmh3/month)](https://pepy.tech/project/mmh3?versions=*&versions=4.*&versions=3.*&versions=2.*)
+
+mmh3 is a Python extension for [MurmurHash (MurmurHash3)](https://en.wikipedia.org/wiki/MurmurHash), a set of fast and robust non-cryptographic hash functions invented by Austin Appleby.
+
+Combined with probabilistic techniques like a [Bloom filter](https://en.wikipedia.org/wiki/Bloom_filter), [MinHash](https://en.wikipedia.org/wiki/MinHash), and [feature hashing](https://en.wikipedia.org/wiki/Feature_hashing), mmh3 allows you to develop high-performance systems in fields such as data mining, machine learning, and natural language processing.
+
+Another common use of mmh3 is to [calculate favicon hashes](https://gist.github.com/yehgdotnet/b9dfc618108d2f05845c4d8e28c5fc6a) used by [Shodan](https://www.shodan.io), the world's first IoT search engine.
+
+## How to use
+### Install
+```shell
+pip install mmh3 # for macOS, use "pip3 install mmh3" and python3
+```
+
+### Simple functions
+Quickstart:
+```shell
+>>> import mmh3
+>>> mmh3.hash("foo") # returns a 32-bit signed int
+-156908512
+>>> mmh3.hash("foo", 42) # uses 42 as a seed
+-1322301282
+>>> mmh3.hash("foo", signed=False) # returns a 32-bit unsigned int
+4138058784
+```
+
+Other functions:
+```shell
+>>> mmh3.hash64("foo") # two 64 bit signed ints (by using the 128-bit algorithm as its backend)
+(-2129773440516405919, 9128664383759220103)
+>>> mmh3.hash64("foo", signed=False) #  two 64 bit unsigned ints
+(16316970633193145697, 9128664383759220103)
+>>> mmh3.hash128("foo", 42) # 128 bit unsigned int
+215966891540331383248189432718888555506
+>>> mmh3.hash128("foo", 42, signed=True) # 128 bit signed int
+-124315475380607080215185174712879655950
+>>> mmh3.hash_bytes("foo") # 128 bit value as bytes
+'aE\xf5\x01W\x86q\xe2\x87}\xba+\xe4\x87\xaf~'
+>>> import numpy as np
+>>> a = np.zeros(2 ** 32, dtype=np.int8)
+>>> mmh3.hash_bytes(a)
+b'V\x8f}\xad\x8eNM\xa84\x07FU\x9c\xc4\xcc\x8e'
+```
+
+Beware that `hash64` returns **two** values, because it uses the 128-bit version of MurmurHash3 as its backend.
+
+`hash_from_buffer` hashes byte-likes without memory copying. The method is suitable when you hash a large memory-view such as `numpy.ndarray`.
+
+```shell
+>>> mmh3.hash_from_buffer(numpy.random.rand(100))
+-2137204694
+>>> mmh3.hash_from_buffer(numpy.random.rand(100), signed=False)
+3812874078
+```
+
+`hash64`, `hash128`, and `hash_bytes` have the third argument for architecture optimization (keyword arg: `x64arch`). Use True for x64 and False for x86 (default: True):
+
+```shell
+>>> mmh3.hash64("foo", 42, True) 
+(-840311307571801102, -6739155424061121879)
+```
+
+### `hashlib`-style hashers
+`mmh3` implements hashers whose interfaces are similar to `hashlib` in the standard library: `mmh3_32()` for 32 bit hashing, `mmh3_x64_128()` for 128 bit hashing optimized for x64 architectures, and `mmh3_x86_128()` for 128 bit hashing optimized for x86 architectures.
+
+In addition to the standard `digest()` method, each hasher has `sintdigest()`, which returns a signed integer, and `uintdigest()`, which returns an unsigned integer. 128 bit hashers also have `stupledigest()` and `utupledigest()` which return two 64 bit integers.
+
+Note that as of version 4.1.0, the implementation is still experimental and its performance can be unsatisfactory (especially `mmh3_x86_128()`). Also, `hexdigest()` is not supported. Use `digest().hex()` instead.
+
+```shell
+>>> import mmh3
+>>> hasher = mmh3.mmh3_x64_128(seed=42)
+>>> hasher.update(b"foo")
+>>> hasher.update(b"bar")
+>>> hasher.update("foo") # str inputs are not allowed for hashers
+TypeError: Strings must be encoded before hashing
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+>>> hasher.digest()
+b'\x82_n\xdd \xac\xb6j\xef\x99\xb1e\xc4\n\xc9\xfd'
+>>> hasher.sintdigest() # 128 bit signed int
+-2943813934500665152301506963178627198
+>>> hasher.uintdigest() # 128 bit unsigned int
+337338552986437798311073100468589584258
+>>> hasher.stupledigest() # two 64 bit signed ints
+(7689522670935629698, -159584473158936081)
+>>> hasher.utupledigest() # two 64 bit unsigned ints
+(7689522670935629698, 18287159600550615535)
+```
+
+## Changelog
+### 4.1.0 (2024-01-09)
+* Add support for Python 3.12.
+* Change the project structure to fix issues when using Bazel (<https://github.com/hajimes/mmh3/issues/50>).
+* Fix incorrect type hints (<https://github.com/hajimes/mmh3/issues/51>).
+* Fix invalid results on s390x when the arg `x64arch` of `hash64` or `hash_bytes` is set to `False` (<https://github.com/hajimes/mmh3/issues/52>).
+
+### 4.0.1 (2023-07-14)
+* Fix incorrect type hints.
+* Refactor the project structure (<https://github.com/hajimes/mmh3/issues/48>).
+
+### 4.0.0 (2023-05-22)
+* Add experimental support for `hashlib`-compliant hasher classes (<https://github.com/hajimes/mmh3/issues/39>). Note that they are not yet fully tuned for performance.
+* Add support for type hints (<https://github.com/hajimes/mmh3/issues/44>).
+* Add wheels for more platforms (`musllinux`, `s390x`, `win_arm64`, and `macosx_universal2`).
+* Drop support for Python 3.7, as it will reach the end of life on 2023-06-27.
+* Switch license from CC0 to MIT (<https://github.com/hajimes/mmh3/issues/43>).
+* Add a code of conduct (the ACM Code of Ethics and Professional Conduct).
+* Backward incompatible changes:
+  * A hash function now returns the same value under big-endian platforms as that under little-endian ones (<https://github.com/hajimes/mmh3/issues/47>).
+  * Remove the `__version__` constant from the module (<https://github.com/hajimes/mmh3/issues/42>). Use `importlib.metadata` instead.
+
+See [CHANGELOG.md](./docs/CHANGELOG.md) for the complete changelog.
+
+## License
+[MIT](./LICENSE), unless otherwise noted within a file.
+
+## Known Issues
+### Getting different results from other MurmurHash3-based libraries
+By default, mmh3 returns **signed** values for 32-bit and 64-bit versions and **unsigned** values for `hash128`, due to historical reasons. Please use the keyword argument `signed` to obtain a desired result.
+
+From version 4.0.0, `mmh3` returns the same value under big-endian platforms
+    as that under little-endian ones, while the original C++ library is endian-sensitive. If you need to obtain the original-compliant results under big-endian environments, please use version 3.*.
+
+For compatibility with [Google Guava (Java)](https://github.com/google/guava), see <https://stackoverflow.com/questions/29932956/murmur3-hash-different-result-between-python-and-java-implementation>.
+
+For compatibility with [murmur3 (Go)](https://pkg.go.dev/github.com/spaolacci/murmur3), see <https://github.com/hajimes/mmh3/issues/46>.
+
+### Unexpected results when given non 32-bit seeds
+Version 2.4 changed the type of seeds from signed 32-bit int to unsigned 32-bit int. The resulting values with signed seeds still remain the same as before, as long as they are 32-bit.
+
+```shell
+>>> mmh3.hash("aaaa", -1756908916) # signed representation for 0x9747b28c
+1519878282
+>>> mmh3.hash("aaaa", 2538058380) # unsigned representation for 0x9747b28c
+1519878282
+```
+
+Be careful so that these seeds do not exceed 32-bit. Unexpected results may happen with invalid values.
+
+```shell
+>>> mmh3.hash("foo", 2 ** 33)
+-156908512
+>>> mmh3.hash("foo", 2 ** 34)
+-156908512
+```
+
+## Contributing Guidelines
+See [CONTRIBUTING.md](./docs/CONTRIBUTING.md).
+
+## Authors
+MurmurHash3 was originally developed by Austin Appleby and distributed under public domain [https://github.com/aappleby/smhasher](https://github.com/aappleby/smhasher).
+
+Ported and modified for Python by Hajime Senuma.
+
+## See also
+### Tutorials (High-Performance Computing)
+The following textbooks and tutorials are great sources to learn how to use mmh3 (and other hash algorithms in general) for high-performance computing.
+
+* Chapter 11: *Using Less Ram* in Micha Gorelick and Ian Ozsvald. 2014. *High Performance Python: Practical Performant Programming for Humans*. O'Reilly Media. [ISBN: 978-1-4493-6159-4](https://www.amazon.com/dp/1449361595).
+  * 2nd edition of the above (2020). [ISBN: 978-1492055020](https://www.amazon.com/dp/1492055026).
+* Max Burstein. February 2, 2013. *[Creating a Simple Bloom Filter](http://www.maxburstein.com/blog/creating-a-simple-bloom-filter/)*.
+* Duke University. April 14, 2016. *[Efficient storage of data in memory](http://people.duke.edu/~ccc14/sta-663-2016/20B_Big_Data_Structures.html)*.
+* Bugra Akyildiz. August 24, 2016. *[A Gentle Introduction to Bloom Filter](https://www.kdnuggets.com/2016/08/gentle-introduction-bloom-filter.html)*. KDnuggets.
+
+### Tutorials (Internet of Things)
+[Shodan](https://www.shodan.io), the world's first [IoT](https://en.wikipedia.org/wiki/Internet_of_things) search engine, uses MurmurHash3 hash values for [favicons](https://en.wikipedia.org/wiki/Favicon) (icons associated with web pages). [ZoomEye](https://www.zoomeye.org) follows Shodan's convention.
+[Calculating these values with mmh3](https://gist.github.com/yehgdotnet/b9dfc618108d2f05845c4d8e28c5fc6a) is useful for OSINT and cybersecurity activities.
+
+* Jan Kopriva. April 19, 2021. *[Hunting phishing websites with favicon hashes](https://isc.sans.edu/diary/Hunting+phishing+websites+with+favicon+hashes/27326)*. SANS Internet Storm Center.
+* Nikhil Panwar. May 2, 2022. *[Using Favicons to Discover Phishing & Brand Impersonation Websites](https://bolster.ai/blog/how-to-use-favicons-to-find-phishing-websites)*. Bolster.
+* Faradaysec. July 25, 2022. *[Understanding Spring4Shell: How used is it?](https://faradaysec.com/understanding-spring4shell/)*. Faraday Security.
+* Debjeet. August 2, 2022. *[How To Find Assets Using Favicon Hashes](https://payatu.com/blog/favicon-hash/)*. Payatu.
+
+### Similar libraries
+* <https://github.com/wc-duck/pymmh3>: mmh3 in pure python (Fredrik Kihlander and Swapnil Gusani)
+* <https://github.com/escherba/python-cityhash>: Python bindings for CityHash (Eugene Scherba)
+* <https://github.com/veelion/python-farmhash>: Python bindigs for FarmHash (Veelion Chong)
+* <https://github.com/escherba/python-metrohash>: Python bindings for MetroHash (Eugene Scherba)
+* <https://github.com/ifduyue/python-xxhash>: Python bindings for xxHash (Yue Du)

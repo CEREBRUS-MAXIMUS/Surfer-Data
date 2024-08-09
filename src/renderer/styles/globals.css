@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Niramit:wght@200;300;400;500;600;700&family=Bricolage+Grotesque:wght@200;300;400;500;600;700&family=Gurajada&family=Averia+Sans+Libre:wght@300;400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-niramit: 'Niramit', sans-serif;
+  --font-bricolage: 'Bricolage Grotesque', sans-serif;
+  --font-gurajada: 'Gurajada', serif;
+  --font-averia: 'Averia Sans Libre', cursive;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+@import '~react-photo-view/dist/react-photo-view.css';
+
+
+@layer base {
+  :root {
+    --background: 60 33% 98%;
+    --foreground: 210 11% 15%;
+    --card: 60 33% 98%;
+    --card-foreground: 210 11% 15%;
+    --popover: 60 33% 98%;
+    --popover-foreground: 210 11% 15%;
+    --primary: 196 45% 15%;
+    --primary-foreground: 60 33% 98%;
+    --secondary: 60 9% 83%;
+    --secondary-foreground: 210 11% 15%;
+    --muted: 60 9% 89%;
+    --muted-foreground: 210 11% 39%;
+    --accent: 60 9% 83%;
+    --accent-foreground: 210 11% 15%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 60 33% 98%;
+    --border: 60 9% 83%;
+    --input: 60 9% 83%;
+    --ring: 196 45% 15%;
+    --radius: 0.75rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+/*
+ * @NOTE: Prepend a `~` to css file paths that are in your node_modules
+ *        See https://github.com/webpack-contrib/sass-loader#imports
+ */
+ .cursor {
+   display: inline-block;
+   width: 1ch;
+   animation: flicker 0.5s infinite;
+   margin-bottom: 4px;
+ }
+
+
+body {
+  background-color: black;
+  background: #000;
+}
+
+.more-icon {
+  visibility: hidden;
+}
+
+.flex-col:hover .more-icon {
+  visibility: visible;
+}
+
+
+.rest-of-app {
+  height: 100%; /* rest of the app can still have 100% height as draggable region is fixed now */
+}
+
+
+
+ .example::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.example {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.container {
+  overflow-y: scroll;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+}
+.container::-webkit-scrollbar { /* WebKit */
+  width: 0;
+  height: 0;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.content {
+  transition: margin-left 0.3s;
+}
+
+.content.shifted {
+  margin-left: 250px;
+}
+
+:focus
+{
+  outline:unset;
+}
+
+.PhotoView-Portal{height:100%;left:0;overflow:hidden;position:fixed;top:0;touch-action:none;width:100%;z-index:2000}@keyframes PhotoView__rotate{0%{transform:rotate(0deg)}to{transform:rotate(1turn)}}@keyframes PhotoView__delayIn{0%,50%{opacity:0}to{opacity:1}}.PhotoView__Spinner{animation:PhotoView__delayIn .4s linear both}.PhotoView__Spinner svg{animation:PhotoView__rotate .6s linear infinite}.PhotoView__Photo{-webkit-user-drag:none;cursor:grab;max-width:none}.PhotoView__Photo:active{cursor:grabbing}.PhotoView__icon{display:inline-block;left:0;position:absolute;top:0;transform:translate(-50%,-50%)}.PhotoView__PhotoBox,.PhotoView__PhotoWrap{bottom:0;direction:ltr;left:0;position:absolute;right:0;top:0;touch-action:none;width:100%}.PhotoView__PhotoWrap{overflow:hidden;z-index:10}.PhotoView__PhotoBox{transform-origin:left top}@keyframes PhotoView__fade{0%{opacity:0}to{opacity:1}}.PhotoView-Slider__clean .PhotoView-Slider__ArrowLeft,.PhotoView-Slider__clean .PhotoView-Slider__ArrowRight,.PhotoView-Slider__clean .PhotoView-Slider__BannerWrap,.PhotoView-Slider__clean .PhotoView-Slider__Overlay,.PhotoView-Slider__willClose .PhotoView-Slider__BannerWrap:hover{opacity:0}.PhotoView-Slider__Backdrop{background:#000;height:100%;left:0;position:absolute;top:0;transition-property:background-color;width:100%;z-index:-1}.PhotoView-Slider__fadeIn{animation:PhotoView__fade linear both;opacity:0}.PhotoView-Slider__fadeOut{animation:PhotoView__fade linear reverse both;opacity:0}.PhotoView-Slider__BannerWrap{align-items:center;background-color:rgba(0,0,0,.5);color:#fff;display:flex;height:44px;justify-content:space-between;left:0;position:absolute;top:0;transition:opacity .2s ease-out;width:100%;z-index:20}.PhotoView-Slider__BannerWrap:hover{opacity:1}.PhotoView-Slider__Counter{font-size:14px;opacity:.75;padding:0 10px}.PhotoView-Slider__BannerRight{align-items:center;display:flex;height:100%}.PhotoView-Slider__toolbarIcon{fill:#fff;box-sizing:border-box;cursor:pointer;opacity:.75;padding:10px;transition:opacity .2s linear}.PhotoView-Slider__toolbarIcon:hover{opacity:1}.PhotoView-Slider__ArrowLeft,.PhotoView-Slider__ArrowRight{align-items:center;bottom:0;cursor:pointer;display:flex;height:100px;justify-content:center;margin:auto;opacity:.75;position:absolute;top:0;transition:opacity .2s linear;-webkit-user-select:none;-moz-user-select:none;user-select:none;width:70px;z-index:20}.PhotoView-Slider__ArrowLeft:hover,.PhotoView-Slider__ArrowRight:hover{opacity:1}.PhotoView-Slider__ArrowLeft svg,.PhotoView-Slider__ArrowRight svg{fill:#fff;background:rgba(0,0,0,.3);box-sizing:content-box;height:24px;padding:10px;width:24px}.PhotoView-Slider__ArrowLeft{left:0}.PhotoView-Slider__ArrowRight{right:0}

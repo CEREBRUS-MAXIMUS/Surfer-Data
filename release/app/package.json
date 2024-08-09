@@ -1,0 +1,40 @@
+{
+  "description": "Surfer is the universal chat interface for all LLMs.",
+  "productName": "Surfer",
+  "name": "surfer",
+  "version": "1.0.14",
+  "keywords": [
+    "electron",
+    "ai",
+    "chat",
+    "interface",
+    "local",
+    "personalized",
+    "llms",
+    "chatGPT",
+    "gpt3",
+    "gpt4",
+    "chatbot"
+  ],
+  "repository": "https://github.com/CEREBRUS-MAXIMUS/Surfer-Data",
+  "publish": {
+    "provider": "github",
+    "releaseType": "release"
+  },
+  "author": {
+    "name": "Jack Blair, Thomas Stahura, Sahil Lalani",
+    "email": "jackblairing@gmail.com",
+    "url": "https://surfsup.framer.website"
+  },
+  "main": "./dist/main/main.js",
+  "scripts": {
+    "rebuild": "node -r ts-node/register ../../.erb/scripts/electron-rebuild.js",
+    "postinstall": "npm run rebuild && npm run link-modules",
+    "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
+  },
+  "dependencies": {
+    "@langchain/community": "^0.0.43",
+    "@vscode/vscode-languagedetection": "^1.0.22",
+    "langchain": "^0.1.30"
+  }
+}

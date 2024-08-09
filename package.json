@@ -1,0 +1,405 @@
+{
+  "version": "1.0.14",
+  "description": "Surfer is the universal chat interface for all LLMs.",
+  "keywords": [
+    "electron",
+    "boilerplate",
+    "react",
+    "typescript",
+    "ts",
+    "sass",
+    "webpack",
+    "hot",
+    "reload"
+  ],
+  "homepage": "https://github.com/CEREBRUS-MAXIMUS/Surfer-Data",
+  "bugs": {
+    "url": "https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues"
+  },
+  "repository": "https://github.com/CEREBRUS-MAXIMUS/Surfer-Data",
+  "publish": {
+    "provider": "github",
+    "releaseType": "release"
+  },
+  "author": {
+    "name": "Surfer",
+    "email": "slalani304@gmail.com",
+    "url": "https://surfsup.framer.website"
+  },
+  "main": "./src/main/main.ts",
+  "scripts": {
+    "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
+    "build:dll": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts",
+    "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
+    "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
+    "postinstall": "patch-package && ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && npm run build:dll",
+    "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
+    "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish never && npm run build:dll",
+    "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
+    "start": "ts-node ./.erb/scripts/check-port-in-use.js && npm run start:renderer",
+    "start:main": "cross-env NODE_ENV=development electronmon -r ts-node/register/transpile-only .",
+    "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.preload.dev.ts",
+    "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./.erb/configs/webpack.config.renderer.dev.ts",
+    "test": "jest"
+  },
+  "browserslist": [],
+  "prettier": {
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": [
+          ".prettierrc",
+          ".eslintrc"
+        ],
+        "options": {
+          "parser": "json"
+        }
+      }
+    ]
+  },
+  "jest": {
+    "moduleDirectories": [
+      "node_modules",
+      "release/app/node_modules",
+      "src"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "ts",
+      "tsx",
+      "json"
+    ],
+    "moduleNameMapper": {
+      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/.erb/mocks/fileMock.js",
+      "\\.(css|less|sass|scss)$": "identity-obj-proxy"
+    },
+    "setupFiles": [
+      "./.erb/scripts/check-build-exists.ts"
+    ],
+    "testEnvironment": "jsdom",
+    "testEnvironmentOptions": {
+      "url": "http://localhost/"
+    },
+    "testPathIgnorePatterns": [
+      "release/app/dist",
+      ".erb/dll"
+    ],
+    "transform": {
+      "\\.(ts|tsx|js|jsx)$": "ts-jest"
+    }
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.4",
+    "@aws-sdk/client-bedrock-runtime": "^3.554.0",
+    "@aws-sdk/credential-provider-node": "^3.554.0",
+    "@azure/identity": "^4.0.1",
+    "@azure/openai": "^1.0.0-beta.11",
+    "@google/generative-ai": "^0.1.1",
+    "@heroicons/react": "^2.1.5",
+    "@langchain/community": "^0.0.48",
+    "@langchain/openai": "^0.0.15",
+    "@mintlify/mdx": "^0.0.46",
+    "@monaco-editor/react": "^4.6.0",
+    "@radix-ui/react-dropdown-menu": "^2.1.1",
+    "@radix-ui/react-menubar": "^1.1.1",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@reduxjs/toolkit": "^2.2.5",
+    "@stripe/react-stripe-js": "^2.6.2",
+    "@stripe/stripe-js": "^3.1.0",
+    "@tabler/icons-react": "^3.6.0",
+    "@vapi-ai/web": "^1.4.2",
+    "antd": "^5.18.3",
+    "assert": "^2.1.0",
+    "axios": "^1.6.8",
+    "body-parser": "^1.20.2",
+    "browserify-zlib": "^0.2.0",
+    "cheerio": "^1.0.0-rc.12",
+    "chokidar": "^3.6.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.0.0",
+    "cohere-ai": "^7.9.0",
+    "constants-browserify": "^1.0.0",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "crypto-browserify": "^3.12.0",
+    "css-loader": "^6.10.0",
+    "d3-dsv": "^2.0.0",
+    "date-fns": "^3.6.0",
+    "dexie": "^4.0.1",
+    "dexie-export-import": "^4.1.1",
+    "dexie-react-hooks": "^1.1.7",
+    "dom-to-image": "^2.6.0",
+    "dompurify": "^3.1.6",
+    "dotenv": "^16.4.5",
+    "electron-debug": "^3.2.0",
+    "electron-dl": "^3.5.2",
+    "electron-log": "^4.4.8",
+    "electron-settings": "^4.0.2",
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.1.8",
+    "electron-windows-store": "^2.1.0",
+    "electron2appx": "^2.1.2",
+    "express": "^4.19.2",
+    "framer-motion": "^11.2.12",
+    "ga-4-react": "^0.1.281",
+    "html-to-image": "^1.11.11",
+    "html2canvas": "^1.4.1",
+    "html2canvas-pro": "^1.5.8",
+    "https-browserify": "^1.0.0",
+    "idb": "^8.0.0",
+    "ignore": "^5.3.1",
+    "import-glob-loader": "^1.1.0",
+    "install": "^0.13.0",
+    "jszip-utils": "^0.1.0",
+    "langchain": "^0.1.33",
+    "langsmith": "^0.1.8",
+    "ldrs": "^1.0.1",
+    "less": "^4.2.0",
+    "less-loader": "^12.2.0",
+    "llama-tokenizer-js": "^1.1.3",
+    "lucide-react": "^0.396.0",
+    "luxon": "^3.4.4",
+    "mammoth": "^1.6.0",
+    "mapbox-gl": "^3.4.0",
+    "mermaid": "^10.8.0",
+    "mime-types": "^2.1.35",
+    "minimatch": "^9.0.4",
+    "n-readlines": "^1.0.1",
+    "net": "^1.0.2",
+    "net-browserify": "^0.2.4",
+    "next-themes": "^0.3.0",
+    "node-fetch": "^3.3.2",
+    "node-schedule": "^2.1.1",
+    "npm": "^10.8.2",
+    "null-loader": "^4.0.1",
+    "officeparser": "^4.0.8",
+    "os-browserify": "^0.3.0",
+    "papaparse": "^5.4.1",
+    "path-browserify": "^1.0.1",
+    "pdf-parse": "^1.1.1",
+    "qrcode": "^1.5.3",
+    "qrcode.react": "^3.1.0",
+    "querystring-es3": "^0.2.1",
+    "radix-ui": "^1.0.1",
+    "react": "^18.2.0",
+    "react-activity": "^2.1.3",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-bootstrap": "^2.10.1",
+    "react-csv-reader": "^4.0.0",
+    "react-day-picker": "^9.0.5",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.52.1",
+    "react-hotkeys": "^2.0.0",
+    "react-hotkeys-hook": "^4.5.0",
+    "react-icons": "^5.0.1",
+    "react-jsx-parser": "^2.0.0",
+    "react-loader-spinner": "^6.1.6",
+    "react-markdown": "^9.0.1",
+    "react-modal": "^3.16.1",
+    "react-photo-view": "^1.2.6",
+    "react-player": "^2.16.0",
+    "react-resizable-panels": "^2.0.22",
+    "react-spinners": "^0.13.8",
+    "react-split": "^2.0.14",
+    "react-svg-pan-zoom": "^3.12.1",
+    "react-syntax-highlighter": "^15.5.0",
+    "react-table": "^7.8.0",
+    "react-textarea-autosize": "^8.5.3",
+    "react-toastify": "^10.0.5",
+    "react-transition-group": "^4.4.5",
+    "recharts": "^2.12.7",
+    "rehype-katex": "^7.0.0",
+    "rehype-raw": "^7.0.0",
+    "remark-directive": "^3.0.0",
+    "remark-gfm": "^4.0.0",
+    "remark-images": "^4.0.0",
+    "remark-math": "^6.0.0",
+    "remark-toc": "^9.0.0",
+    "rxjs": "^7.8.1",
+    "sass-loader": "^14.1.1",
+    "srt-parser-2": "^1.2.3",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "stream-to-blob": "^2.0.1",
+    "stripe": "^14.21.0",
+    "style-loader": "^3.3.4",
+    "systeminformation": "^5.21.24",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss-animate": "^1.0.7",
+    "three": "^0.166.1",
+    "tldextract": "^0.0.5",
+    "tree-kill": "^1.2.2",
+    "turndown": "^7.2.0",
+    "url": "^0.11.3",
+    "util": "^0.12.5",
+    "uuid": "^9.0.1",
+    "vaul": "^0.9.1",
+    "vm-browserify": "^1.1.2",
+    "xlsx": "^0.18.5",
+    "youtube-transcript": "^1.1.0",
+    "youtubei.js": "^9.1.0",
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@electron/notarize": "^2.1.0",
+    "@electron/rebuild": "^3.3.0",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.11",
+    "@svgr/webpack": "^8.1.0",
+    "@teamsupercell/typings-for-css-modules-loader": "^2.5.2",
+    "@testing-library/jest-dom": "^6.1.3",
+    "@testing-library/react": "^14.0.0",
+    "@types/jest": "^29.5.5",
+    "@types/luxon": "^3.4.2",
+    "@types/node": "20.6.2",
+    "@types/react": "^18.2.21",
+    "@types/react-dom": "^18.2.7",
+    "@types/react-svg-pan-zoom": "^3.3.9",
+    "@types/react-syntax-highlighter": "^15.5.11",
+    "@types/react-test-renderer": "^18.0.1",
+    "@types/terser-webpack-plugin": "^5.0.4",
+    "@types/uuid": "^10.0.0",
+    "@types/webpack-bundle-analyzer": "^4.6.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "autoprefixer": "^10.4.17",
+    "browserslist-config-erb": "^0.0.3",
+    "chalk": "^4.1.2",
+    "concurrently": "^8.2.1",
+    "core-js": "^3.32.2",
+    "cross-env": "^7.0.3",
+    "css-minimizer-webpack-plugin": "^5.0.1",
+    "detect-port": "^1.5.1",
+    "electron": "^26.2.1",
+    "electron-builder": "^24.6.4",
+    "electron-devtools-installer": "^3.2.0",
+    "electronmon": "^2.0.2",
+    "eslint": "^8.49.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-erb": "^4.1.0-0",
+    "eslint-import-resolver-typescript": "^3.6.0",
+    "eslint-import-resolver-webpack": "^0.13.7",
+    "eslint-plugin-compat": "^4.2.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-jest": "^27.4.0",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.5.3",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "mini-css-extract-plugin": "^2.7.6",
+    "node-loader": "^1.0.1",
+    "patch-package": "^8.0.0",
+    "postcss-loader": "^8.1.0",
+    "prettier": "^3.0.3",
+    "react-refresh": "^0.14.0",
+    "react-test-renderer": "^18.2.0",
+    "rimraf": "^5.0.1",
+    "sass": "^1.70.0",
+    "tailwindcss": "^3.4.1",
+    "terser-webpack-plugin": "^5.3.9",
+    "ts-jest": "^29.1.1",
+    "ts-loader": "^9.4.4",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths-webpack-plugin": "^4.1.0",
+    "typescript": "^5.2.2",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.90.1",
+    "webpack-bundle-analyzer": "^4.9.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1",
+    "webpack-merge": "^5.9.0"
+  },
+  "build": {
+    "productName": "Surfer",
+    "appId": "StraightOuttaHarbour.CEREBRUS-MAXIMUS.otherwise",
+    "asar": true,
+    "asarUnpack": "**\\*.{node,dll}",
+    "copyright": "2024 Thomas Stahura, Sahil Lalani, Jack Blair",
+    "files": [
+      "dist",
+      "node_modules",
+      "package.json",
+      "models"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}.${ext}"
+    },
+    "afterSign": ".erb/scripts/notarize.js",
+    "mac": {
+      "target": {
+        "target": "default",
+        "arch": [
+          "arm64",
+          "x64"
+        ]
+      },
+      "type": "distribution",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist",
+      "category": "public.app-category.developer-tools",
+      "notarize": {
+        "teamId": "97SB7MA2WB"
+      },
+      "icon": "assets/mac-icon.icns"
+    },
+    "dmg": {
+      "sign": false,
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Development"
+    },
+    "directories": {
+      "app": "release/app",
+      "buildResources": "assets",
+      "output": "release/build"
+    },
+    "extraResources": [
+      "./assets/**"
+    ]
+  },
+  "collective": {
+    "url": "https://opencollective.com/electron-react-boilerplate-594"
+  },
+  "devEngines": {
+    "node": ">=14.x",
+    "npm": ">=7.x"
+  },
+  "electronmon": {
+    "patterns": [
+      "!**/**",
+      "src/main/**"
+    ],
+    "logLevel": "quiet"
+  }
+}
