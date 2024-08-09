@@ -194,11 +194,11 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
       webview.addEventListener('ipc-message', ipcMessageHandler);
     }
 
-    return () => {
-      if (webview) {
-        webview.removeEventListener('ipc-message', ipcMessageHandler);
-      }
-    };
+    // return () => {
+    //   if (webview) {
+    //     webview.removeEventListener('ipc-message', ipcMessageHandler);
+    //   }
+    // };
   }, []);
 
   useEffect(() => {
