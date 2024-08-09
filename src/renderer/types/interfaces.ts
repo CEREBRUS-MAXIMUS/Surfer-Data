@@ -12,16 +12,6 @@ export interface IUserFile {
 }
 
 export interface IPreferences {
-  defaultChatPanelPosition: 'left' | 'right';
-  highlightButtons: boolean;
-  applicationFont: 'default' | string;
-  showSystemMessages: boolean;
-  userProfileActiveTab:
-    | 'context'
-    | 'passwords'
-    | 'history'
-    | 'payment'
-    | 'premium';
   contentScale: number;
 }
 
@@ -50,11 +40,6 @@ export interface IAppState {
 export const initialState: IAppState = {
   currentPage: 'tabs',
   preferences: {
-    defaultChatPanelPosition: 'right',
-    highlightButtons: false,
-    applicationFont: 'font-bricolage',
-    showSystemMessages: true,
-    userProfileActiveTab: 'context',
     contentScale: 1,
   },
   user: {
@@ -118,32 +103,7 @@ export interface IPlatform {
   };
   company: string;
   companyLogo: string;
-  isConnected: boolean;
   home_url: string;
   subRuns: ISubRun[];
   supportedOS: ('mac' | 'windows' | 'linux')[];
-}
-
-export interface IHistory {
-  id?: number;
-  URL: string;
-  Title: string;
-  HumanVisitCount: number;
-  AIVisitCount: number;
-  LastVisitTime: string;
-  keywords?: string[];
-  mostRecentMarkdown?: string;
-  mostRecentTools?: string;
-  mostRecentRawHTML?: string;
-  initiator: 'imported' | 'workspace' | 'localScrape' | 'cloudScrape';
-  favicon?: string;
-  ignoredByVectorDB?: boolean;
-}
-
-export interface IPassword {
-  id?: number;
-  loginURL: string;
-  userName: string;
-  password: string;
-  createDate: string;
 }

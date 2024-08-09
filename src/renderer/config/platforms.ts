@@ -1,8 +1,6 @@
 import { GitBranch, GitCommit, GitPullRequest, Users, Code, Book, Mail, Folder, MessageSquare, User, Twitter, FileText, Briefcase, AtSign } from 'lucide-react';
 import GithubLight from '../components/assets/platforms/GithubLight';
 import GithubDark from '../components/assets/platforms/GithubDark';
-import SlackLight from '../components/assets/platforms/SlackLight';
-import SlackDark from '../components/assets/platforms/SlackDark';
 import XLight from '../components/assets/platforms/XLight';
 import XDark from '../components/assets/platforms/XDark';
 import LinkedInLight from '../components/assets/platforms/LinkedInLight';
@@ -24,7 +22,6 @@ export const platforms: IPlatform[] = [
     },
     company: 'Microsoft',
     companyLogo: '/assets/logos/microsoft.svg',
-    isConnected: true,
     home_url: 'https://github.com',
     subRuns: [
       {
@@ -92,7 +89,6 @@ export const platforms: IPlatform[] = [
     },
     company: 'Google',
     companyLogo: '/assets/logos/google.svg',
-    isConnected: true,
     home_url: 'https://mail.google.com',
     subRuns: [
       {
@@ -136,7 +132,6 @@ export const platforms: IPlatform[] = [
   //   },
   //   company: 'Salesforce',
   //   companyLogo: '/assets/logos/salesforce.png',
-  //   isConnected: true,
   //   home_url: 'https://app.slack.com',
   //   subRuns: [
   //     { id: 'slack-001-messages', name: 'Messages', icon: MessageSquare, description: 'Extracts all messages', extractionMethod: 'Slack API - /chat.postMessage endpoint', tasks: [] },
@@ -154,7 +149,6 @@ export const platforms: IPlatform[] = [
     },
     company: 'Notion',
     companyLogo: '/assets/logos/notion.png',
-    isConnected: true,
     home_url: 'https://notion.so',
     subRuns: [
       { id: 'notion-001-pages', name: 'Pages', icon: FileText, description: 'Extracts all pages', extractionMethod: 'Notion API - /pages endpoint', tasks: [] },
@@ -172,7 +166,6 @@ export const platforms: IPlatform[] = [
     },
     company: 'Microsoft',
     companyLogo: '/assets/logos/microsoft.png',
-    isConnected: true,
     home_url: 'https://linkedin.com/feed',
     subRuns: [
       { id: 'linkedin-001-profile', name: 'Profile', icon: User, description: 'Extracts profile information', extractionMethod: 'LinkedIn API - /me endpoint', tasks: [] },
@@ -191,7 +184,6 @@ export const platforms: IPlatform[] = [
     },
     company: 'X Corp',
     companyLogo: '/assets/logos/x.png',
-    isConnected: true,
     home_url: 'https://x.com/home',
     subRuns: [
       { id: 'twitter-001-tweets', name: 'Tweets', icon: Twitter, description: 'Extracts all tweets', extractionMethod: 'Twitter API - /tweets endpoint', tasks: [] },
