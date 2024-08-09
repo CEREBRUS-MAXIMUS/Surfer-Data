@@ -4,7 +4,7 @@ import { startRun, toggleRunVisibility, setExportRunning, updateExportStatus } f
 import { useTheme } from '../ui/theme-provider';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Button } from "../ui/button";
-import { ArrowUpRight, ArrowRight, Check, X, Link, Download, Search, ChevronLeft, ChevronRight, HardDriveDownload } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, Check, X, Link, Download, Search, ChevronLeft, ChevronRight, HardDriveDownload, Folder } from 'lucide-react';
 import { platforms } from '../../config/platforms';
 import { openDB } from 'idb';
 import { Input } from "../ui/input";
@@ -242,7 +242,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                                     className="p-0"
                                     onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
                                   >
-                                    <ArrowUpRight size={16} className="text-blue-500" />
+                                    <Folder size={24} />
                                   </Button>
                                 )}
                               </>
