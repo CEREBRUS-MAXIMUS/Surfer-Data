@@ -9,7 +9,7 @@ import { getFilesInFolder } from './utils/util';
 import {
   app,
   BrowserWindow,
-  shell,
+  shell, 
   ipcMain,
   protocol,
   Menu,
