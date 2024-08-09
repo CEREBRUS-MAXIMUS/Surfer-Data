@@ -60,9 +60,9 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   }, []);
 
   useEffect(() => {
-    const handleExportComplete = (platformId, exportData, runID) => {
+    const handleExportComplete = (platformId, exportData, runID, namePath) => {
       console.log('stopping run for platform id: ', platformId, ', and name: ', exportData, ', and runID: ', runID)
-      dispatch(updateExportStatus(platformId, exportData, runID));
+      dispatch(updateExportStatus(platformId, exportData, runID, namePath));
     };
 
     window.electron.ipcRenderer.on('export-complete', handleExportComplete);
@@ -239,10 +239,11 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                                 {latestRun.exportPath && (
                                   <Button
                                     size="sm"
-                                    variant="outline"
+                                    variant="ghost"
+                                    className="p-0"
                                     onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
                                   >
-                                    Open Folder
+                                    <ArrowUpRight size={16} className="text-blue-500" />
                                   </Button>
                                 )}
                               </>

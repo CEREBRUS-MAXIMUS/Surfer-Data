@@ -115,7 +115,7 @@ const runsReducer = (state: IRun[] = initialAppState.runs, action: any): IRun[] 
     case 'UPDATE_EXPORT_STATUS':
       return state.map(run =>
         run.id === action.payload.runID
-          ? { ...run, status: 'success' }
+          ? { ...run, status: 'success', exportPath: action.payload.exportPath }
           : run
       );
     case 'SET_EXPORT_RUNNING':

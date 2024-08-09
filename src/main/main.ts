@@ -488,7 +488,7 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
     fs.writeFileSync(filePath, formatContent(content));
   }
 
-  mainWindow?.webContents.send('export-complete', platform_name, name, runID); // would send this to datasources.jsx
+  mainWindow?.webContents.send('export-complete', platform_name, name, runID, namePath); // would send this to datasources.jsx
 });
 
 ipcMain.on('connect-website', (event, company) => {
@@ -698,4 +698,26 @@ app.on('will-finish-launching', () => {
       mainWindow.webContents.send('open-url', url);
     }
   });
+});
+
+ipcMain.on('open-folder', (event, folderPath) => {
+  if (folderPath) {
+    shell.openPath(folderPath)
+      .then((error) => {
+        if (error) {
+          console.error('Error opening folder:', error);
+          // Optionally, you can send an error message back to the renderer process
+          event.reply('open-folder-error', error);
+        }
+      })
+      .catch((error) => {
+        console.error('Error opening folder:', error);
+        // Optionally, you can send an error message back to the renderer process
+        event.reply('open-folder-error', error.message);
+      });
+  } else {
+    console.error('Invalid folder path');
+    // Optionally, you can send an error message back to the renderer process
+    event.reply('open-folder-error', 'Invalid folder path');
+  }
 });
