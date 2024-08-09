@@ -60,6 +60,10 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 Project Link: [https://github.com/CEREBRUS-MAXIMUS/Surfer-Data](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data)
 
+## Acknowledgements
+
+- [Electron React Boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate)
+
 [contributors-shield]: https://img.shields.io/github/contributors/CEREBRUS-MAXIMUS/Surfer-Data.svg?style=for-the-badge
 [contributors-url]: https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/CEREBRUS-MAXIMUS/Surfer-Data.svg?style=for-the-badge
