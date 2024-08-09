@@ -24,7 +24,7 @@
   "author": {
     "name": "Surfer",
     "email": "slalani304@gmail.com",
-    "url": "https://surfsup.framer.website"
+    "url": "https://surfsup.web.app"
   },
   "main": "./src/main/main.ts",
   "scripts": {

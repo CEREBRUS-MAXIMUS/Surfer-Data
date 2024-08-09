@@ -24,7 +24,7 @@
   "author": {
     "name": "Jack Blair, Thomas Stahura, Sahil Lalani",
     "email": "jackblairing@gmail.com",
-    "url": "https://surfsup.framer.website"
+    "url": "https://surfsup.web.app"
   },
   "main": "./dist/main/main.js",
   "scripts": {

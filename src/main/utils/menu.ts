@@ -231,7 +231,7 @@ export default class MenuBuilder {
         {
           label: 'Learn More',
           click() {
-            shell.openExternal('https://surfsup.framer.website');
+            shell.openExternal('https://surfsup.web.app');
           },
         },
         {
@@ -368,7 +368,7 @@ export default class MenuBuilder {
           {
             label: 'Learn More',
             click() {
-              shell.openExternal('https://surfsup.framer.website');
+              shell.openExternal('https://surfsup.web.app');
             },
           },
           {
