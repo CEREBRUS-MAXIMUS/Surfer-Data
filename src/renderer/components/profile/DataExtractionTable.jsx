@@ -103,7 +103,8 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   };
 
   const filteredPlatforms = platforms.filter(platform =>
-    platform.name.toLowerCase().includes(searchTerm.toLowerCase())
+    platform.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    platform.company.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const pageCount = Math.ceil(filteredPlatforms.length / itemsPerPage);
@@ -159,13 +160,13 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   };
 
   return (
-    <div className="w-full mx-auto space-y-4 px-[50px] select-none">
+    <div className="w-full mx-auto space-y-4 px-[50px] pt-6 select-none">
       <div className="flex items-center mb-4">
         <div className="relative w-64">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <Input
             type="text"
-            placeholder="Search platforms..."
+            placeholder="Search company or platform..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -190,7 +191,6 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Platform</TableHead>
-                  <TableHead>Export Status</TableHead>
                   <TableHead>Actions</TableHead>
                   <TableHead>Last Run</TableHead>
                 </TableRow>
@@ -214,7 +214,6 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{latestRun?.exportStatus || 'Not Started'}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button

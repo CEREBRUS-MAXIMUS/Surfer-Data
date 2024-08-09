@@ -232,7 +232,7 @@ const DataSources = (webviewRef) => {
   };
 
   return (
-    <div className="w-full flex flex-col bg-background">
+    <div className="w-full flex flex-col bg-background pt-6">
       {currentView === 'main' ? (
         <div className="w-10/11 pr-4">
           <DataExtractionTable
@@ -243,7 +243,6 @@ const DataSources = (webviewRef) => {
       ) : (
         renderDashboard()
       )}
-
     </div>
   );
 };
