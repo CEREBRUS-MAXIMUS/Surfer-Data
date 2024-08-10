@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Surfer is the world's first personal data scraper.",
   "keywords": [
     "electron",
@@ -128,6 +128,7 @@
     "react-photo-view": "^1.2.6",
     "react-resizable-panels": "^2.0.22",
     "react-transition-group": "^4.4.5",
+    "sass-loader": "^16.0.0",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
     "style-loader": "^4.0.0",

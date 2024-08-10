@@ -2,7 +2,7 @@
   "description": "Surfer is the world's first personal data scraper.",
   "productName": "Surfer",
   "name": "surfer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "keywords": [
     "electron",
     "ai",
