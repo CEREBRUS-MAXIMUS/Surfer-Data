@@ -162,7 +162,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   return (
     <div className="w-full mx-auto space-y-4 px-[50px] pt-6 select-none">
       <div className="flex items-center mb-4">
-        <div className="relative w-64">
+        <div className="relative w-full max-w-2xl">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <Input
             type="text"
@@ -172,7 +172,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="pl-10 pr-10"
+            className="pl-10 pr-10 w-full"
           />
           {searchTerm && (
             <button

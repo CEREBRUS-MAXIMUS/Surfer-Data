@@ -14,6 +14,8 @@ import { useTheme } from '../ui/theme-provider';
 import { setCurrentPage, toggleRunVisibility } from '../../state/actions';
 import { Button } from '../ui/button';
 import Toggle from './Toggle';
+import SettingsButton from './SettingsButton';
+import SupportButton from './SupportButton';
 
 const getStyleHorizontalLock = (style) =>
   style?.transform
@@ -22,7 +24,6 @@ const getStyleHorizontalLock = (style) =>
         transform: `translate(${style.transform.split(',')[0].split('(').pop()}, 0px)`,
       }
     : style;
-
 
 const StyledSurferHeader = styled.div`
   align-items: center;
@@ -133,7 +134,9 @@ const StyledSurferHeader = styled.div`
     justify-content: center;
     cursor: pointer;
     -webkit-app-region: no-drag;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
     color: hsl(var(--secondary-foreground));
   }
 
@@ -503,7 +506,6 @@ const StyledSurferHeader = styled.div`
     cursor: pointer;
   }
 
-
   & .image-user-profile {
     margin-bottom: -2px;
     margin-left: -2px;
@@ -559,13 +561,12 @@ export const SurferHeader = () => {
   const dispatch = useDispatch();
   const runs = useSelector((state) => state.runs);
   const isRunLayerVisible = useSelector((state) => state.isRunLayerVisible);
-  const activeRuns = useSelector((state) =>
-    state.runs.filter(run => run.status === 'running').length
+  const activeRuns = useSelector(
+    (state) => state.runs.filter((run) => run.status === 'running').length,
   );
 
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isMac, setIsMac] = useState(false);
-
 
   useEffect(() => {
     window.electron.ipcRenderer.send('get-platform');
@@ -593,22 +594,17 @@ export const SurferHeader = () => {
 
   const { theme } = useTheme();
 
-
-
   const handleViewRuns = () => {
     dispatch(toggleRunVisibility());
   };
 
-
-
   return (
-    <StyledSurferHeader theme={theme} className='bg-background text-foreground'>
+    <StyledSurferHeader theme={theme} className="bg-background text-foreground">
       <div className="div">
         <div className="header-main-content">
           {!isFullScreen && isMac && <div className="browser-controls" />}
 
           <div className="header-tabs">
-
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -638,12 +634,28 @@ export const SurferHeader = () => {
               </div>
             )}
           </div>
-
         </div>
         <div className="header-option-panel">
-          <TooltipProvider>
-            <Toggle />
+        <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SupportButton />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Support</p>
+              </TooltipContent>
+            </Tooltip>
           </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <SettingsButton />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Settings</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         </div>
       </div>
     </StyledSurferHeader>
