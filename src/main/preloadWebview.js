@@ -50,8 +50,7 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
       if (profile === 'Not connected') {
         ipcRenderer.send('connect-website', company);
       } else {
-        profile = turndown.turndown(removeCSSAndScriptsFromHTML(profile))
-        ipcRenderer.send('handle-export', company, name, profile, runID)
+        ipcRenderer.send('handle-export', company, name, JSON.stringify(profile, null, 2), runID)
       }
       break;
     case 'Twitter':
