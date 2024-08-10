@@ -6,7 +6,7 @@ if (window.trustedTypes && window.trustedTypes.createPolicy) {
 
 const { contextBridge, ipcRenderer, BrowserWindow } = require('electron');
 const TurndownService = require('./turndown');
-const removeCSSAndScriptsFromHTML = require('./preloadFunctions')
+const { removeCSSAndScriptsFromHTML, customConsoleLog } = require('./preloadFunctions')
 const exportNotion = require('./Companies/Notion/notion');
 const {
   exportGithub,
@@ -22,16 +22,19 @@ contextBridge.exposeInMainWorld('electron', electronHandler);
 
 const turndown = new TurndownService();
 
+// Custom console log function to send logs to ipcRenderer
+
 ipcRenderer.on('export-website', async (event, company, name, runID) => {
-  console.log('company: ', company);
-  console.log('name: ', name);
-  console.log('runID: ', runID);
-  console.log("EXPORT WEBSITE CALLED!!!!!")
+  
+  customConsoleLog('company: ', company);
+  customConsoleLog('name: ', name);
+  customConsoleLog('runID: ', runID);
+  customConsoleLog("EXPORT WEBSITE CALLED!!!!!")
   switch (name) {
     case 'Notion':
       const notionRes = await exportNotion();
       if (notionRes) {
-        console.log('SENDING CONNECT WEBSITE!')
+        customConsoleLog('SENDING CONNECT WEBSITE!')
         ipcRenderer.send('connect-website', company)
       }
       break;
@@ -76,10 +79,10 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
 
 (async () => {
   if (window.location.href.includes('?tab=repositories')) {
-    console.log('tryna get run id and shit!!')
+    customConsoleLog('tryna get run id and shit!!')
     ipcRenderer.sendToHost('get-run-id');
     ipcRenderer.on('got-run-id', async (event, id) => {  
-      console.log('got run id! ', id)
+      customConsoleLog('got run id! ', id)
       const repos = await continueExportGithub();
       ipcRenderer.send('handle-export', 'Microsoft', 'GitHub', repos, id);
     });

@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-Thank you for your interest in contributing to the Surfer project! We welcome contributions from the community to help improve and expand this personal data scraper.
+Thank you for your interest in contributing to the Surfer project! We welcome contributions from the community to help improve and expand this digital footprint exporter.
 
 ## Setup Guide
 
@@ -54,4 +54,4 @@ By following these guidelines, you can help maintain a consistent and organized 
 ## Contact
 If you have any questions or need further assistance, please feel free to reach out to the project maintainers:
 
-[Surfer Discord Server](https://discord.gg/Tjg7pjcFNP) - [@SahilLalani0](https://x.com/SahilLalani0) - [@JackBlair87](https://x.com/JackBlair87)
+[Surfer Discord Server](https://discord.gg/Tjg7pjcFNP) - [@SahilLalani0](https://x.com/SahilLalani0) - [@JackBlair87](https://x.com/JackBlair87) - [@T0M_3D](https://x.com/T0M_3D)

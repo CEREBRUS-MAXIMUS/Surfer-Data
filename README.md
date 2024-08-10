@@ -1,4 +1,4 @@
-# Surfer: The World's First Personal Data Scraper
+# Surfer: The World's First Digital Footprint Exporter
 
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
@@ -8,7 +8,7 @@
 
 ## About The Project
 
-Surfer is the world's first personal data scraper, designed to centralize all your personal data from various online platforms into a single folder.
+Surfer is the world's first digital footprint exporter, designed to centralize all your personal data from various online platforms into a single folder.
 
 Currently, your personal data is scattered across hundreds of platforms and the companies operating these platforms have no incentive to give this data back to you. Surfer solves this problem by navigating to websites and scraping data from these websites.
 
@@ -16,7 +16,9 @@ We believe that personal data centralization is the key to enabling truly useful
 
 ## Getting Started
 
-For instructions on setting up the development environment and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md).
+To download the app, head over to [https://surfsup.web.app](https://surfsup.web.app). Or you can go to the releases page.
+
+For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md).
 
 ## Usage
 
@@ -56,7 +58,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Contact
 
-[Surfer Discord Server](https://discord.gg/Tjg7pjcFNP) - [@SahilLalani0](https://x.com/SahilLalani0) - [@JackBlair87](https://x.com/JackBlair87)
+[Surfer Discord Server](https://discord.gg/Tjg7pjcFNP) - [@SahilLalani0](https://x.com/SahilLalani0) - [@JackBlair87](https://x.com/JackBlair87) - [@T0M_3D](https://x.com/T0M_3D)
 
 Project Link: [https://github.com/CEREBRUS-MAXIMUS/Surfer-Data](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data)
 
