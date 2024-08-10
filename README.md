@@ -16,7 +16,9 @@ We believe that personal data centralization is the key to enabling truly useful
 
 ## Getting Started
 
-For instructions on setting up the development environment and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md).
+To download the app, head over to [https://surfsup.web.app](https://surfsup.web.app). Or you can go to the releases page.
+
+For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md).
 
 ## Usage
 

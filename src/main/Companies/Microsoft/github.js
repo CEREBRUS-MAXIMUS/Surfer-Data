@@ -1,3 +1,5 @@
+const { customConsoleLog } = require('../../preloadFunctions');
+
 async function exportGithub() {
   await new Promise((resolve) => setTimeout(resolve, 2000));
   // Add your GitHub export logic here
@@ -6,11 +8,10 @@ async function exportGithub() {
   )[0];
 
   if (!tabButton) {
-    console.log('user not connected');
-    return "Not connected"
-    
+    customConsoleLog('user not connected');
+    return 'Not connected';
+
     // send msg here that user needs to SIGN IN first!
-   
   }
 
   tabButton.click();
@@ -22,7 +23,7 @@ async function exportGithub() {
   )[0];
 
   if (!repoTab) {
-    console.log('Repository tab not found');
+    customConsoleLog('Repository tab not found');
     return;
   }
 
@@ -33,8 +34,7 @@ async function exportGithub() {
 }
 
 async function continueExportGithub() {
-
-  console.log('CONTINUE GITHUB!!!!');
+  customConsoleLog('CONTINUE GITHUB!!!!');
 
   const repos = [];
 
@@ -44,7 +44,7 @@ async function continueExportGithub() {
     const repoLinks = document.querySelectorAll(
       'a[itemprop="name codeRepository"]',
     );
-    console.log('these repo links!!! ', repoLinks);
+    customConsoleLog('these repo links!!! ', repoLinks);
 
     for (const repoLink of repoLinks) {
       let desc = '';
@@ -74,12 +74,10 @@ async function continueExportGithub() {
   }
 
   // Assuming ipcRenderer is available in this context
-  
 
-  console.log('GitHub export completed. Total repositories:', repos.length);
+  customConsoleLog('GitHub export completed. Total repositories:', repos.length);
 
   return repos;
-
 }
 
 module.exports = { exportGithub, continueExportGithub };

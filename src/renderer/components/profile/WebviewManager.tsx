@@ -175,11 +175,8 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
 
   useEffect(() => {
     const webview = webviewRef.current;
-    console.log('webview use effect listener called!');
-    
     const ipcMessageHandler = (event) => {
       const { channel, args } = event; // Assuming the event has channel and args properties
-      console.log(`Received IPC message on channel: ${channel}`, args);
       if (channel === 'get-run-id') {
         const runningRuns = runs.filter(run => run.status === 'running');
         if (runningRuns.length > 0) {
@@ -187,10 +184,15 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
           webview.send('got-run-id', runningRuns[runningRuns.length - 1].id);
         }
       }
+
+      if (channel === 'console-log') {
+        console.log('logs from preloadWebview: ', args);
+      }
       // Handle the IPC message as needed
     };
 
     if (webview) {
+      console.log('adding event listener!')
       webview.addEventListener('ipc-message', ipcMessageHandler);
     }
 
@@ -199,7 +201,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
     //     webview.removeEventListener('ipc-message', ipcMessageHandler);
     //   }
     // };
-  }, []);
+  }, [runs.length]);
 
   useEffect(() => {
     if (runs.length > 0) {

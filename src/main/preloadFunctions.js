@@ -1,3 +1,5 @@
+const { ipcRenderer } = require('electron')
+
 function removeCSSAndScriptsFromHTML(htmlString) {
   // Create a copy of the input HTML string
   let modifiedHTML = htmlString.slice();
@@ -17,4 +19,12 @@ function removeCSSAndScriptsFromHTML(htmlString) {
   return modifiedHTML;
 }
 
-module.exports = removeCSSAndScriptsFromHTML
+function customConsoleLog(...args) {
+  // Convert arguments to strings to avoid cloning issues
+  const stringArgs = args.map((arg) =>
+    typeof arg === 'object' ? JSON.stringify(arg) : arg,
+  );
+  ipcRenderer.sendToHost('console-log', ...stringArgs);
+};
+
+module.exports = { removeCSSAndScriptsFromHTML, customConsoleLog }
