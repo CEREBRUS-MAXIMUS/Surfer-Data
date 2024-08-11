@@ -5,16 +5,15 @@ import {
   setHighlightButtons,
   setApplicationFont,
   setShowSystemMessages,
-  setCurrentPage,
-} from '../../state/actions';
-import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { Label } from '../ui/label';
-import { Card, CardContent } from '../ui/card';
-import { useTheme } from '../ui/theme-provider';
-import { Switch } from '../ui/switch';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { toast } from '../ui/use-toast';
+} from '../state/actions';
+import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
+import { Label } from '../components/ui/label';
+import { Card, CardContent } from '../components/ui/card';
+import { useTheme } from '../components/ui/theme-provider';
+import { Switch } from '../components/ui/switch';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { toast } from '../components/ui/use-toast';
 
 const Settings = () => {
   const dispatch = useDispatch();
@@ -67,16 +66,10 @@ const Settings = () => {
     }
   };
 
-  const handleBack = () => {
-    dispatch(setCurrentPage('tabs'));
-  };
 
   return (
     <div className={`container mx-auto px-4 py-8`}>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <Button onClick={handleBack}>Back</Button>
-      </div>
+
 
       <div className="space-y-8">
         <Card>
@@ -98,38 +91,6 @@ const Settings = () => {
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="system" id="system" />
                 <Label htmlFor="system">System</Label>
-              </div>
-            </RadioGroup>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Application Font</h2>
-            <RadioGroup
-              value={preferences.applicationFont}
-              onValueChange={handleApplicationFontChange}
-              className="space-y-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="default" id="font-default" />
-                <Label htmlFor="font-default" className="font-sans">Default (Inter)</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="niramit" id="font-niramit" />
-                <Label htmlFor="font-niramit" className="font-niramit">Niramit</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="bricolage" id="font-bricolage" />
-                <Label htmlFor="font-bricolage" className="font-bricolage">Bricolage Grotesque</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="gurajada" id="font-gurajada" />
-                <Label htmlFor="font-gurajada" className="font-gurajada">Gurajada</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="averia" id="font-averia" />
-                <Label htmlFor="font-averia" className="font-averia">Averia Sans Libre</Label>
               </div>
             </RadioGroup>
           </CardContent>

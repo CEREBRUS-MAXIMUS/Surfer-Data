@@ -1,23 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { Button } from "../ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { Download, ChevronRight, ChevronDown } from 'lucide-react';
 import { openDB } from 'idb';
-import RunDetailsPage from './RunDetailsPage';
-import SubRunDashboard from './SubRunDashboard';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "../ui/breadcrumb";
-import { useTheme } from '../ui/theme-provider';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import RunDetailsPage from '../components/profile/RunDetailsPage';
+import SubRun from './SubRun';
+import { useTheme } from '../components/ui/theme-provider';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../components/ui/alert-dialog";
 import { useDispatch } from 'react-redux';
-import { deleteRunsForPlatform } from '../../state/actions';
-import { deleteRunsForPlatformFromDB } from '../../lib/databases';
+import { deleteRunsForPlatform } from '../state/actions';
+import { deleteRunsForPlatformFromDB } from '../lib/databases';
 
-const PlatformDashboard = ({ platform, onSubRunClick }) => {
+const Platform = ({ platform, onSubRunClick, selectedSubRun }) => {
   const [runs, setRuns] = useState([]);
   const [expandedRuns, setExpandedRuns] = useState({});
   const [selectedRunId, setSelectedRunId] = useState(null);
-  const [selectedSubRun, setSelectedSubRun] = useState(null);
   const { theme } = useTheme();
   const dispatch = useDispatch();
 
@@ -49,11 +47,7 @@ const PlatformDashboard = ({ platform, onSubRunClick }) => {
   };
 
   const handleSubRunClick = (subRun) => {
-    setSelectedSubRun(subRun);
-  };
-
-  const handleBackFromSubRun = () => {
-    setSelectedSubRun(null);
+    onSubRunClick(subRun);
   };
 
   const handleDeleteAllData = async () => {
@@ -66,20 +60,6 @@ const PlatformDashboard = ({ platform, onSubRunClick }) => {
     }
   };
 
-  const renderBreadcrumb = () => (
-    <Breadcrumb>
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage>{platform.name}</BreadcrumbPage>
-        </BreadcrumbItem>
-      </BreadcrumbList>
-    </Breadcrumb>
-  );
-
   const getPlatformLogo = () => {
     const Logo = theme === 'dark' ? platform.logo.dark : platform.logo.light;
     return Logo ? (
@@ -90,13 +70,11 @@ const PlatformDashboard = ({ platform, onSubRunClick }) => {
   };
 
   if (selectedSubRun) {
-    return <SubRunDashboard platform={platform} subRun={selectedSubRun} onBack={handleBackFromSubRun} />;
+    return <SubRun platform={platform} subRun={selectedSubRun} />;
   }
 
   return (
     <div className="space-y-8 px-[50px] pt-6">
-      {renderBreadcrumb()}
-
       <Card>
         <CardHeader className="flex flex-row items-center space-x-4">
           {getPlatformLogo()}
@@ -241,4 +219,4 @@ const PlatformDashboard = ({ platform, onSubRunClick }) => {
   );
 };
 
-export default PlatformDashboard;
+export default Platform;

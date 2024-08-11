@@ -32,6 +32,8 @@ import {
   RadioGroupItem
 } from '../ui/radio-group';
 import { Label } from '../ui/label';
+import { setCurrentRoute } from '../../state/actions';
+
 
 const SettingsButton = ({ handleOpenHistory }) => {
   const dispatch = useDispatch();
@@ -47,6 +49,9 @@ const SettingsButton = ({ handleOpenHistory }) => {
     }
   };
 
+  const handleOpenFullSettings = () => {
+    dispatch(setCurrentRoute('/settings'));
+  };
 
   return (
     <DropdownMenu>
@@ -78,7 +83,11 @@ const SettingsButton = ({ handleOpenHistory }) => {
             </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
-
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleOpenFullSettings} style={{ cursor: 'pointer' }}>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Full Settings</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

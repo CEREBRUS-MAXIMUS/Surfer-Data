@@ -11,9 +11,9 @@ export default function App() {
   return (
     <Provider store={store}>
       <ThemeProvider defaultTheme="dark" storageKey="app-theme">
-          <PhotoProvider>
-            <Surfer />
-          </PhotoProvider>
+        <PhotoProvider>
+          <Surfer />
+        </PhotoProvider>
       </ThemeProvider>
     </Provider>
   );

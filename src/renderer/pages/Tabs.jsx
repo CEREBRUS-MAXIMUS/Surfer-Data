@@ -3,9 +3,9 @@ import { SurferHeader } from '../components/header/SurferHeader';
 import { createNewWorkspace } from '../state/actions';
 import { useState, useEffect, useRef } from 'react';
 import { Alert, AlertTitle, AlertDescription } from '../components/ui/alert';
-import Home from './Home';
+import Home from './Landing';
 import { setContentScale } from '../state/actions';
-import DataSources from '../components/profile/DataSources';
+import DataSources from './Home';
 import WebviewManager from '../components/profile/WebviewManager';
 import { platforms } from '../config/platforms';
 

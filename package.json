@@ -131,6 +131,7 @@
     "react-hook-form": "^7.52.1",
     "react-photo-view": "^1.2.6",
     "react-resizable-panels": "^2.0.22",
+    "react-router-dom": "^6.26.0",
     "react-transition-group": "^4.4.5",
     "sass-loader": "^16.0.0",
     "stream-browserify": "^3.0.0",

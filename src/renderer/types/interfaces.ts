@@ -30,15 +30,24 @@ export interface IUser {
 
 export interface IAppState {
   currentPage: string;
+  currentView: 'home' | 'platform' | 'subrun' | 'run';
+  selectedPlatformId: string | null;
+  selectedSubRunId: string | null;
+  selectedRunId: string | null;
   preferences: IPreferences;
   user: IUser;
   runs: IRun[];
   activeRunIndex: number;
   isRunLayerVisible: boolean;
+  breadcrumb: { icon: string; text: string; link: string }[];
 }
 
 export const initialState: IAppState = {
   currentPage: 'tabs',
+  currentView: 'home',
+  selectedPlatformId: null,
+  selectedSubRunId: null,
+  selectedRunId: null,
   preferences: {
     contentScale: 1,
   },
@@ -49,6 +58,7 @@ export const initialState: IAppState = {
   runs: [],
   activeRunIndex: 0,
   isRunLayerVisible: false,
+  breadcrumb: [{ icon: 'Home', text: 'Home', link: '/' }],
 };
 
 export interface IStep {

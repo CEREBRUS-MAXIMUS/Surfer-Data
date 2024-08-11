@@ -11,7 +11,7 @@ import { initialAppState } from '../config/initialStates';
 const currentPageReducer = (state: string = 'tabs', action: any): string => {
   switch (action.type) {
     case 'SET_CURRENT_PAGE':
-      return action.payload;
+      return action.payload.page;
     default:
       return state;
   }
@@ -157,6 +157,71 @@ const isRunLayerVisibleReducer = (state = initialAppState.isRunLayerVisible, act
   }
 };
 
+const breadcrumbReducer = (state: { icon: string; text: string; link: string }[] = [], action: any) => {
+  switch (action.type) {
+    case 'UPDATE_BREADCRUMB':
+      return action.payload;
+    case 'SET_CURRENT_PAGE':
+      return action.payload.breadcrumb;
+    default:
+      return state;
+  }
+};
+
+const currentViewReducer = (state = initialAppState.currentView, action: any) => {
+  switch (action.type) {
+    case 'SET_CURRENT_VIEW':
+      return action.payload.view;
+    default:
+      return state;
+  }
+};
+
+const selectedPlatformIdReducer = (state = initialAppState.selectedPlatformId, action: any) => {
+  switch (action.type) {
+    case 'SET_CURRENT_VIEW':
+      return action.payload.platformId || null;
+    default:
+      return state;
+  }
+};
+
+const selectedSubRunIdReducer = (state = initialAppState.selectedSubRunId, action: any) => {
+  switch (action.type) {
+    case 'SET_CURRENT_VIEW':
+      return action.payload.subRunId || null;
+    default:
+      return state;
+  }
+};
+
+const selectedRunIdReducer = (state = initialAppState.selectedRunId, action: any) => {
+  switch (action.type) {
+    case 'SET_CURRENT_VIEW':
+      return action.payload.runId || null;
+    default:
+      return state;
+  }
+};
+
+const appReducer = (state = { currentRoute: '/' }, action) => {
+  switch (action.type) {
+    case 'SET_CURRENT_ROUTE':
+      return { ...state, currentRoute: action.payload };
+    default:
+      return state;
+  }
+};
+
+const routingReducer = (state = { currentRoute: '/', params: {} }, action) => {
+  switch (action.type) {
+    case 'SET_ROUTE':
+      return { ...state, currentRoute: action.payload.route, params: action.payload.params };
+    default:
+      return state;
+  }
+};
+
 // Custom combineReducers function
 const customCombineReducers = (reducers: { [key: string]: any }) => {
   return (state: IAppState = initialAppState, action: any) => {
@@ -179,6 +244,13 @@ const rootReducer = customCombineReducers({
   runs: runsReducer,
   activeRunIndex: activeRunIndexReducer,
   isRunLayerVisible: isRunLayerVisibleReducer,
+  breadcrumb: breadcrumbReducer,
+  currentView: currentViewReducer,
+  selectedPlatformId: selectedPlatformIdReducer,
+  selectedSubRunId: selectedSubRunIdReducer,
+  selectedRunId: selectedRunIdReducer,
+  app: appReducer,
+  routing: routingReducer,
 });
 
 export default rootReducer;

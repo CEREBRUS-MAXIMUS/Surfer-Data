@@ -4,6 +4,7 @@ import { Clock, Plus, Home, Wrench, Eye } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useSelector, useDispatch } from 'react-redux';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '../ui/breadcrumb';
 import {
   Tooltip,
   TooltipContent,
@@ -11,12 +12,10 @@ import {
   TooltipTrigger,
 } from '../ui/tooltip';
 import { useTheme } from '../ui/theme-provider';
-import { setCurrentPage, toggleRunVisibility } from '../../state/actions';
+import { setCurrentRoute, toggleRunVisibility } from '../../state/actions';
 import { Button } from '../ui/button';
-import Toggle from './Toggle';
 import SettingsButton from './SettingsButton';
 import SupportButton from './SupportButton';
-import IntegrationsButton from './IntegrationsButton';
 
 const getStyleHorizontalLock = (style) =>
   style?.transform
@@ -557,11 +556,10 @@ const StyledSurferHeader = styled.div`
 
 export const SurferHeader = () => {
   const dispatch = useDispatch();
-  const runs = useSelector((state) => state.runs);
+  const breadcrumb = useSelector((state) => state.breadcrumb);
   const isRunLayerVisible = useSelector((state) => state.isRunLayerVisible);
-  const activeRuns = useSelector(
-    (state) => state.runs.filter((run) => run.status === 'running').length,
-  );
+  const runs = useSelector((state) => state.runs);
+  const activeRuns = runs.filter((run) => run.status === 'running').length;
 
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isMac, setIsMac] = useState(false);
@@ -592,9 +590,18 @@ export const SurferHeader = () => {
 
   const { theme } = useTheme();
 
+  const handleBreadcrumbClick = (link) => {
+    console.log('Breadcrumb clicked:', link);
+    dispatch(setCurrentRoute(link));
+  };
+
   const handleViewRuns = () => {
-    dispatch(setCurrentPage('tabs'));
     dispatch(toggleRunVisibility());
+  };
+
+  const handleHomeClick = () => {
+    console.log('Home clicked');
+    dispatch(setCurrentRoute('/home'));
   };
 
   return (
@@ -602,36 +609,37 @@ export const SurferHeader = () => {
       <div className="div">
         <div className="header-main-content">
           {!isFullScreen && isMac && <div className="browser-controls" />}
-
-          <div className="header-tabs">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
+          <div className="header-option-panel">
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
                   <Button
                     variant="ghost"
-                    size="icon"
-                    onClick={handleViewRuns}
-                    className="history-button relative"
+                    size="sm"
+                    onClick={handleHomeClick}
+                    className="flex items-center px-2 py-1"
                   >
-                    <Eye size={18} />
-                    {runs.length > 0 && (
-                      <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
-                        {activeRuns}
-                      </span>
-                    )}
+                    <Home size={16} className="mr-2" />
+                    Home
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>View Runs</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            {activeRuns > 0 && (
-              <div className="ml-2 bg-blue-500 text-white rounded-full px-2 py-1 text-xs flex items-center">
-                <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></div>
-                {activeRuns} active run{activeRuns !== 1 ? 's' : ''}
-              </div>
-            )}
+                </BreadcrumbItem>
+                {breadcrumb.slice(1).map((item, index) => (
+                  <React.Fragment key={index}>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleBreadcrumbClick(item.link)}
+                        className="flex items-center px-2 py-1"
+                      >
+                        {item.text}
+                      </Button>
+                    </BreadcrumbItem>
+                  </React.Fragment>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
         </div>
         <div className="header-option-panel">
@@ -645,16 +653,28 @@ export const SurferHeader = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          {/* <TooltipProvider>
+          <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <IntegrationsButton />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleViewRuns}
+                  className="history-button relative"
+                >
+                  <Eye size={18} />
+                  {runs.length > 0 && (
+                    <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
+                      {activeRuns}
+                    </span>
+                  )}
+                </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Integrations</p>
+                <p>View Runs</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider> */}
+          </TooltipProvider>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

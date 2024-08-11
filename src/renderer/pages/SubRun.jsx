@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { addRun, stopRun } from '../../state/actions';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { Button } from "../ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { addRun, stopRun } from '../state/actions';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { ChevronRight, ChevronDown, ArrowLeft } from 'lucide-react';
 import { openDB } from 'idb';
-import RunDetailsPage from './RunDetailsPage';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "../ui/breadcrumb";
-import { platforms } from '../../config/platforms';
+import RunDetailsPage from '../components/profile/RunDetailsPage';
+import { platforms } from '../config/platforms';
 
-const SubRunDashboard = ({ platform, subRun, onBack }) => {
+const SubRun = ({ platform, subRun, onBack }) => {
   const dispatch = useDispatch();
   const [runs, setRuns] = useState([]);
   const [expandedRuns, setExpandedRuns] = useState({});
@@ -105,32 +104,8 @@ const SubRunDashboard = ({ platform, subRun, onBack }) => {
     console.log('Stopping run:', runId);
   };
 
-  const renderBreadcrumb = () => (
-    <Breadcrumb>
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink onClick={onBack}>{platform.name}</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage>{subRun.name}</BreadcrumbPage>
-        </BreadcrumbItem>
-      </BreadcrumbList>
-    </Breadcrumb>
-  );
-
   return (
     <div className="space-y-8 px-[50px] pt-6">
-      {renderBreadcrumb()}
-      <Button variant="ghost" onClick={onBack} className="mb-4">
-        <ArrowLeft className="mr-2" size={16} />
-        Back to Platform Dashboard
-      </Button>
-
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -234,4 +209,4 @@ const SubRunDashboard = ({ platform, subRun, onBack }) => {
   );
 };
 
-export default SubRunDashboard;
+export default SubRun;

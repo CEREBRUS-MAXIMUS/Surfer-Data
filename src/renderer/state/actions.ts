@@ -1,8 +1,8 @@
 import { IPreferences, IUser, IRun } from '../types/interfaces';
 
-export const setCurrentPage = (page: string) => ({
+export const setCurrentPage = (page: string, breadcrumb: { icon: string; text: string; link: string }[]) => ({
   type: 'SET_CURRENT_PAGE',
-  payload: page,
+  payload: { page, breadcrumb },
 });
 
 export const setApplicationFont = (font: string) => ({
@@ -118,4 +118,19 @@ export const updateExportStatus = (platformId: string, exportData: any, runID: s
 export const setExportRunning = (platformId: string, isRunning: boolean) => ({
   type: 'SET_EXPORT_RUNNING',
   payload: { platformId, isRunning },
+});
+
+export const updateBreadcrumb = (breadcrumb: { icon: string; text: string; link: string }[]) => ({
+  type: 'UPDATE_BREADCRUMB',
+  payload: breadcrumb,
+});
+
+export const setRoute = (route: string) => ({
+  type: 'SET_CURRENT_ROUTE',
+  payload: route,
+});
+
+export const setCurrentRoute = (route: string) => ({
+  type: 'SET_CURRENT_ROUTE',
+  payload: route,
 });
