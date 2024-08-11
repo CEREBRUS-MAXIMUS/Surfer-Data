@@ -645,7 +645,7 @@ export const SurferHeader = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          <TooltipProvider>
+          {/* <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <IntegrationsButton />
@@ -654,7 +654,7 @@ export const SurferHeader = () => {
                 <p>Integrations</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
+          </TooltipProvider> */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

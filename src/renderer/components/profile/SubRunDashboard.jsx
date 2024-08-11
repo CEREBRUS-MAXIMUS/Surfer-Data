@@ -124,7 +124,7 @@ const SubRunDashboard = ({ platform, subRun, onBack }) => {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 px-[50px] pt-6">
       {renderBreadcrumb()}
       <Button variant="ghost" onClick={onBack} className="mb-4">
         <ArrowLeft className="mr-2" size={16} />

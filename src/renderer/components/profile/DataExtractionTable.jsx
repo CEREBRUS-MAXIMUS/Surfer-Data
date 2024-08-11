@@ -172,7 +172,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef, onViewRunDetails }) 
         size="sm"
         variant="ghost"
         className="p-0 ml-2"
-        onClick={() => onViewRunDetails(latestRun)}
+        onClick={() => onViewRunDetails(latestRun, platform)}
       >
         <Eye size={16} />
       </Button>

@@ -94,7 +94,7 @@ const PlatformDashboard = ({ platform, onSubRunClick }) => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 px-[50px] pt-6">
       {renderBreadcrumb()}
 
       <Card>

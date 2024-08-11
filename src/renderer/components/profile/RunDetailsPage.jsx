@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ChevronDown, ChevronRight, Clock, ArrowLeft, XCircle, Eye, Trash2, ChevronLeft } from 'lucide-react';
+import { ChevronDown, ChevronRight, Clock, ArrowLeft, XCircle, Eye, Trash2, ChevronLeft, Folder } from 'lucide-react';
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -161,19 +161,23 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
     setCurrentArtifactIndex((prev) => (prev < artifacts.length - 1 ? prev + 1 : 0));
   };
 
-  if (!run) return <div></div>;
+  const handleViewArtifacts = () => {
+    if (run?.exportPath) {
+      window.electron.ipcRenderer.send('open-folder', run.exportPath);
+    }
+  };
+
+  if (!run) return null;
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-[90vw] h-[80vh] overflow-y-auto bg-opacity-90">
+      <DialogContent className="max-w-[70vw] h-[80vh] overflow-y-auto bg-background">
         <DialogHeader>
           <DialogTitle>{run?.subRunId} Extraction</DialogTitle>
         </DialogHeader>
 
-
         {run.status === 'success' && artifacts.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Artifacts</h3>
+          <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
               <Button onClick={handlePrevArtifact} variant="outline" size="sm">
                 <ChevronLeft className="h-4 w-4" />
@@ -186,7 +190,7 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
             {artifacts[currentArtifactIndex] && (
               <div className="rounded-lg overflow-hidden">
                 <MonacoEditor
-                  height="300px"
+                  height="200px"
                   language="json"
                   theme="vs-dark"
                   value={artifacts[currentArtifactIndex].content}
@@ -197,8 +201,7 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
           </div>
         )}
 
-
-        <div className="space-y-8">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex space-x-2">
               <Button variant="outline" size="sm" onClick={handleDeleteRun}>
@@ -209,6 +212,12 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
                 <Button variant="destructive" size="sm" onClick={handleCancelRun}>
                   <XCircle className="mr-2 h-4 w-4" />
                   Cancel Run
+                </Button>
+              )}
+              {run?.status === 'success' && run?.exportPath && (
+                <Button variant="outline" size="sm" onClick={handleViewArtifacts}>
+                  <Folder className="mr-2 h-4 w-4" />
+                  View Artifacts
                 </Button>
               )}
             </div>
@@ -224,19 +233,17 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex h-[600px]">
+              <div className="flex h-[400px]">
                 <div className="w-1/3 border-r overflow-y-auto">
                   {run.tasks.map(task => (
                     <div
                       key={task.id}
-                      className={`p-4 border-b cursor-pointer ${selectedTaskId === task.id ? 'bg-gray-100' : ''}`}
+                      className={`p-2 border-b cursor-pointer ${selectedTaskId === task.id ? 'bg-gray-100' : ''}`}
                       onClick={() => setSelectedTaskId(task.id)}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <StatusIndicator status={task.status} />
-                          <span className="font-semibold">{task.name}</span>
-                        </div>
+                      <div className="flex items-center space-x-2">
+                        <StatusIndicator status={task.status} />
+                        <span className="font-semibold text-sm">{task.name}</span>
                       </div>
                     </div>
                   ))}
@@ -244,24 +251,24 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
                 <div className="w-2/3 overflow-y-auto">
                   <ScrollArea className="h-full">
                     {run.tasks.find(task => task.id === selectedTaskId)?.steps.map(step => (
-                      <div key={step.id} className="p-4 border-b">
-                        <div className="flex items-center justify-between mb-2">
+                      <div key={step.id} className="p-2 border-b">
+                        <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center space-x-2">
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => toggleStep(selectedTaskId, step.id)}
                             >
-                              {expandedSteps[`${selectedTaskId}-${step.id}`] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                              {expandedSteps[`${selectedTaskId}-${step.id}`] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                             </Button>
                             <StatusIndicator status={step.status} />
-                            <span className="font-semibold">{step.name}</span>
+                            <span className="font-semibold text-sm">{step.name}</span>
                           </div>
-                          <span>{getElapsedTime(step.startTime, step.endTime)}</span>
+                          <span className="text-xs">{getElapsedTime(step.startTime, step.endTime)}</span>
                         </div>
                         {expandedSteps[`${selectedTaskId}-${step.id}`] && (
-                          <div className="bg-gray-100 p-2 rounded">
-                            <pre className="text-sm">
+                          <div className="bg-gray-100 p-2 rounded mt-1">
+                            <pre className="text-xs">
                               {step.logs || 'No logs available'}
                             </pre>
                           </div>
@@ -274,8 +281,6 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
             </CardContent>
           </Card>
         </div>
-
-
       </DialogContent>
     </Dialog>
   );
