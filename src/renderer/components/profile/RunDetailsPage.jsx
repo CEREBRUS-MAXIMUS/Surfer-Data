@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { ChevronDown, ChevronRight, Clock, ArrowLeft, XCircle, Eye, Trash2 } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { ChevronDown, ChevronRight, Clock, ArrowLeft, XCircle, Eye, Trash2, ChevronLeft } from 'lucide-react';
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { openDB } from 'idb';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "../ui/breadcrumb";
 import { updateRunStatus, deleteRun } from '../../state/actions';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import MonacoEditor from '@monaco-editor/react';
+
 
 const StatusIndicator = ({ status }) => {
   switch (status) {
@@ -25,31 +28,49 @@ const StatusIndicator = ({ status }) => {
   }
 };
 
-const RunDetailsPage = ({ runId, onBack, platform, subRun }) => {
+const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   const dispatch = useDispatch();
+  const reduxRuns = useSelector(state => state.runs);
   const [run, setRun] = useState(null);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [expandedSteps, setExpandedSteps] = useState({});
   const [, forceUpdate] = useState();
+  const [artifacts, setArtifacts] = useState([]);
+  const [currentArtifactIndex, setCurrentArtifactIndex] = useState(0);
 
   useEffect(() => {
     const loadRun = async () => {
-      const db = await openDB('dataExtractionDB', 1);
-      const loadedRun = await db.get('runs', runId);
+      // Check if the run exists in Redux state
+      const reduxRun = reduxRuns.find(r => r.id === runId);
 
-      // Ensure the first task and its first step are running
-      if (loadedRun.tasks.length > 0) {
-        loadedRun.tasks[0].status = 'running';
-        loadedRun.tasks[0].startTime = loadedRun.tasks[0].startTime || new Date().toISOString();
-        if (loadedRun.tasks[0].steps.length > 0) {
-          loadedRun.tasks[0].steps[0].status = 'running';
-          loadedRun.tasks[0].steps[0].startTime = loadedRun.tasks[0].steps[0].startTime || new Date().toISOString();
+      if (reduxRun) {
+        console.log('Loaded run from Redux:', reduxRun);
+        setRun(reduxRun);
+        if (reduxRun.tasks.length > 0) {
+          setSelectedTaskId(reduxRun.tasks[0].id);
         }
-      }
+      } else {
+        // If not in Redux, load from IndexedDB
+        const db = await openDB('dataExtractionDB', 1);
+        const loadedRun = await db.get('runs', runId);
+        console.log('Loaded run from IndexedDB:', loadedRun);
 
-      setRun(loadedRun);
-      if (loadedRun.tasks.length > 0) {
-        setSelectedTaskId(loadedRun.tasks[0].id);
+        if (loadedRun) {
+          // Ensure the first task and its first step are running
+          if (loadedRun.tasks.length > 0) {
+            loadedRun.tasks[0].status = 'running';
+            loadedRun.tasks[0].startTime = loadedRun.tasks[0].startTime || new Date().toISOString();
+            if (loadedRun.tasks[0].steps.length > 0) {
+              loadedRun.tasks[0].steps[0].status = 'running';
+              loadedRun.tasks[0].steps[0].startTime = loadedRun.tasks[0].steps[0].startTime || new Date().toISOString();
+            }
+          }
+
+          setRun(loadedRun);
+          if (loadedRun.tasks.length > 0) {
+            setSelectedTaskId(loadedRun.tasks[0].id);
+          }
+        }
       }
     };
     loadRun();
@@ -59,7 +80,27 @@ const RunDetailsPage = ({ runId, onBack, platform, subRun }) => {
 
     // Clean up the interval on component unmount
     return () => clearInterval(interval);
-  }, [runId]);
+  }, [runId, reduxRuns]);
+
+  useEffect(() => {
+    if (run?.status === 'success' && run?.exportPath) {
+      window.electron.ipcRenderer.send('get-artifact-files', run.exportPath);
+    }
+  }, [run]);
+
+  useEffect(() => {
+    const handleArtifactFiles = (event, files) => {
+      console.log('Artifact files:', files);
+      console.log('Event:', event);
+      setArtifacts(files || []);
+    };
+
+    window.electron.ipcRenderer.on('artifact-files', handleArtifactFiles);
+
+    return () => {
+      window.electron.ipcRenderer.removeListener('artifact-files', handleArtifactFiles);
+    };
+  }, []);
 
   const getElapsedTime = (startTime, endTime) => {
     if (!startTime) return '';
@@ -103,7 +144,7 @@ const RunDetailsPage = ({ runId, onBack, platform, subRun }) => {
       dispatch(deleteRun(runId));
       const db = await openDB('dataExtractionDB', 1);
       await db.delete('runs', runId);
-      onBack(); // Navigate back after deletion
+      onClose(); // Close the dialog after deletion
     }
   };
 
@@ -112,103 +153,124 @@ const RunDetailsPage = ({ runId, onBack, platform, subRun }) => {
     console.log('View run:', runId);
   };
 
-  if (!run) return <div>Loading...</div>;
+  const handlePrevArtifact = () => {
+    setCurrentArtifactIndex((prev) => (prev > 0 ? prev - 1 : artifacts.length - 1));
+  };
+
+  const handleNextArtifact = () => {
+    setCurrentArtifactIndex((prev) => (prev < artifacts.length - 1 ? prev + 1 : 0));
+  };
+
+  if (!run) return <div></div>;
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink onClick={onBack}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Runs
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{run?.subRunId} Extraction</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm" onClick={handleViewRun}>
-            <Eye className="mr-2 h-4 w-4" />
-            View Run
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleDeleteRun}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete Run
-          </Button>
-          {(run?.status === 'pending' || run?.status === 'running') && (
-            <Button variant="destructive" size="sm" onClick={handleCancelRun}>
-              <XCircle className="mr-2 h-4 w-4" />
-              Cancel Run
-            </Button>
-          )}
-        </div>
-      </div>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{run.subRunId} Extraction</CardTitle>
-          <div className="flex items-center space-x-2">
-            <StatusIndicator status={run.status} />
-            <span>{run.status}</span>
-            <Clock size={16} />
-            <span>{getElapsedTime(run.startDate, run.endDate)}</span>
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-[90vw] h-[80vh] overflow-y-auto bg-opacity-90">
+        <DialogHeader>
+          <DialogTitle>{run?.subRunId} Extraction</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-8">
+          <div className="flex items-center justify-between">
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm" onClick={handleDeleteRun}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Run
+              </Button>
+              {(run?.status === 'pending' || run?.status === 'running') && (
+                <Button variant="destructive" size="sm" onClick={handleCancelRun}>
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Cancel Run
+                </Button>
+              )}
+            </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex h-[600px]">
-            <div className="w-1/3 border-r overflow-y-auto">
-              {run.tasks.map(task => (
-                <div
-                  key={task.id}
-                  className={`p-4 border-b cursor-pointer ${selectedTaskId === task.id ? 'bg-gray-100' : ''}`}
-                  onClick={() => setSelectedTaskId(task.id)}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <StatusIndicator status={task.status} />
-                      <span className="font-semibold">{task.name}</span>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>{run.subRunId} Extraction</CardTitle>
+              <div className="flex items-center space-x-2">
+                <StatusIndicator status={run.status} />
+                <span>{run.status}</span>
+                <Clock size={16} />
+                <span>{getElapsedTime(run.startDate, run.endDate)}</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex h-[600px]">
+                <div className="w-1/3 border-r overflow-y-auto">
+                  {run.tasks.map(task => (
+                    <div
+                      key={task.id}
+                      className={`p-4 border-b cursor-pointer ${selectedTaskId === task.id ? 'bg-gray-100' : ''}`}
+                      onClick={() => setSelectedTaskId(task.id)}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <StatusIndicator status={task.status} />
+                          <span className="font-semibold">{task.name}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div className="w-2/3 overflow-y-auto">
-              <ScrollArea className="h-full">
-                {run.tasks.find(task => task.id === selectedTaskId)?.steps.map(step => (
-                  <div key={step.id} className="p-4 border-b">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleStep(selectedTaskId, step.id)}
-                        >
-                          {expandedSteps[`${selectedTaskId}-${step.id}`] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                        </Button>
-                        <StatusIndicator status={step.status} />
-                        <span className="font-semibold">{step.name}</span>
+                <div className="w-2/3 overflow-y-auto">
+                  <ScrollArea className="h-full">
+                    {run.tasks.find(task => task.id === selectedTaskId)?.steps.map(step => (
+                      <div key={step.id} className="p-4 border-b">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleStep(selectedTaskId, step.id)}
+                            >
+                              {expandedSteps[`${selectedTaskId}-${step.id}`] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                            </Button>
+                            <StatusIndicator status={step.status} />
+                            <span className="font-semibold">{step.name}</span>
+                          </div>
+                          <span>{getElapsedTime(step.startTime, step.endTime)}</span>
+                        </div>
+                        {expandedSteps[`${selectedTaskId}-${step.id}`] && (
+                          <div className="bg-gray-100 p-2 rounded">
+                            <pre className="text-sm">
+                              {step.logs || 'No logs available'}
+                            </pre>
+                          </div>
+                        )}
                       </div>
-                      <span>{getElapsedTime(step.startTime, step.endTime)}</span>
-                    </div>
-                    {expandedSteps[`${selectedTaskId}-${step.id}`] && (
-                      <div className="bg-gray-100 p-2 rounded">
-                        <pre className="text-sm">
-                          {step.logs || 'No logs available'}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </ScrollArea>
+                    ))}
+                  </ScrollArea>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {run?.status === 'success' && artifacts.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-4">Artifacts</h3>
+            <div className="flex items-center justify-between mb-2">
+              <Button onClick={handlePrevArtifact} variant="outline" size="sm">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span>{`${currentArtifactIndex + 1} / ${artifacts.length}`}</span>
+              <Button onClick={handleNextArtifact} variant="outline" size="sm">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
+            {artifacts[currentArtifactIndex] && (
+              <MonacoEditor
+                height="300px"
+                language="json"
+                theme="vs-dark"
+                value={artifacts[currentArtifactIndex].content}
+                options={{ readOnly: true, minimap: { enabled: false } }}
+              />
+            )}
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -9,7 +9,7 @@ import { getFilesInFolder } from './utils/util';
 import {
   app,
   BrowserWindow,
-  shell, 
+  shell,
   ipcMain,
   protocol,
   Menu,
@@ -719,5 +719,22 @@ ipcMain.on('open-folder', (event, folderPath) => {
     console.error('Invalid folder path');
     // Optionally, you can send an error message back to the renderer process
     event.reply('open-folder-error', 'Invalid folder path');
+  }
+});
+
+ipcMain.on('get-artifact-files', (event, exportPath) => {
+  try {
+    console.log('Reading artifact files from:', exportPath);
+    const files = fs.readdirSync(exportPath);
+    const artifactFiles = files.map(file => {
+      const filePath = path.join(exportPath, file);
+      const content = fs.readFileSync(filePath, 'utf-8');
+      return { name: file, content };
+    });
+    console.log('Artifact files:', artifactFiles);
+    event.reply('artifact-files', artifactFiles);
+  } catch (error) {
+    console.error('Error reading artifact files:', error);
+    event.reply('artifact-files', []); // Always send an array, even if empty
   }
 });

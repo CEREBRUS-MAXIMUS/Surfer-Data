@@ -14,7 +14,7 @@ const SubRunDashboard = ({ platform, subRun, onBack }) => {
   const dispatch = useDispatch();
   const [runs, setRuns] = useState([]);
   const [expandedRuns, setExpandedRuns] = useState({});
-  const [selectedRun, setSelectedRun] = useState(null);
+  const [selectedRunId, setSelectedRunId] = useState(null);
 
   useEffect(() => {
     const loadRuns = async () => {
@@ -34,11 +34,11 @@ const SubRunDashboard = ({ platform, subRun, onBack }) => {
   };
 
   const handleViewDetails = (run) => {
-    setSelectedRun(run);
+    setSelectedRunId(run.id);
   };
 
-  const handleBackFromDetails = () => {
-    setSelectedRun(null);
+  const handleCloseDetails = () => {
+    setSelectedRunId(null);
   };
 
   const handleStartNewRun = () => {
@@ -122,10 +122,6 @@ const SubRunDashboard = ({ platform, subRun, onBack }) => {
       </BreadcrumbList>
     </Breadcrumb>
   );
-
-  if (selectedRun) {
-    return <RunDetailsPage runId={selectedRun.id} onBack={handleBackFromDetails} platform={platform} subRun={subRun} />;
-  }
 
   return (
     <div className="space-y-8">
@@ -225,6 +221,15 @@ const SubRunDashboard = ({ platform, subRun, onBack }) => {
           </Table>
         </CardContent>
       </Card>
+
+      {selectedRunId && (
+        <RunDetailsPage
+          runId={selectedRunId}
+          onClose={handleCloseDetails}
+          platform={platform}
+          subRun={subRun}
+        />
+      )}
     </div>
   );
 };

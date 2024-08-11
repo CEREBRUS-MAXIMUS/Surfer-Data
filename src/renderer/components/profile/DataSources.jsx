@@ -6,11 +6,14 @@ import { setUserOS, setDataSourceImportStatus, startRun } from '../../state/acti
 import { Import, Link, Download, RefreshCw, Bug, ChevronRight, X } from 'lucide-react';
 import DataExtractionTable from './DataExtractionTable';
 import PlatformDashboard from './PlatformDashboard';
+import RunDetailsPage from './RunDetailsPage';
 import { platforms } from '../../config/platforms';
 import { openDB } from 'idb';
 import { Dialog, DialogContent } from "../ui/dialog";
 import { Badge } from "../ui/badge";
 import { useTheme } from '../ui/theme-provider';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { Progress } from "../ui/progress";
 
 const Container = styled.div`
   display: flex;
@@ -112,6 +115,7 @@ const DataSources = (webviewRef) => {
   const [currentView, setCurrentView] = useState('main');
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const [selectedSubRun, setSelectedSubRun] = useState(null);
+  const [selectedRun, setSelectedRun] = useState(null);
   const { theme } = useTheme();
   const LOGO_SIZE = 32;
 
@@ -190,8 +194,13 @@ const DataSources = (webviewRef) => {
     // dispatch(refreshDataSource(sourceId));
   };
 
+  const handleViewRunDetails = (run) => {
+    setSelectedRun(run);
+  };
 
-
+  const handleCloseRunDetails = () => {
+    setSelectedRun(null);
+  };
 
   useEffect(() => {
     const initDB = async () => {
@@ -203,9 +212,6 @@ const DataSources = (webviewRef) => {
     };
     initDB();
   }, []);
-
-
-
 
   const renderDashboard = () => {
     if (selectedPlatform) {
@@ -238,10 +244,18 @@ const DataSources = (webviewRef) => {
           <DataExtractionTable
             onPlatformClick={handlePlatformClick}
             webviewRef={webviewRef}
+            onViewRunDetails={handleViewRunDetails}
           />
         </div>
       ) : (
         renderDashboard()
+      )}
+      {selectedRun && (
+        <RunDetailsPage
+          runId={selectedRun.id}
+          onClose={handleCloseRunDetails}
+          platform={platforms.find(p => p.id === selectedRun.platformId)}
+        />
       )}
     </div>
   );

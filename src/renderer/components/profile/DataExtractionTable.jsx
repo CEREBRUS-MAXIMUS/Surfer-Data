@@ -4,15 +4,16 @@ import { startRun, toggleRunVisibility, setExportRunning, updateExportStatus } f
 import { useTheme } from '../ui/theme-provider';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Button } from "../ui/button";
-import { ArrowUpRight, ArrowRight, Check, X, Link, Download, Search, ChevronLeft, ChevronRight, HardDriveDownload, Folder } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, Check, X, Link, Download, Search, ChevronLeft, ChevronRight, HardDriveDownload, Folder, Eye } from 'lucide-react';
 import { platforms } from '../../config/platforms';
 import { openDB } from 'idb';
 import { Input } from "../ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
 import { Checkbox } from "../ui/checkbox";
 import { formatDistanceToNow, parseISO } from 'date-fns';
+import { Progress } from "../ui/progress";
 
-const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
+const DataExtractionTable = ({ onPlatformClick, webviewRef, onViewRunDetails }) => {
   const dispatch = useDispatch();
   const runs = useSelector(state => state.runs);
   const [searchTerm, setSearchTerm] = useState('');
@@ -159,6 +160,65 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     ) : null;
   };
 
+  const renderExportStatus = (platform) => {
+    const latestRun = getLatestRun(platform.id);
+
+    if (!latestRun) {
+      return <span>Not exported</span>;
+    }
+
+    const viewDetailsButton = (
+      <Button
+        size="sm"
+        variant="ghost"
+        className="p-0 ml-2"
+        onClick={() => onViewRunDetails(latestRun)}
+      >
+        <Eye size={16} />
+      </Button>
+    );
+
+    switch (latestRun.status) {
+      case 'running':
+        return (
+          <div className="flex items-center space-x-2">
+            <Progress value={latestRun.progress || 0} className="w-24" />
+            <span>{latestRun.progress ? `${latestRun.progress}%` : 'Starting...'}</span>
+            {viewDetailsButton}
+          </div>
+        );
+      case 'success':
+        return (
+          <div className="flex items-center space-x-2">
+            <Check className="text-green-500" size={16} />
+            <span>{latestRun.exportSize}</span>
+            <span>{formatLastRunTime(latestRun.exportDate)}</span>
+            {latestRun.exportPath && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="p-0"
+                onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
+              >
+                <Folder size={16} />
+              </Button>
+            )}
+            {viewDetailsButton}
+          </div>
+        );
+      case 'error':
+        return (
+          <div className="flex items-center space-x-2">
+            <X className="text-red-500" size={16} />
+            <span>Export failed</span>
+            {viewDetailsButton}
+          </div>
+        );
+      default:
+        return <span>Unknown status</span>;
+    }
+  };
+
   return (
     <div className="w-full mx-auto space-y-4 px-[50px] pt-6 select-none">
       <div className="flex items-center mb-4">
@@ -192,7 +252,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                 <TableRow>
                   <TableHead>Platform</TableHead>
                   <TableHead>Actions</TableHead>
-                  <TableHead>Last Run</TableHead>
+                  <TableHead>Export Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -228,31 +288,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {latestRun && (
-                          <div className="flex items-center space-x-2">
-                            {latestRun.status === 'success' ? (
-                              <>
-                                <Check className="text-green-500" size={16} />
-                                <span>{latestRun.exportSize}</span>
-                                <span>{formatLastRunTime(latestRun.exportDate)}</span>
-                                {latestRun.exportPath && (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="p-0"
-                                    onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
-                                  >
-                                    <Folder size={24} />
-                                  </Button>
-                                )}
-                              </>
-                            ) : latestRun.status === 'running' ? (
-                              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                              <X className="text-red-500" size={16} />
-                            )}
-                          </div>
-                        )}
+                        {renderExportStatus(platform)}
                       </TableCell>
                     </TableRow>
                   );

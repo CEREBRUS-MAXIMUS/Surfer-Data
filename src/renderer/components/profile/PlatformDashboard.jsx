@@ -16,7 +16,7 @@ import { deleteRunsForPlatformFromDB } from '../../lib/databases';
 const PlatformDashboard = ({ platform, onSubRunClick }) => {
   const [runs, setRuns] = useState([]);
   const [expandedRuns, setExpandedRuns] = useState({});
-  const [selectedRun, setSelectedRun] = useState(null);
+  const [selectedRunId, setSelectedRunId] = useState(null);
   const [selectedSubRun, setSelectedSubRun] = useState(null);
   const { theme } = useTheme();
   const dispatch = useDispatch();
@@ -41,11 +41,11 @@ const PlatformDashboard = ({ platform, onSubRunClick }) => {
   };
 
   const handleViewDetails = (run) => {
-    setSelectedRun(run);
+    setSelectedRunId(run.id);
   };
 
-  const handleBackFromDetails = () => {
-    setSelectedRun(null);
+  const handleCloseDetails = () => {
+    setSelectedRunId(null);
   };
 
   const handleSubRunClick = (subRun) => {
@@ -88,10 +88,6 @@ const PlatformDashboard = ({ platform, onSubRunClick }) => {
       </div>
     ) : null;
   };
-
-  if (selectedRun) {
-    return <RunDetailsPage runId={selectedRun.id} onBack={handleBackFromDetails} platform={platform} />;
-  }
 
   if (selectedSubRun) {
     return <SubRunDashboard platform={platform} subRun={selectedSubRun} onBack={handleBackFromSubRun} />;
@@ -233,6 +229,14 @@ const PlatformDashboard = ({ platform, onSubRunClick }) => {
           </AlertDialog>
         </CardContent>
       </Card>
+
+      {selectedRunId && (
+        <RunDetailsPage
+          runId={selectedRunId}
+          onClose={handleCloseDetails}
+          platform={platform}
+        />
+      )}
     </div>
   );
 };
