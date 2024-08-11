@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Tabs from './pages/Tabs';
 import Settings from './components/profile/Settings';
+import Integrations from './pages/Integrations';
 
 import { Toaster } from './components/ui/toaster';
 import { IAppState } from './types/interfaces';
@@ -18,6 +19,8 @@ function Surfer() {
         return <Tabs />;
       case 'settings':
         return <Settings />;
+      case 'Integrations':
+        return <Integrations />;
     }
   };
 

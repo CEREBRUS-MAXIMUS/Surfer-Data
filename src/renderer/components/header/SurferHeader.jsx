@@ -16,6 +16,7 @@ import { Button } from '../ui/button';
 import Toggle from './Toggle';
 import SettingsButton from './SettingsButton';
 import SupportButton from './SupportButton';
+import IntegrationsButton from './IntegrationsButton';
 
 const getStyleHorizontalLock = (style) =>
   style?.transform
@@ -146,9 +147,6 @@ const StyledSurferHeader = styled.div`
     color: hsl(var(--accent-foreground));
   }
 
-  & .history-button {
-    margin-right: 8px;
-  }
 
   & .surfer-tab {
     align-items: center;
@@ -448,7 +446,7 @@ const StyledSurferHeader = styled.div`
     position: relative;
     -webkit-app-region: no-drag;
     height: 100%;
-    margin-right: -8px;
+    // margin-right: 2px;
   }
 
   & .support-button {
@@ -595,6 +593,7 @@ export const SurferHeader = () => {
   const { theme } = useTheme();
 
   const handleViewRuns = () => {
+    dispatch(setCurrentPage('tabs'));
     dispatch(toggleRunVisibility());
   };
 
@@ -636,7 +635,7 @@ export const SurferHeader = () => {
           </div>
         </div>
         <div className="header-option-panel">
-        <TooltipProvider>
+          <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <SupportButton />
@@ -646,16 +645,26 @@ export const SurferHeader = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <SettingsButton />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Settings</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <IntegrationsButton />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Integrations</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SettingsButton />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Settings</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
     </StyledSurferHeader>

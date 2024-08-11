@@ -65,7 +65,7 @@ const SupportButton = () => {
             <Mail className="mr-2 h-4 w-4" />
             <span>Email Us</span>
           </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleOpenLink('https://www.youtube.com/watch?v=6l7xL46s0Ec')} style={{ cursor: 'pointer' }}>
+              <DropdownMenuItem onClick={() => handleOpenLink('https://www.youtube.com/watch?v=XQn2RnTvtHQ')} style={{ cursor: 'pointer' }}>
                 <Play className="mr-2 h-4 w-4" />
                 <span>Watch Demo Video</span>
               </DropdownMenuItem>
