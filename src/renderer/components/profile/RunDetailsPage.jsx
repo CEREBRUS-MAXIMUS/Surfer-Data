@@ -89,10 +89,10 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   }, [run]);
 
   useEffect(() => {
-    const handleArtifactFiles = (event, files) => {
+    const handleArtifactFiles = (files) => {
       console.log('Artifact files:', files);
-      console.log('Event:', event);
       setArtifacts(files || []);
+      console.log('Artifacts:', artifacts);
     };
 
     window.electron.ipcRenderer.on('artifact-files', handleArtifactFiles);
@@ -169,6 +169,33 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
         <DialogHeader>
           <DialogTitle>{run?.subRunId} Extraction</DialogTitle>
         </DialogHeader>
+
+
+        {run.status === 'success' && artifacts.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-4">Artifacts</h3>
+            <div className="flex items-center justify-between mb-2">
+              <Button onClick={handlePrevArtifact} variant="outline" size="sm">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span>{`${currentArtifactIndex + 1} / ${artifacts.length}`}</span>
+              <Button onClick={handleNextArtifact} variant="outline" size="sm">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            {artifacts[currentArtifactIndex] && (
+              <MonacoEditor
+                height="300px"
+                language="json"
+                theme="vs-dark"
+                value={artifacts[currentArtifactIndex].content}
+                options={{ readOnly: true, minimap: { enabled: false } }}
+              />
+            )}
+          </div>
+        )}
+
+
         <div className="space-y-8">
           <div className="flex items-center justify-between">
             <div className="flex space-x-2">
@@ -246,29 +273,7 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
           </Card>
         </div>
 
-        {run?.status === 'success' && artifacts.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Artifacts</h3>
-            <div className="flex items-center justify-between mb-2">
-              <Button onClick={handlePrevArtifact} variant="outline" size="sm">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span>{`${currentArtifactIndex + 1} / ${artifacts.length}`}</span>
-              <Button onClick={handleNextArtifact} variant="outline" size="sm">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-            {artifacts[currentArtifactIndex] && (
-              <MonacoEditor
-                height="300px"
-                language="json"
-                theme="vs-dark"
-                value={artifacts[currentArtifactIndex].content}
-                options={{ readOnly: true, minimap: { enabled: false } }}
-              />
-            )}
-          </div>
-        )}
+
       </DialogContent>
     </Dialog>
   );
