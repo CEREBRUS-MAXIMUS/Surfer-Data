@@ -5,8 +5,7 @@ if (window.trustedTypes && window.trustedTypes.createPolicy) {
 }
 
 const { contextBridge, ipcRenderer, BrowserWindow } = require('electron');
-const TurndownService = require('./turndown');
-const { removeCSSAndScriptsFromHTML, customConsoleLog } = require('./preloadFunctions')
+const { customConsoleLog } = require('./preloadFunctions')
 const exportNotion = require('./Companies/Notion/notion');
 const {
   exportGithub,
@@ -19,8 +18,6 @@ const electronHandler = require('./preloadElectron');
 const exportGmail = require('./Companies/Google/gmail');
 
 contextBridge.exposeInMainWorld('electron', electronHandler);
-
-const turndown = new TurndownService();
 
 // Custom console log function to send logs to ipcRenderer
 

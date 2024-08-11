@@ -27,7 +27,6 @@ const configuration: webpack.Configuration = {
       'preloadFunctions.js',
     ),
     preloadElectron: path.join(webpackPaths.srcMainPath, 'preloadElectron.js'),
-    turndown: path.join(webpackPaths.srcMainPath, 'turndown.js'),
   },
 
   output: {
