@@ -184,13 +184,15 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
               </Button>
             </div>
             {artifacts[currentArtifactIndex] && (
-              <MonacoEditor
-                height="300px"
-                language="json"
-                theme="vs-dark"
-                value={artifacts[currentArtifactIndex].content}
-                options={{ readOnly: true, minimap: { enabled: false } }}
-              />
+              <div className="rounded-lg overflow-hidden">
+                <MonacoEditor
+                  height="300px"
+                  language="json"
+                  theme="vs-dark"
+                  value={artifacts[currentArtifactIndex].content}
+                  options={{ readOnly: true, minimap: { enabled: false } }}
+                />
+              </div>
             )}
           </div>
         )}
