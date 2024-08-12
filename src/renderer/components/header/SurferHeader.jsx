@@ -16,6 +16,7 @@ import { setCurrentRoute, toggleRunVisibility } from '../../state/actions';
 import { Button } from '../ui/button';
 import SettingsButton from './SettingsButton';
 import SupportButton from './SupportButton';
+import { setIsFullScreen, setIsMac } from '../../state/actions';
 
 const getStyleHorizontalLock = (style) =>
   style?.transform
@@ -559,34 +560,37 @@ export const SurferHeader = () => {
   const breadcrumb = useSelector((state) => state.breadcrumb);
   const isRunLayerVisible = useSelector((state) => state.isRunLayerVisible);
   const runs = useSelector((state) => state.runs);
+  const isFullScreen = useSelector((state) => state.isFullScreen);
+  const isMac = useSelector((state) => state.isMac);
   const activeRuns = runs.filter((run) => run.status === 'running').length;
 
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  const [isMac, setIsMac] = useState(false);
-
   useEffect(() => {
+    const handlePlatformReply = (platform) => {
+      console.log('Platform:', platform);
+      dispatch(setIsMac(platform === 'darwin'));
+    };
+
+    const handleFullscreenChange = (isFullScreen) => {
+      console.log('Fullscreen:', isFullScreen);
+      dispatch(setIsFullScreen(isFullScreen));
+    };
+
+    // Set up listeners
+    window.electron.ipcRenderer.on('platform', handlePlatformReply);
+    window.electron.ipcRenderer.on('fullscreen-changed', handleFullscreenChange);
+
+    // Request platform information
     window.electron.ipcRenderer.send('get-platform');
 
-    const handlePlatformReply = (event) => {
-      setIsMac(event === 'darwin');
-    };
-
-    const handleFullscreenChange = (event) => {
-      console.log('Fullscreen:', event);
-      setIsFullScreen(event);
-    };
-
-    window.electron.ipcRenderer.on('platform', handlePlatformReply);
-    window.electron.ipcRenderer.on(
-      'fullscreen-changed',
-      handleFullscreenChange,
-    );
+    // Request initial fullscreen state
+    window.electron.ipcRenderer.send('get-fullscreen-state');
 
     return () => {
-      window.electron.ipcRenderer.removeAllListeners('platform');
-      window.electron.ipcRenderer.removeAllListeners('fullscreen-changed');
+      // Clean up listeners
+      window.electron.ipcRenderer.removeListener('platform', handlePlatformReply);
+      window.electron.ipcRenderer.removeListener('fullscreen-changed', handleFullscreenChange);
     };
-  }, []);
+  }, [dispatch]);
 
   const { theme } = useTheme();
 
@@ -604,6 +608,16 @@ export const SurferHeader = () => {
     dispatch(setCurrentRoute('/home'));
   };
 
+  const getIconForBreadcrumb = (text) => {
+    switch (text) {
+      case 'Home':
+        return <Home size={16} className="mr-2" />;
+      // Add cases for other icons if needed
+      default:
+        return null;
+    }
+  };
+
   return (
     <StyledSurferHeader theme={theme} className="bg-background text-foreground">
       <div className="div">
@@ -612,20 +626,9 @@ export const SurferHeader = () => {
           <div className="header-option-panel">
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleHomeClick}
-                    className="flex items-center px-2 py-1"
-                  >
-                    <Home size={16} className="mr-2" />
-                    Home
-                  </Button>
-                </BreadcrumbItem>
-                {breadcrumb.slice(1).map((item, index) => (
+                {breadcrumb.map((item, index) => (
                   <React.Fragment key={index}>
-                    <BreadcrumbSeparator />
+                    {index > 0 && <BreadcrumbSeparator />}
                     <BreadcrumbItem>
                       <Button
                         variant="ghost"
@@ -633,6 +636,7 @@ export const SurferHeader = () => {
                         onClick={() => handleBreadcrumbClick(item.link)}
                         className="flex items-center px-2 py-1"
                       >
+                        {getIconForBreadcrumb(item.text)}
                         {item.text}
                       </Button>
                     </BreadcrumbItem>

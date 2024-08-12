@@ -264,13 +264,18 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef, onViewRunDetails }) 
                     <TableRow key={platform.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center space-x-2">
-                          {/* <div className={`w-2 h-2 rounded-full ${platform.isConnected ? 'bg-green-500' : 'bg-red-500'}`} /> */}
-                          {logoComponent}
-                          <div className="flex flex-col">
-                            <p className="cursor-pointer hover:underline" onClick={() => onPlatformClick(platform)}>
-                              <span className="text-gray-500">{platform.company}/</span>
-                              <span className="font-semibold">{platform.name}</span>
-                            </p>
+                          {/* Wrap the logo and text in a clickable div */}
+                          <div
+                            className="flex items-center space-x-2 cursor-pointer hover:underline"
+                            onClick={() => onPlatformClick(platform)}
+                          >
+                            {logoComponent}
+                            <div className="flex flex-col">
+                              <p>
+                                <span className="text-gray-500">{platform.company}/</span>
+                                <span className="font-semibold">{platform.name}</span>
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </TableCell>

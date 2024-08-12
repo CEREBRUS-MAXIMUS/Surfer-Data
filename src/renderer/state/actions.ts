@@ -1,6 +1,6 @@
 import { IPreferences, IUser, IRun } from '../types/interfaces';
 
-export const setCurrentPage = (page: string, breadcrumb: { icon: string; text: string; link: string }[]) => ({
+export const setCurrentPage = (page: string, breadcrumb: { text: string; link: string }[]) => ({
   type: 'SET_CURRENT_PAGE',
   payload: { page, breadcrumb },
 });
@@ -120,17 +120,22 @@ export const setExportRunning = (platformId: string, isRunning: boolean) => ({
   payload: { platformId, isRunning },
 });
 
-export const updateBreadcrumb = (breadcrumb: { icon: string; text: string; link: string }[]) => ({
+export const updateBreadcrumb = (breadcrumb: { text: string; link: string }[]) => ({
   type: 'UPDATE_BREADCRUMB',
   payload: breadcrumb,
 });
 
-export const setRoute = (route: string) => ({
+export const setCurrentRoute = (route: string, breadcrumb: { text: string; link: string }[]) => ({
   type: 'SET_CURRENT_ROUTE',
-  payload: route,
+  payload: { route, breadcrumb },
 });
 
-export const setCurrentRoute = (route: string) => ({
-  type: 'SET_CURRENT_ROUTE',
-  payload: route,
+export const setIsFullScreen = (isFullScreen: boolean) => ({
+  type: 'SET_IS_FULL_SCREEN',
+  payload: isFullScreen,
+});
+
+export const setIsMac = (isMac: boolean) => ({
+  type: 'SET_IS_MAC',
+  payload: isMac,
 });

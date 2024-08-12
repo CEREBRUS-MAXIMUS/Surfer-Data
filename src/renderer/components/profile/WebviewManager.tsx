@@ -348,8 +348,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
             </LeftSection>
             <RightSection>
               {!isConnected && (<Button onClick={handleNewRun}>I've signed in!</Button>)}
-              <HeaderButton onClick={handleRunDetails}>Run Details</HeaderButton>
-              <HeaderButton onClick={handleLearnMode}>Learn Mode</HeaderButton>
               {isActiveRunStoppable() && (
                 <StopButton onClick={handleStopRun}>
                   <Square size={16} style={{ marginRight: '4px' }} />

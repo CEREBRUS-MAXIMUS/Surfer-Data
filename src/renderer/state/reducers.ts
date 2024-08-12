@@ -157,12 +157,10 @@ const isRunLayerVisibleReducer = (state = initialAppState.isRunLayerVisible, act
   }
 };
 
-const breadcrumbReducer = (state: { icon: string; text: string; link: string }[] = [], action: any) => {
+const breadcrumbReducer = (state: { text: string; link: string }[] = [], action: any) => {
   switch (action.type) {
     case 'UPDATE_BREADCRUMB':
       return action.payload;
-    case 'SET_CURRENT_PAGE':
-      return action.payload.breadcrumb;
     default:
       return state;
   }
@@ -222,6 +220,24 @@ const routingReducer = (state = { currentRoute: '/', params: {} }, action) => {
   }
 };
 
+const isFullScreenReducer = (state = false, action: any) => {
+  switch (action.type) {
+    case 'SET_IS_FULL_SCREEN':
+      return action.payload;
+    default:
+      return state;
+  }
+};
+
+const isMacReducer = (state = false, action: any) => {
+  switch (action.type) {
+    case 'SET_IS_MAC':
+      return action.payload;
+    default:
+      return state;
+  }
+};
+
 // Custom combineReducers function
 const customCombineReducers = (reducers: { [key: string]: any }) => {
   return (state: IAppState = initialAppState, action: any) => {
@@ -251,6 +267,8 @@ const rootReducer = customCombineReducers({
   selectedRunId: selectedRunIdReducer,
   app: appReducer,
   routing: routingReducer,
+  isFullScreen: isFullScreenReducer,
+  isMac: isMacReducer,
 });
 
 export default rootReducer;

@@ -39,7 +39,9 @@ export interface IAppState {
   runs: IRun[];
   activeRunIndex: number;
   isRunLayerVisible: boolean;
-  breadcrumb: { icon: string; text: string; link: string }[];
+  breadcrumb: { text: string; link: string }[];
+  isFullScreen: boolean;
+  isMac: boolean;
 }
 
 export const initialState: IAppState = {
@@ -58,7 +60,9 @@ export const initialState: IAppState = {
   runs: [],
   activeRunIndex: 0,
   isRunLayerVisible: false,
-  breadcrumb: [{ icon: 'Home', text: 'Home', link: '/' }],
+  breadcrumb: [{ text: 'Home', link: '/' }],
+  isFullScreen: false,
+  isMac: false,
 };
 
 export interface IStep {

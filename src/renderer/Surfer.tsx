@@ -7,7 +7,7 @@ import Landing from './pages/Landing';
 import Platform from './pages/Platform';
 import SubRun from './pages/SubRun';
 import Settings from './pages/Settings';
-import { setContentScale, setCurrentRoute } from './state/actions';
+import { setContentScale, setCurrentRoute, updateBreadcrumb } from './state/actions';
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
 
@@ -70,7 +70,7 @@ function Surfer() {
 
   const renderContent = () => {
     console.log('Rendering content for route:', currentRoute);
-    switch (currentRoute) {
+    switch (currentRoute.route) {
       case '/':
         return <Landing />;
       case '/home':
@@ -87,6 +87,12 @@ function Surfer() {
     }
   };
 
+  const handleHomeClick = () => {
+    console.log('Home clicked');
+    dispatch(setCurrentRoute('/home'));
+    dispatch(updateBreadcrumb([{ icon: 'Home', text: 'Home', link: '/home' }]));
+  };
+
   return (
     <div className={`flex h-screen`}>
       <div className="flex-1 transition-all duration-300">
@@ -99,6 +105,7 @@ function Surfer() {
               isConnected={isConnected}
               setIsConnected={setIsConnected}
               contentScale={safeContentScale}
+              onHomeClick={handleHomeClick}
             >
               {renderContent()}
             </Layout>
