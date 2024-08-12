@@ -9,6 +9,22 @@ import GmailLight from '../components/assets/platforms/GmailLight';
 import GmailDark from '../components/assets/platforms/GmailDark';
 import NotionLight from '../components/assets/platforms/NotionLight';
 import NotionDark from '../components/assets/platforms/NotionDark';
+import GoogleCalendarLight from '../components/assets/platforms/GoogleCalendarLight';
+import GoogleCalendarDark from '../components/assets/platforms/GoogleCalendarDark';
+import WhatsAppLight from '../components/assets/platforms/WhatsAppLight';
+import WhatsAppDark from '../components/assets/platforms/WhatsAppDark';
+import FacebookLight from '../components/assets/platforms/FacebookLight';
+import FacebookDark from '../components/assets/platforms/FacebookDark';
+import MediumLight from '../components/assets/platforms/MediumLight';
+import MediumDark from '../components/assets/platforms/MediumDark';
+import YoutubeLight from '../components/assets/platforms/YoutubeLight';
+import YoutubeDark from '../components/assets/platforms/YoutubeDark';
+import DevpostLight from '../components/assets/platforms/DevpostLight';
+import DevpostDark from '../components/assets/platforms/DevpostDark';
+import UnsplashLight from '../components/assets/platforms/UnsplashLight';
+import UnsplashDark from '../components/assets/platforms/UnsplashDark';
+import DiscordLight from '../components/assets/platforms/DiscordLight';
+import DiscordDark from '../components/assets/platforms/DiscordDark';
 import { IPlatform } from '../types/interfaces';
 
 
@@ -191,6 +207,110 @@ export const platforms: IPlatform[] = [
       { id: 'twitter-001-following', name: 'Following', icon: Users, description: 'Extracts following data', extractionMethod: 'Twitter API - /following endpoint', tasks: [] },
       { id: 'twitter-001-dms', name: 'Direct Messages', icon: Mail, description: 'Extracts direct messages', extractionMethod: 'Twitter API - /direct_messages endpoint', tasks: [] },
     ],
+    supportedOS: ['mac', 'windows', 'linux'],
+  },
+  {
+    id: 'google-calendar-001',
+    name: 'Google Calendar',
+    logo: {
+      light: GoogleCalendarLight,
+      dark: GoogleCalendarDark,
+    },
+    company: 'Google',
+    companyLogo: '/assets/logos/google.png',
+    home_url: 'https://calendar.google.com',
+    subRuns: [],
+    supportedOS: ['mac', 'windows', 'linux'],
+  },
+  {
+    id: 'whatsapp-001',
+    name: 'WhatsApp',
+    logo: {
+      light: WhatsAppLight,
+      dark: WhatsAppDark,
+    },
+    company: 'Meta',
+    companyLogo: '/assets/logos/meta.png',
+    home_url: 'https://web.whatsapp.com',
+    subRuns: [],
+    supportedOS: ['mac', 'windows', 'linux'],
+  },
+  {
+    id: 'facebook-001',
+    name: 'Facebook',
+    logo: {
+      light: FacebookLight,
+      dark: FacebookDark,
+    },
+    company: 'Meta',
+    companyLogo: '/assets/logos/meta.png',
+    home_url: 'https://www.facebook.com',
+    subRuns: [],
+    supportedOS: ['mac', 'windows', 'linux'],
+  },
+  {
+    id: 'medium-001',
+    name: 'Medium',
+    logo: {
+      light: MediumLight,
+      dark: MediumDark,
+    },
+    company: 'Medium',
+    companyLogo: '/assets/logos/medium.png',
+    home_url: 'https://medium.com',
+    subRuns: [],
+    supportedOS: ['mac', 'windows', 'linux'],
+  },
+  {
+    id: 'youtube-001',
+    name: 'Youtube',
+    logo: {
+      light: YoutubeLight,
+      dark: YoutubeDark,
+    },
+    company: 'Google',
+    companyLogo: '/assets/logos/google.png',
+    home_url: 'https://www.youtube.com',
+    subRuns: [],
+    supportedOS: ['mac', 'windows', 'linux'],
+  },
+  {
+    id: 'devpost-001',
+    name: 'Devpost',
+    logo: {
+      light: DevpostLight,
+      dark: DevpostDark,
+    },
+    company: 'Devpost',
+    companyLogo: '/assets/logos/devpost.png',
+    home_url: 'https://devpost.com',
+    subRuns: [],
+    supportedOS: ['mac', 'windows', 'linux'],
+  },
+  {
+    id: 'unsplash-001',
+    name: 'Unsplash',
+    logo: {
+      light: UnsplashLight,
+      dark: UnsplashDark,
+    },
+    company: 'Unsplash',
+    companyLogo: '/assets/logos/unsplash.png',
+    home_url: 'https://unsplash.com',
+    subRuns: [],
+    supportedOS: ['mac', 'windows', 'linux'],
+  },
+  {
+    id: 'discord-001',
+    name: 'Discord',
+    logo: {
+      light: DiscordLight,
+      dark: DiscordDark,
+    },
+    company: 'Discord',
+    companyLogo: '/assets/logos/discord.png',
+    home_url: 'https://discord.com',
+    subRuns: [],
     supportedOS: ['mac', 'windows', 'linux'],
   },
 ];
