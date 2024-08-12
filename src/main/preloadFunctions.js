@@ -27,4 +27,41 @@ function customConsoleLog(...args) {
   ipcRenderer.sendToHost('console-log', ...stringArgs);
 };
 
-module.exports = { removeCSSAndScriptsFromHTML, customConsoleLog }
+function waitForElement(
+  selector,
+  elementName,
+  multipleElements = false,
+  timeout = 10000,
+) {
+  customConsoleLog(`Waiting for element: ${elementName}`);
+
+  return new Promise((resolve) => {
+    const startTime = Date.now();
+
+    const checkElement = () => {
+      const element = multipleElements
+        ? document.querySelectorAll(selector)
+        : document.querySelector(selector);
+      if (element) {
+        customConsoleLog(`Found element: ${elementName}`);
+        resolve(element);
+      } else if (Date.now() - startTime >= timeout) {
+        customConsoleLog(`Timeout waiting for element: ${elementName}`);
+        resolve(null);
+      } else {
+        setTimeout(checkElement, 100);
+      }
+    };
+
+    checkElement();
+  });
+}
+
+async function wait(seconds) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, seconds * 1000);
+  });
+}
+
+
+module.exports = { removeCSSAndScriptsFromHTML, customConsoleLog, waitForElement, wait }

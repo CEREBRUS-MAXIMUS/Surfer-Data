@@ -1,85 +1,97 @@
-const { customConsoleLog } = require('../../preloadFunctions');
+const { customConsoleLog, waitForElement, wait } = require('../../preloadFunctions');
+const { ipcRenderer } = require('electron');
 
-async function exportLinkedin() {
-  await new Promise((resolve) => setTimeout(resolve, 7000));
-  const profileButton = document.getElementsByClassName('ember-view block')[0];
+
+
+async function exportLinkedin(company, name, runID) {
+  await wait(2);
+  const profileButton = await waitForElement('.ember-view.block', 'Profile Button');
 
   if (!profileButton) {
     customConsoleLog('user not connected');
-    return 'Not connected';
+    ipcRenderer.send('connect-website', company);
+    return;
   }
 
   profileButton.click();
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  await wait(2);
   
-  return new Promise((resolve) => {
-    const interval = setInterval(() => {
-      const sections = document.querySelectorAll(
-        "section[data-view-name='profile-card']",
-      );
-      const contactBtn = document.getElementById(
-        'top-card-text-details-contact-info',
-      );
-      if (sections.length > 5 && contactBtn) {
-        customConsoleLog('GOT SECTIONS + contact btn!');
-        clearInterval(interval);
-        const mainContent = document.querySelector('.scaffold-layout__main');
-        if (mainContent) {
-          contactBtn.click();
+  const contactBtn = await waitForElement('#top-card-text-details-contact-info', 'Contact Info Button');
+  
+  if (!contactBtn) {
+    customConsoleLog('Contact button not found');
+    return;
+  }
 
-          // wait for this class to work for document.querySelector: pv-contact-info__contact-type
+  contactBtn.click();
+
+  await wait(2);
+
+  const contactInfoElement = await waitForElement('.pv-contact-info__contact-type', 'Contact Info');
+
+  if (!contactInfoElement) {
+    customConsoleLog('Contact info not found');
+    return;
+  }
+
+  return new Promise(async (resolve) => {
+    const sections = await waitForElement("section[data-view-name='profile-card']", 'Profile Card Sections', true);
+    const contactBtn = await waitForElement('#top-card-text-details-contact-info', 'Contact Button');
+    if (sections && sections.length > 5 && contactBtn) {
+      customConsoleLog('GOT SECTIONS + contact btn!');
+      const mainContent = await waitForElement('.scaffold-layout__main', 'Main Content');
+      
+      if (mainContent) {
+        contactBtn.click();
+
+        await wait(2);
+
+        const contactInfoElements = await waitForElement('.pv-contact-info__contact-type', 'Contact Info Elements', true);
+
+        if (contactInfoElements) {
           let email = '';
-          const waitForContactInfo = setInterval(() => {
-            const contactInfoElements = document.getElementsByClassName(
-              'pv-contact-info__contact-type',
-            );
-            if (contactInfoElements.length > 0) {
-              clearInterval(waitForContactInfo);
-
-              // Loop through each element
-              Array.from(contactInfoElements).forEach((element) => {
-                // Check for anchor tags to get links
-                const links = element.getElementsByTagName('a');
-                if (links.length > 0) {
-                  Array.from(links).forEach((link) => {
-                    if (link.href.includes('mailto:')) {
-                      email = link.href.replace('mailto:', '');
-                      customConsoleLog('got email: ', email);
-                    }
-                  });
+          // Loop through each element
+          Array.from(contactInfoElements).forEach((element) => {
+            // Check for anchor tags to get links
+            const links = element.getElementsByTagName('a');
+            if (links.length > 0) {
+              Array.from(links).forEach((link) => {
+                if (link.href.includes('mailto:')) {
+                  email = link.href.replace('mailto:', '');
+                  customConsoleLog('got email: ', email);
                 }
               });
-
-              const profileData = {
-                name: document.querySelector('h1')?.innerText || '',
-                subheading:
-                  document.querySelector('.text-body-medium.break-words')
-                    ?.innerText || '',
-                about: (
-                  document
-                    .querySelector(
-                      "section[data-view-name='profile-card'] div#about",
-                    )
-                    ?.closest('section')?.innerText || ''
-                ).replace(/^About\nAbout\n/, ''),
-                profile_url: window.location.href,
-                experience: (
-                  document
-                    .querySelector(
-                      "section[data-view-name='profile-card'] div#experience",
-                    )
-                    ?.closest('section')?.innerText || ''
-                ).replace(/^Experience\nExperience\n/, ''),
-                email: email || '',
-              };
-              customConsoleLog('sending back profile data!');
-              customConsoleLog('linkedin done!');
-              resolve(profileData);
             }
-          }, 100);
+          });
+
+          const profileData = {
+            name: (await waitForElement('h1', 'Name'))?.innerText || '',
+            subheading: (await waitForElement('.text-body-medium.break-words', 'Subheading'))?.innerText || '',
+            about: (
+              (await waitForElement("section[data-view-name='profile-card'] div#about", 'About Section'))
+                ?.closest('section')?.innerText || ''
+            ).replace(/^About\nAbout\n/, ''),
+            profile_url: window.location.href,
+            experience: (
+              (await waitForElement("section[data-view-name='profile-card'] div#experience", 'Experience Section'))
+                ?.closest('section')?.innerText || ''
+            ).replace(/^Experience\nExperience\n/, ''),
+            email: email || '',
+          };
+
+          customConsoleLog('sending back profile data!');
+          customConsoleLog('linkedin done!');
+          
+          // Send profile data directly to ipcRenderer
+          ipcRenderer.send('handle-export', company, name, JSON.stringify(profileData, null, 2), runID);
+          resolve(); // Resolve the promise after sending data
         }
       }
-    }, 100);
+    } else {
+      customConsoleLog('Required elements not found');
+      resolve(); // Resolve the promise if elements are not found
+    }
   });
 }
 
