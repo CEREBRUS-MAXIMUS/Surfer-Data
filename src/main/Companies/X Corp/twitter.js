@@ -24,10 +24,11 @@ async function exportTwitter(company, name, runID) {
   const tweetSet = new Set();
   let lastProcessedTweet = null;
   let noNewTweetsCount = 0;
+  const scrollArray = ['start', 'center', 'end', 'nearest'];
 
   customConsoleLog('Starting tweet collection');
   while (noNewTweetsCount < 3) {
-    const tweets = await waitForElement('[data-testid="tweetText"]', 'Tweets', true);
+    const tweets = await waitForElement('article[data-testid="tweet"]', 'Tweets', true);
     customConsoleLog(`Found ${tweets.length} tweets on the page`);
 
     if (tweets.length === 0) {
@@ -42,7 +43,7 @@ async function exportTwitter(company, name, runID) {
     tweets.forEach((tweet) => {
       tweet.scrollIntoView({
         behavior: 'instant',
-        block: 'center',
+        block: scrollArray[noNewTweetsCount],
       });
       const tweetText = tweet.innerText.replace(/\n/g, ' ');
       tweetSet.add(tweetText);
@@ -52,7 +53,9 @@ async function exportTwitter(company, name, runID) {
     customConsoleLog(`Added ${newTweetsAdded} new unique tweets. Total: ${tweetSet.size}`);
 
     if (newTweetsAdded === 0) {
+      ipcRenderer.sendToHost('toggle-visibility')
       noNewTweetsCount++;
+      customConsoleLog('Now scrolling using: ' + scrollArray[noNewTweetsCount])
     } else {
       noNewTweetsCount = 0;
     }

@@ -188,6 +188,10 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
       if (channel === 'console-log') {
         console.log('logs from preloadWebview: ', args);
       }
+
+      if (channel === 'toggle-visibility') {
+        dispatch(toggleRunVisibility());
+      }
       // Handle the IPC message as needed
     };
 
@@ -381,7 +385,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
                 id={`webview-${run.id}`}
                 allowpopups=""
                 nodeintegration="true"
-                crossorigin="anonymous"
+                crossOrigin="anonymous"
               />
             ))}
           </div>
