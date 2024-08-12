@@ -79,6 +79,13 @@ export const platforms: IPlatform[] = [
       { id: 'github-001-wikis', name: 'Wikis', icon: Book, description: 'Extracts wiki pages', extractionMethod: 'GitHub API v3 - /repos/{owner}/{repo}/wiki/pages endpoint', tasks: [] },
     ],
     supportedOS: ['mac', 'windows', 'linux'],
+    steps: [
+      { id: 'step-001', name: 'Go to GitHub', status: 'pending' },
+      { id: 'step-002', name: 'Open user navigation menu', status: 'pending' },
+      { id: 'step-003', name: 'Click on repositories tab', status: 'pending' },
+      { id: 'step-004', name: 'Get all repositories', status: 'pending' },
+      { id: 'step-005', name: 'Export Data', status: 'pending' },
+    ],
   },
   {
     id: 'gmail-001',
@@ -122,6 +129,12 @@ export const platforms: IPlatform[] = [
       },
     ],
     supportedOS: ['mac', 'windows', 'linux'],
+    steps: [
+      { id: 'step-001', name: 'Go to Gmail', status: 'pending' },
+      { id: 'step-002', name: 'Click on first emails', status: 'pending' },
+      { id: 'step-003', name: 'Go through all emails', status: 'pending' },
+      { id: 'step-004', name: 'Export Data', status: 'pending' },
+    ],
   },
   // {
   //   id: 'slack-001',
@@ -156,6 +169,15 @@ export const platforms: IPlatform[] = [
       { id: 'notion-001-users', name: 'Users', icon: Users, description: 'Extracts user data', extractionMethod: 'Notion API - /users endpoint', tasks: [] },
     ],
     supportedOS: ['mac', 'windows', 'linux'],
+    steps: [
+      { id: 'step-001', name: 'Go to Notion', status: 'pending' },
+      { id: 'step-002', name: 'Click on Dropdown', status: 'pending' },
+      { id: 'step-003', name: 'Click on first settings button', status: 'pending' },
+      { id: 'step-004', name: 'Click on second settings button', status: 'pending' },
+      { id: 'step-005', name: 'Click on Export dialog', status: 'pending' },
+      { id: 'step-006', name: 'Click on export button', status: 'pending' },
+      { id: 'step-007', name: 'Export data', status: 'pending' },
+    ],
   },
   {
     id: 'linkedin-001',
@@ -174,6 +196,13 @@ export const platforms: IPlatform[] = [
       { id: 'linkedin-001-jobs', name: 'Job Applications', icon: Briefcase, description: 'Extracts job application history', extractionMethod: 'LinkedIn API - /jobs endpoint', tasks: [] },
     ],
     supportedOS: ['mac', 'windows', 'linux'],
+    steps: [
+      { id: 'step-001', name: 'Go to LinkedIn', status: 'pending' },
+      { id: 'step-002', name: 'Click on Profile', status: 'pending' },
+      { id: 'step-003', name: 'Click on Contact Info', status: 'pending' },
+      { id: 'step-004', name: 'Scrape Data', status: 'pending' },
+      { id: 'step-005', name: 'Export Data', status: 'pending' },
+    ],
   },
   {
     id: 'twitter-001',
@@ -192,5 +221,11 @@ export const platforms: IPlatform[] = [
       { id: 'twitter-001-dms', name: 'Direct Messages', icon: Mail, description: 'Extracts direct messages', extractionMethod: 'Twitter API - /direct_messages endpoint', tasks: [] },
     ],
     supportedOS: ['mac', 'windows', 'linux'],
+    steps: [
+      { id: 'step-001', name: 'Go to Twitter', status: 'pending' },
+      { id: 'step-002', name: 'Click on Profile', status: 'pending' },
+      { id: 'step-003', name: 'Get tweets', status: 'pending' },
+      { id: 'step-005', name: 'Export Data', status: 'pending' },
+    ],
   },
 ];

@@ -63,5 +63,9 @@ async function wait(seconds) {
   });
 }
 
+function bigStepper(id) {
+  ipcRenderer.sendToHost('big-stepper', id);
+}
 
-module.exports = { removeCSSAndScriptsFromHTML, customConsoleLog, waitForElement, wait }
+
+module.exports = { removeCSSAndScriptsFromHTML, customConsoleLog, waitForElement, wait, bigStepper }

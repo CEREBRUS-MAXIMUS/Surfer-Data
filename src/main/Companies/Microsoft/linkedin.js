@@ -1,4 +1,4 @@
-const { customConsoleLog, waitForElement, wait } = require('../../preloadFunctions');
+const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
 
@@ -6,13 +6,13 @@ const { ipcRenderer } = require('electron');
 async function exportLinkedin(company, name, runID) {
   await wait(2);
   const profileButton = await waitForElement('.ember-view.block', 'Profile Button');
-
+  
   if (!profileButton) {
     customConsoleLog('user not connected');
     ipcRenderer.send('connect-website', company);
     return;
   }
-
+  bigStepper(runID);
   profileButton.click();
 
   await wait(2);
@@ -23,7 +23,7 @@ async function exportLinkedin(company, name, runID) {
     customConsoleLog('Contact button not found');
     return;
   }
-
+  bigStepper(runID);
   contactBtn.click();
 
   await wait(2);
@@ -34,7 +34,7 @@ async function exportLinkedin(company, name, runID) {
     customConsoleLog('Contact info not found');
     return;
   }
-
+  
   return new Promise(async (resolve) => {
     const sections = await waitForElement("section[data-view-name='profile-card']", 'Profile Card Sections', true);
     const contactBtn = await waitForElement('#top-card-text-details-contact-info', 'Contact Button');
@@ -42,6 +42,7 @@ async function exportLinkedin(company, name, runID) {
       const mainContent = await waitForElement('.scaffold-layout__main', 'Main Content');
       
       if (mainContent) {
+        bigStepper(runID);
         contactBtn.click();
 
         await wait(2);
@@ -81,7 +82,7 @@ async function exportLinkedin(company, name, runID) {
 
           customConsoleLog('sending back profile data!');
           customConsoleLog('linkedin done!');
-          
+          bigStepper(runID);
           // Send profile data directly to ipcRenderer
           ipcRenderer.send('handle-export', company, name, JSON.stringify(profileData, null, 2), runID);
           resolve(); // Resolve the promise after sending data

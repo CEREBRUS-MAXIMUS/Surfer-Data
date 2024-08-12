@@ -25,7 +25,7 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
   customConsoleLog('runID: ', runID);
   switch (name) {
     case 'Notion':
-      await exportNotion(company);
+      await exportNotion(company, runID);
       break;
     case 'GitHub':
       await exportGithub(company, name, runID);

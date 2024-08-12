@@ -1,7 +1,7 @@
-const { customConsoleLog, waitForElement, wait } = require('../../preloadFunctions');
+const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-async function exportNotion(company) {
+async function exportNotion(company, runID) {
     await wait(2);
   const dropdown = await waitForElement('.notion-sidebar-switcher', 'Dropdown');
 
@@ -10,9 +10,11 @@ async function exportNotion(company) {
     return;
   }
 
+  bigStepper(runID);
   dropdown.scrollIntoView({ behavior: 'instant', block: 'center' });
   dropdown.click();
   await wait(5);
+
   // First Settings button
   const settingsButton = await waitForElement('div[role="button"]', 'First settings button', true);
   let foundSettings = false;
@@ -20,6 +22,7 @@ async function exportNotion(company) {
     for (const btn of settingsButton) {
       if (btn.textContent.includes('Settings') && btn.querySelector('svg')) {
         btn.scrollIntoView({ behavior: 'instant', block: 'center' });
+        bigStepper(runID);
         btn.click();
         await wait(4);
         foundSettings = true;
@@ -39,6 +42,7 @@ async function exportNotion(company) {
         for (const grandchildDiv of grandchildDivs) {
           if (grandchildDiv.textContent.includes('Settings')) {
             grandchildDiv.scrollIntoView({ behavior: 'instant', block: 'center' });
+            bigStepper(runID);
             grandchildDiv.click();
             await wait(2);
             foundSettings = true;
@@ -58,6 +62,7 @@ async function exportNotion(company) {
     for (const btn of exportButton) {
       if (btn.textContent.includes('Export all workspace content')) {
         btn.scrollIntoView({ behavior: 'instant', block: 'center' });
+        bigStepper(runID);
         btn.click();
         foundExport = true;
         await wait(2);
@@ -73,6 +78,7 @@ async function exportNotion(company) {
     for (const btn of finalExportButton) {
       if (btn.textContent === 'Export') {
         btn.scrollIntoView({ behavior: 'instant', block: 'center' });
+        bigStepper(runID);
         btn.click();
         await wait(2);  
         foundFinalExport = true;

@@ -41,17 +41,14 @@ We appreciate all contributions, whether they are bug reports, feature suggestio
 
 ## Platform-specific Modules
 
-The Surfer project is designed to be modular, with each platform-specific scraping functionality encapsulated in its own module (e.g., `github.js`, `linkedin.js`, `notion.js`). If you would like to add support for a new platform, please follow these guidelines:
+The Surfer project is designed to be modular, with each platform-specific scraping functionality encapsulated in its own module. For details on adding support for a new platform, please refer to our [Guide to Adding New Platforms](./docs/ADD_PLATFORMS.md).
 
-1. Create a new directory within the `Companies` folder, named after the company (e.g., `Companies/Salesforce`).
-2. Inside the new directory, create a new JavaScript file (e.g., `slack.js`) that exports a function to scrape data from the platform.
-3. Update the `preloadWebview.js` file to integrate the new platform module and handle the data export.
-4. Add all the necessary types for the platform including subruns in `platforms.ts`
-5. Add a platform-specific README file (e.g., `slack.md`), providing information about the module's purpose, expected input/output, and any platform-specific considerations.
+## Helper Functions
 
-By following these guidelines, you can help maintain a consistent and organized project structure, making it easier for other contributors to understand and work with the codebase.
+Surfer uses various helper functions to streamline the scraping process. These functions assist with tasks such as waiting for elements, cleaning HTML, and managing asynchronous operations. For a complete list and detailed explanations of these helper functions, see our [Helper Functions Documentation](./docs/HELPER_FUNCTIONS.md).
 
 ## Contact
+
 If you have any questions or need further assistance, please feel free to reach out to the project maintainers:
 
 [Surfer Discord Server](https://discord.gg/Tjg7pjcFNP) - [@SahilLalani0](https://x.com/SahilLalani0) - [@JackBlair87](https://x.com/JackBlair87) - [@T0M_3D](https://x.com/T0M_3D)

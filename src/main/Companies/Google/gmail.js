@@ -15,9 +15,11 @@ async function exportGmail(company, name, runID) {
     return;
   }
 
+  bigStepper(runID);
   mailLink.click();
   await wait(2);
 
+  bigStepper(runID);
   while (true) {
     const email = await waitForElement('#\\:3', 'Current email content');
     if (email) {
@@ -46,7 +48,8 @@ async function exportGmail(company, name, runID) {
   }
   const uniqueEmails = [...new Set(emails)];
   customConsoleLog('Unique emails collected:', uniqueEmails.length);
-  
+
+  bigStepper(runID);
   ipcRenderer.send('handle-export', company, name, uniqueEmails, runID);
 
   return;

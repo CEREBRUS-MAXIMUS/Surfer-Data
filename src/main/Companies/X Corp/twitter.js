@@ -1,4 +1,4 @@
-const { customConsoleLog, wait, waitForElement } = require('../../preloadFunctions');
+const { customConsoleLog, wait, waitForElement, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
 async function exportTwitter(company, name, runID) {
@@ -18,6 +18,7 @@ async function exportTwitter(company, name, runID) {
     return;
   }
 
+  bigStepper(runID);
   profilePics[1].click();
   await wait(2);
 
@@ -26,6 +27,7 @@ async function exportTwitter(company, name, runID) {
   let noNewTweetsCount = 0;
   const scrollArray = ['start', 'center', 'end', 'nearest'];
 
+  bigStepper(runID);
   customConsoleLog('Starting tweet collection');
   while (noNewTweetsCount < 3) {
     const tweets = await waitForElement('article[data-testid="tweet"]', 'Tweets', true);
@@ -59,7 +61,7 @@ async function exportTwitter(company, name, runID) {
     } else {
       noNewTweetsCount = 0;
     }
-
+  
     customConsoleLog('Waiting 2 seconds before getting more tweets');
     await wait(2);
   }
@@ -71,7 +73,7 @@ async function exportTwitter(company, name, runID) {
 
   const tweetArray = Array.from(tweetSet);
   customConsoleLog(`Exporting ${tweetArray.length} tweets`);
-
+  bigStepper(runID);
   ipcRenderer.send('handle-export', company, name, tweetArray, runID);
   return;
 }

@@ -6,6 +6,12 @@
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 
+## Getting Started
+
+To download the app, head over to [https://surfsup.web.app](https://surfsup.web.app). Or you can go to the releases page.
+
+For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md), [Helper Functions Documentation](docs/HELPER_FUNCTIONS.md), and [Guide to Adding New Platforms](docs/ADD_PLATFORMS.md).
+
 ## About The Project
 
 Surfer is the world's first digital footprint exporter, designed to centralize all your personal data from various online platforms into a single folder.
@@ -14,21 +20,6 @@ Currently, your personal data is scattered across hundreds of platforms and the 
 
 We believe that personal data centralization is the key to enabling truly useful, universal personal assistants.
 
-## Getting Started
-
-To download the app, head over to [https://surfsup.web.app](https://surfsup.web.app). Or you can go to the releases page.
-
-For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md).
-
-## Usage
-
-Surfer is designed to be your personal data aggregator, centralizing all your data from various online platforms into a single folder. This empowers you to:
-
-1. Leverage the power of personal AI assistants by providing them with a comprehensive dataset about your life.
-2. Take full control of your personal data and break free from the constraints imposed by the companies that currently hold it.
-
-<!--_For more examples, please refer to the [Documentation](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data)_-->
-
 ## Roadmap
 
 ### Short-Term
@@ -36,6 +27,7 @@ Surfer is designed to be your personal data aggregator, centralizing all your da
 - [x] Replace `setTimeout` with `await` for script execution to ensure elements exist before scraping
 - [ ] Implement robust error handling for the scraping process
 - [ ] Add support for more online platforms
+- [ ] Add verbosity to runs
 
 ### Medium to Long-Term
 - [ ] Implement concurrent scraping to allow for multiple scraping jobs to run simultaneously

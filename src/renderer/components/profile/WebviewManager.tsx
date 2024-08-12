@@ -192,6 +192,12 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
       if (channel === 'toggle-visibility') {
         dispatch(toggleRunVisibility());
       }
+
+      if (channel === 'big-stepper') {
+        console.log('go to next step for run id: ', args[0])
+
+        // UPDATE IN REDUX HERE!
+      }
       // Handle the IPC message as needed
     };
 

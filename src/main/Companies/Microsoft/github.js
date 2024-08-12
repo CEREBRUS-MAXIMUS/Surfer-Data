@@ -1,7 +1,7 @@
-const { customConsoleLog, waitForElement, wait } = require('../../preloadFunctions');
+const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-async function exportGithub(company) {
+async function exportGithub(company, name, runID) {
   await wait(2);
 
   const tabButton = await waitForElement('button[aria-label="Open user navigation menu"]', 'User navigation menu');
@@ -11,6 +11,7 @@ async function exportGithub(company) {
     return;
   }
 
+  bigStepper(runID);
   tabButton.click();
 
   await wait(2);
@@ -19,6 +20,7 @@ async function exportGithub(company) {
     'Repository link',
   );
 
+  bigStepper(runID);
   repoTab.click();
 
   await wait(2);
@@ -27,11 +29,11 @@ async function exportGithub(company) {
 }
 
 async function continueExportGithub() {
-      customConsoleLog('tryna get run id and shit!!');
       ipcRenderer.sendToHost('get-run-id');
       ipcRenderer.on('got-run-id', async (event, id) => {
+        bigStepper(id);
         customConsoleLog('got run id! ', id);
-
+        
         const repos = [];
 
         while (true) {
@@ -73,6 +75,7 @@ async function continueExportGithub() {
       repos.length,
     );
 
+    bigStepper(id);
     ipcRenderer.send('handle-export', 'Microsoft', 'GitHub', repos, id);
     return;
   });
