@@ -12,7 +12,7 @@ async function exportNotion(company) {
 
   dropdown.scrollIntoView({ behavior: 'instant', block: 'center' });
   dropdown.click();
-  await wait(2);
+  await wait(5);
   // First Settings button
   const settingsButton = await waitForElement('div[role="button"]', 'First settings button', true);
   let foundSettings = false;
@@ -21,7 +21,7 @@ async function exportNotion(company) {
       if (btn.textContent.includes('Settings') && btn.querySelector('svg')) {
         btn.scrollIntoView({ behavior: 'instant', block: 'center' });
         btn.click();
-        await wait(2);
+        await wait(4);
         foundSettings = true;
         break;
       }

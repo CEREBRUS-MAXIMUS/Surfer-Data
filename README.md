@@ -33,7 +33,7 @@ Surfer is designed to be your personal data aggregator, centralizing all your da
 
 ### Short-Term
 - [ ] Obtain a code signing certificate for Windows
-- [ ] Replace `setTimeout` with `await` for script execution to ensure elements exist before scraping
+- [x] Replace `setTimeout` with `await` for script execution to ensure elements exist before scraping
 - [ ] Implement robust error handling for the scraping process
 - [ ] Add support for more online platforms
 

@@ -28,7 +28,7 @@ async function exportLinkedin(company, name, runID) {
 
   await wait(2);
 
-  const contactInfoElement = await waitForElement('.pv-contact-info__contact-type', 'Contact Info');
+  const contactInfoElement = await waitForElement('.pv-contact-info__contact-type', 'Contact Info Card');
 
   if (!contactInfoElement) {
     customConsoleLog('Contact info not found');
@@ -39,7 +39,6 @@ async function exportLinkedin(company, name, runID) {
     const sections = await waitForElement("section[data-view-name='profile-card']", 'Profile Card Sections', true);
     const contactBtn = await waitForElement('#top-card-text-details-contact-info', 'Contact Button');
     if (sections && sections.length > 5 && contactBtn) {
-      customConsoleLog('GOT SECTIONS + contact btn!');
       const mainContent = await waitForElement('.scaffold-layout__main', 'Main Content');
       
       if (mainContent) {

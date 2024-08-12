@@ -61,15 +61,27 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef, onViewRunDetails }) 
   }, []);
 
   useEffect(() => {
-    const handleExportComplete = (platformId, exportData, runID, namePath) => {
-      console.log('stopping run for platform id: ', platformId, ', and name: ', exportData, ', and runID: ', runID)
-      dispatch(updateExportStatus(platformId, exportData, runID, namePath));
+    const handleExportComplete = (platformId, name, runID, namePath) => {
+
+      if (name === 'Notion') {
+        console.log('stopping notion run')
+        // change this to .filter or smth else later to account for multiple notion runs
+        const notionRun = runs.filter(run => run.platformId === 'notion-001')[0];
+
+        dispatch(updateExportStatus(platformId, name, notionRun.id, namePath));
+      }
+
+      else {
+        console.log('stopping run for platform id: ', platformId, ', and name: ', name, ', and runID: ', runID)
+        dispatch(updateExportStatus(platformId, name, runID, namePath));
+      }
+
     };
 
     window.electron.ipcRenderer.on('export-complete', handleExportComplete);
 
     return () => {
-      window.electron.ipcRenderer.removeListener('export-complete', handleExportComplete);
+      window.electron.ipcRenderer.removeAllListeners('export-complete');
     };
   }, [dispatch]);
 

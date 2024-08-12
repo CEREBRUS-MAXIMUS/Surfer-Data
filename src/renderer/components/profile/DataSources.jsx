@@ -154,17 +154,6 @@ const DataSources = (webviewRef) => {
     }
   };
 
-  const handleWillDownload = (event, item) => {
-    event.preventDefault();
-    const url = item.getURL();
-    const date = Date.now();
-    console.log('Intercepted download:', url);
-    window.electron.ipcRenderer.send('handle-download', {
-      url,
-      date,
-    });
-  };
-
   const checkAuthStatus = async () => {
     const status = await getAuthStatus();
     setAuthStatus(status);

@@ -317,7 +317,6 @@ export const createWindow = async (visible: boolean = true) => {
     const userData = app.getPath('userData');
     const surferDataPath = path.join(userData, 'surfer_data');
     let platformPath;
-    let namePath;
 
     if (url.includes('file.notion.so')) {
       platformPath = path.join(surferDataPath, 'Notion');
@@ -381,7 +380,7 @@ export const createWindow = async (visible: boolean = true) => {
 
               fs.unlinkSync(filePath);
               console.log('Original zip file removed:', filePath);
-
+              mainWindow?.webContents.send('export-complete', 'Notion', 'Notion', 0, platformPath);
               mainWindow?.webContents.send('download-complete', {
                 fileName,
                 filePath: platformPath,

@@ -110,9 +110,9 @@ export const stopRun = (runId: string) => ({
   payload: runId,
 });
 
-export const updateExportStatus = (platformId: string, exportData: any, runID: string, exportPath: string) => ({
+export const updateExportStatus = (platformId: string, name: string, runID: string, exportPath: string) => ({
   type: 'UPDATE_EXPORT_STATUS',
-  payload: { platformId, exportData, runID, exportPath },
+  payload: { platformId, name, runID, exportPath },
 });
 
 export const setExportRunning = (platformId: string, isRunning: boolean) => ({
