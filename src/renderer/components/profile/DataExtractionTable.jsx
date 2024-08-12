@@ -64,7 +64,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef, onViewRunDetails }) 
     const handleExportComplete = (platformId, name, runID, namePath) => {
 
       if (name === 'Notion') {
-        console.log('stopping notion run')
+        console.log('stopping notion run: ', runs)
         // change this to .filter or smth else later to account for multiple notion runs
         const notionRun = runs.filter(run => run.platformId === 'notion-001')[0];
 
@@ -74,6 +74,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef, onViewRunDetails }) 
       else {
         console.log('stopping run for platform id: ', platformId, ', and name: ', name, ', and runID: ', runID)
         dispatch(updateExportStatus(platformId, name, runID, namePath));
+        
       }
 
     };

@@ -25,12 +25,16 @@ async function exportTwitter(company, name, runID) {
   const tweetSet = new Set();
   let lastProcessedTweet = null;
   let noNewTweetsCount = 0;
-  const scrollArray = ['start', 'center', 'end', 'nearest'];
+  //const scrollArray = ['start', 'center', 'end', 'nearest'];
 
   bigStepper(runID);
   customConsoleLog('Starting tweet collection');
   while (noNewTweetsCount < 3) {
-    const tweets = await waitForElement('article[data-testid="tweet"]', 'Tweets', true);
+    const tweets = await waitForElement(
+      'div[data-testid="cellInnerDiv"]',
+      'Tweets',
+      true,
+    );
     customConsoleLog(`Found ${tweets.length} tweets on the page`);
 
     if (tweets.length === 0) {
@@ -43,10 +47,11 @@ async function exportTwitter(company, name, runID) {
     customConsoleLog('Processing new tweets');
     const initialSize = tweetSet.size;
     tweets.forEach((tweet) => {
-      tweet.scrollIntoView({
-        behavior: 'instant',
-        block: scrollArray[noNewTweetsCount],
-      });
+        tweet.scrollIntoView({
+          behavior: 'instant',
+          block: 'end',
+        });
+
       const tweetText = tweet.innerText.replace(/\n/g, ' ');
       tweetSet.add(tweetText);
     });
@@ -55,9 +60,9 @@ async function exportTwitter(company, name, runID) {
     customConsoleLog(`Added ${newTweetsAdded} new unique tweets. Total: ${tweetSet.size}`);
 
     if (newTweetsAdded === 0) {
-      ipcRenderer.sendToHost('toggle-visibility')
+      customConsoleLog('NO NEW TWEETS ADDED, TRYING AGAIN!');
+      //window.scrollBy(0, 10000);
       noNewTweetsCount++;
-      customConsoleLog('Now scrolling using: ' + scrollArray[noNewTweetsCount])
     } else {
       noNewTweetsCount = 0;
     }
