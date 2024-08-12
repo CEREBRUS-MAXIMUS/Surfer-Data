@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setDefaultChatPanelPosition,
   setHighlightButtons,
   setApplicationFont,
   setShowSystemMessages,
+  updateBreadcrumb,
 } from '../state/actions';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 import { Label } from '../components/ui/label';
@@ -19,6 +20,10 @@ const Settings = () => {
   const dispatch = useDispatch();
   const preferences = useSelector((state) => state.preferences);
   const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    dispatch(updateBreadcrumb([{ text: 'Home', link: '/home' }]));
+  }, [dispatch]);
 
   const handleThemeChange = (value) => {
     setTheme(value);

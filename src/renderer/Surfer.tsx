@@ -75,10 +75,6 @@ function Surfer() {
         return <Landing />;
       case '/home':
         return <Home />;
-      case '/platform':
-        return <Platform />;
-      case '/subrun':
-        return <SubRun />;
       case '/settings':
         return <Settings />;
       default:

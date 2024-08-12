@@ -14,6 +14,14 @@ const Home = () => {
   const [selectedRun, setSelectedRun] = useState(null);
 
   useEffect(() => {
+    // Reset breadcrumb and state when component mounts
+    setSelectedPlatform(null);
+    setSelectedSubRun(null);
+    setSelectedRun(null);
+    dispatch(updateBreadcrumb([{ text: 'Home', link: '/home' }]));
+  }, [dispatch]);
+
+  useEffect(() => {
     if (currentRoute === '/home') {
       setSelectedPlatform(null);
       setSelectedSubRun(null);
