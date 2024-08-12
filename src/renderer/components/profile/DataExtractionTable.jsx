@@ -60,6 +60,11 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef, onViewRunDetails }) 
     };
   }, []);
 
+  // useEffect(() => {
+  //   console.log('opening dev tools')
+  //   window.electron.ipcRenderer.send('show-dev-tools')
+  // }, [])
+
   useEffect(() => {
     const handleExportComplete = (platformId, name, runID, namePath) => {
 
