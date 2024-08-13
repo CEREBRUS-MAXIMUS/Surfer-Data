@@ -5,7 +5,7 @@ if (window.trustedTypes && window.trustedTypes.createPolicy) {
 }
 
 const { contextBridge, ipcRenderer, BrowserWindow } = require('electron');
-const { customConsoleLog } = require('./preloadFunctions')
+const { customConsoleLog } = require('./preloadFunctions');
 const exportNotion = require('./Companies/Notion/notion');
 const {
   exportGithub,
@@ -16,7 +16,7 @@ const exportTwitter = require('./Companies/X Corp/twitter');
 
 const electronHandler = require('./preloadElectron');
 const exportGmail = require('./Companies/Google/gmail');
-
+const exportYouTube = require('./Companies/Google/youtube');
 contextBridge.exposeInMainWorld('electron', electronHandler);
 
 ipcRenderer.on('export-website', async (event, company, name, runID) => {
@@ -37,7 +37,10 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
       await exportTwitter(company, name, runID);
       break;
     case 'Gmail':
-      await exportGmail(company, name, runID)
+      await exportGmail(company, name, runID);
+      break;
+    case 'YouTube':
+      await exportYouTube(company, name, runID);
       break;
   }
 });
