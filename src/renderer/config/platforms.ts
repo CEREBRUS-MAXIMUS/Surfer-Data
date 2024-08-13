@@ -25,6 +25,8 @@ import UnsplashLight from '../components/assets/platforms/UnsplashLight';
 import UnsplashDark from '../components/assets/platforms/UnsplashDark';
 import DiscordLight from '../components/assets/platforms/DiscordLight';
 import DiscordDark from '../components/assets/platforms/DiscordDark';
+import ChatGPTLight from '../components/assets/platforms/ChatGPTLight';
+import ChatGPTDark from '../components/assets/platforms/ChatGPTDark';
 import { IPlatform } from '../types/interfaces';
 
 
@@ -310,6 +312,19 @@ export const platforms: IPlatform[] = [
     company: 'Discord',
     companyLogo: '/assets/logos/discord.png',
     home_url: 'https://discord.com',
+    subRuns: [],
+    supportedOS: ['mac', 'windows', 'linux'],
+  },
+  {
+    id: 'chatgpt-001',
+    name: 'ChatGPT',
+    logo: {
+      light: ChatGPTLight,
+      dark: ChatGPTDark,
+    },
+    company: 'OpenAI',
+    companyLogo: '/assets/logos/openai.png',
+    home_url: 'https://chat.openai.com',
     subRuns: [],
     supportedOS: ['mac', 'windows', 'linux'],
   },
