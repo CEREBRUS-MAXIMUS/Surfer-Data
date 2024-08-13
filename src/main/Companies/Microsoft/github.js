@@ -3,7 +3,10 @@ const { ipcRenderer } = require('electron');
 
 async function exportGithub(company, name, runID) {
   await wait(2);
-
+  if (document.querySelector('a[href="/login"]')) {
+    ipcRenderer.send('connect-website', company);
+    return;
+  }
   const tabButton = await waitForElement('button[aria-label="Open user navigation menu"]', 'User navigation menu');
 
   if (!tabButton) {

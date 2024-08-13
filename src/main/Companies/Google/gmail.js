@@ -3,15 +3,15 @@ const { ipcRenderer } = require('electron');
 
 async function exportGmail(company, name, runID) {
   await wait(2)
-
+  if (document.querySelector('h1')) {
+    ipcRenderer.send('connect-website', company);
+    return;
+  }
   const emails = []; // will add JSON structure later + handle multiple emails in same thread!
 
   const mailLink = await waitForElement("div.xS[role='link']", 'Mail link');
   if (!mailLink) {
-    customConsoleLog('user not connected');
-
     ipcRenderer.send('connect-website', company);
-
     return;
   }
 

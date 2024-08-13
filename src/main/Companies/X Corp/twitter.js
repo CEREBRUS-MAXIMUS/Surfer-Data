@@ -2,7 +2,11 @@ const { customConsoleLog, wait, waitForElement, bigStepper } = require('../../pr
 const { ipcRenderer } = require('electron');
 
 async function exportTwitter(company, name, runID) {
-  await wait(5)
+  await wait(5);
+  if (document.querySelector('h1').innerText === 'Sign in to X') {
+    ipcRenderer.send('connect-website', company);
+    return;
+  }
   customConsoleLog('Querying for profile pictures');
   const profilePics = await waitForElement(
     'img[alt]:not([alt=""]):not([alt="Image"])',

@@ -2,7 +2,11 @@ const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../pr
 const { ipcRenderer } = require('electron');
 
 async function exportNotion(company, runID) {
-    await wait(2);
+  await wait(5);
+  if (document.querySelector('input[aria-label="Enter your email address..."]')) {
+    ipcRenderer.send('connect-website', company);
+    return;
+  }
   const dropdown = await waitForElement('.notion-sidebar-switcher', 'Dropdown');
 
   if (!dropdown) {

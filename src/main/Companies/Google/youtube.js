@@ -7,8 +7,11 @@ const {
 const { ipcRenderer } = require('electron');
 
 async function exportYouTube(company, name, runID) {
-  await wait(2);
-
+  await wait(5);
+  if (document.querySelector('a[aria-label="Sign in"]')) {
+    ipcRenderer.send('connect-website', company);
+    return;
+  }
   const videoData = [];
 
   bigStepper(runID);

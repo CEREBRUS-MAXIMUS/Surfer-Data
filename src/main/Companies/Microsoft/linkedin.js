@@ -5,6 +5,12 @@ const { ipcRenderer } = require('electron');
 
 async function exportLinkedin(company, name, runID) {
   await wait(2);
+
+  if (document.querySelector('input[aria-label="Email or phone"]')) {
+    ipcRenderer.send('connect-website', company);
+    return;
+  }
+
   const profileButton = await waitForElement('.ember-view.block', 'Profile Button');
   
   if (!profileButton) {
