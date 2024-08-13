@@ -67,5 +67,32 @@ function bigStepper(id) {
   ipcRenderer.sendToHost('big-stepper', id);
 }
 
+async function waitForContentToStabilize() {
+  return new Promise((resolve) => {
+    let timeout;
+    const observer = new MutationObserver(() => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        observer.disconnect();
+        customConsoleLog('Content has stabilized');
+        resolve();
+      }, 100); // Adjust this delay as needed
+    });
 
-module.exports = { removeCSSAndScriptsFromHTML, customConsoleLog, waitForElement, wait, bigStepper }
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
+
+    // Fallback in case the page never stabilizes
+    setTimeout(() => {
+      observer.disconnect();
+      customConsoleLog('Timed out waiting for content to stabilize');
+      resolve();
+    }, 5000); // Adjust this timeout as needed
+  });
+}
+
+
+module.exports = { removeCSSAndScriptsFromHTML, customConsoleLog, waitForElement, wait, bigStepper, waitForContentToStabilize }
