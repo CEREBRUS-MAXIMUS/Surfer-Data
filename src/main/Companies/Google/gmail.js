@@ -1,4 +1,4 @@
-const { customConsoleLog, wait, waitForElement } = require('../../preloadFunctions');
+const { customConsoleLog, wait, waitForElement, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
 async function exportGmail(company, name, runID) {
