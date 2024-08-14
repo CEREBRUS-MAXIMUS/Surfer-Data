@@ -77,15 +77,10 @@ const Platform = ({ platform }) => {
 
   return (
     <div className="space-y-8 px-[50px] pt-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center space-x-4">
           {getPlatformLogo()}
           <div>
             <CardTitle className="text-2xl">{platform.name}</CardTitle>
           </div>
-        </CardHeader>
-      </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Data Extraction Options</CardTitle>

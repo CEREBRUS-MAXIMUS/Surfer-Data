@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Checkbox } from "../ui/checkbox";
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { Progress } from "../ui/progress";
+import RunDetailsPage from './RunDetailsPage';
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -22,6 +23,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const { theme } = useTheme(); // Get the current theme
   const [dbUpdateTrigger, setDbUpdateTrigger] = useState(0);
   const dbRef = useRef(null);
+  const [selectedRun, setSelectedRun] = useState(null);
 
   const LOGO_SIZE = 24; // Set a consistent size for all logos
 
@@ -79,7 +81,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       else {
         console.log('stopping run for platform id: ', platformId, ', and name: ', name, ', and runID: ', runID)
         dispatch(updateExportStatus(platformId, name, runID, namePath));
-        
+
       }
 
     };
@@ -181,6 +183,14 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const isExportRunning = useCallback((platformId) => {
     return runs.some(run => run.platformId === platformId && run.status === 'running');
   }, [runs]);
+
+  const onViewRunDetails = (run, platform) => {
+    setSelectedRun({ run, platform });
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedRun(null);
+  };
 
   const renderExportStatus = (platform) => {
     const latestRun = getLatestRun(platform.id);
@@ -363,6 +373,14 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
             Clear search
           </button>
         </div>
+      )}
+      {selectedRun && (
+        <RunDetailsPage
+          runId={selectedRun.run.id}
+          onClose={handleCloseDetails}
+          platform={selectedRun.platform}
+          subRun={{ id: 'export', name: 'Export' }}
+        />
       )}
     </div>
   );
