@@ -8,15 +8,6 @@ import {
 } from '../types/interfaces';
 import { initialAppState } from '../config/initialStates';
 
-const currentPageReducer = (state: string = 'tabs', action: any): string => {
-  switch (action.type) {
-    case 'SET_CURRENT_PAGE':
-      return action.payload.page;
-    default:
-      return state;
-  }
-};
-
 const preferencesReducer = (
   state: IPreferences = initialAppState.preferences,
   action: any,
@@ -139,7 +130,7 @@ const runsReducer = (state: IRun[] = initialAppState.runs, action: any): IRun[] 
             endTime: step.status === 'running' ? new Date().toISOString() : step.endTime,
           })),
         })),
-      })); 
+      }));
     case 'UPDATE_RUN_URL':
       return state.map(run =>
         run.id === action.payload.runId
@@ -261,7 +252,6 @@ const customCombineReducers = (reducers: { [key: string]: any }) => {
 
 
 const rootReducer = customCombineReducers({
-  currentPage: currentPageReducer,
   preferences: preferencesReducer,
   user: userReducer,
   runs: runsReducer,

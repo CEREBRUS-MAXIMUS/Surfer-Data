@@ -1,9 +1,5 @@
 import { IPreferences, IUser, IRun } from '../types/interfaces';
 
-export const setCurrentPage = (page: string, breadcrumb: { text: string; link: string }[]) => ({
-  type: 'SET_CURRENT_PAGE',
-  payload: { page, breadcrumb },
-});
 
 export const setApplicationFont = (font: string) => ({
   type: 'SET_APPLICATION_FONT',
@@ -152,4 +148,4 @@ export const stopAllJobs = () => ({
 export const updateRunURL = (runId: string, newUrl: string) => ({
   type: 'UPDATE_RUN_URL',
   payload: { runId, newUrl }
-}); 
+});

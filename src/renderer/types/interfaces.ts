@@ -29,7 +29,6 @@ export interface IUser {
 }
 
 export interface IAppState {
-  currentPage: string;
   selectedPlatformId: string | null;
   selectedSubRunId: string | null;
   selectedRunId: string | null;
@@ -44,7 +43,6 @@ export interface IAppState {
 }
 
 export const initialState: IAppState = {
-  currentPage: 'tabs',
   selectedPlatformId: null,
   selectedSubRunId: null,
   selectedRunId: null,
