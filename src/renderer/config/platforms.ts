@@ -42,6 +42,8 @@ import DiscordLight from '../components/assets/platforms/DiscordLight';
 import DiscordDark from '../components/assets/platforms/DiscordDark';
 import ChatGPTLight from '../components/assets/platforms/ChatGPTLight';
 import ChatGPTDark from '../components/assets/platforms/ChatGPTDark';
+import ClaudeLight from '../components/assets/platforms/ClaudeLight';
+import ClaudeDark from '../components/assets/platforms/ClaudeDark';
 import { IPlatform } from '../types/interfaces';
 
 export const platforms: IPlatform[] = [
@@ -566,5 +568,18 @@ export const platforms: IPlatform[] = [
     home_url: 'https://discord.com',
     subRuns: [],
     supportedOS: ['mac', 'windows', 'linux'],
-  }
+  },
+  {
+    id: 'claude-001',
+    name: 'Claude',
+    logo: {
+      light: ClaudeLight,
+      dark: ClaudeDark,
+    },
+    company: 'Anthropic',
+    companyLogo: '/assets/logos/claude.png',
+    home_url: 'https://claude.ai',
+    subRuns: [],
+    supportedOS: ['mac', 'windows', 'linux'],
+  },
 ];

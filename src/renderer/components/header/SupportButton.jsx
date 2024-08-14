@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LifeBuoy, Play, MessageSquarePlus, Bug, Github, Twitter, Mail, Users, Sparkles, Shield } from 'lucide-react';
+import { LifeBuoy, Play, MessageSquarePlus, Bug, Github, Twitter, Mail, Users, Sparkles, Shield, GithubIcon } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
@@ -46,11 +46,11 @@ const SupportButton = () => {
                 <Users className="mr-2 h-4 w-4" />
                 <span>Join Community</span>
               </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleOpenLink('https://insigh.to/b/second')} style={{ cursor: 'pointer' }}>
-            <MessageSquarePlus className="mr-2 h-4 w-4" />
-            <span>Request New Feature</span>
+          <DropdownMenuItem onClick={() => handleOpenLink('https://github.com/CEREBRUS-MAXIMUS/Surfer-Data')} style={{ cursor: 'pointer' }}>
+            <GithubIcon className="mr-2 h-4 w-4" />
+            <span>Contribute on GitHub</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleOpenLink('https://insigh.to/b/second')} style={{ cursor: 'pointer' }}>
+          <DropdownMenuItem onClick={() => handleOpenLink('https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues/new/choose')} style={{ cursor: 'pointer' }}>
             <Bug className="mr-2 h-4 w-4" />
             <span>Report a Bug</span>
           </DropdownMenuItem>

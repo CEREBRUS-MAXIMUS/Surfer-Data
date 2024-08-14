@@ -3,8 +3,14 @@ import rootReducer from './reducers';
 import { initialAppState } from '../config/initialStates';
 
 // Load saved state from localStorage
-const savedState = localStorage.getItem('userState');
+let savedState = localStorage.getItem('userState');
+
 const preloadedState = savedState ? JSON.parse(savedState) : initialAppState;
+
+// Ensure isRunLayerVisible is false on application start
+if (preloadedState) {
+  preloadedState.isRunLayerVisible = false;
+}
 
 // Create a custom middleware to log actions
 const loggerMiddleware = (store) => (next) => (action) => {
