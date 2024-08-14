@@ -13,6 +13,7 @@ import { Checkbox } from "../ui/checkbox";
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { Progress } from "../ui/progress";
 import RunDetailsPage from './RunDetailsPage';
+import { platform } from 'os';
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -68,19 +69,18 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   // }, [])
 
   useEffect(() => {
-    const handleExportComplete = (platformId, name, runID, namePath) => {
+    const handleExportComplete = (company, name, runID, namePath) => {
 
-      if (name === 'Notion') {
-        console.log('stopping notion run: ', runs)
-        // change this to .filter or smth else later to account for multiple notion runs
-        const notionRun = runs.filter(run => run.platformId === 'notion-001')[0];
-
-        dispatch(updateExportStatus(platformId, name, notionRun.id, namePath));
+      if (runID === 0) {
+        console.log('stopping download run: ', runs)
+        const downloadRun = runs.filter(run => run.platformId === `${name.toLowerCase()}-001`)[0];
+        // change this to .filter or smth else later to account for multiple download runs
+        dispatch(updateExportStatus(company, name, downloadRun.id, namePath));
       }
 
       else {
-        console.log('stopping run for platform id: ', platformId, ', and name: ', name, ', and runID: ', runID)
-        dispatch(updateExportStatus(platformId, name, runID, namePath));
+        console.log('stopping run for platform id: ', company, name, ', and runID: ', runID)
+        dispatch(updateExportStatus(company, name, runID, namePath));
 
       }
 
@@ -123,7 +123,9 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     );
   };
 
-  const filteredPlatforms = platforms.filter(platform =>
+  const filteredPlatforms = platforms
+  .filter(platform => platform.steps)
+  .filter(platform =>
     platform.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     platform.company.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -283,6 +285,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Platform</TableHead>
+                  <TableHead>Description</TableHead>
                   <TableHead>Actions</TableHead>
                   <TableHead>Export Status</TableHead>
                 </TableRow>
@@ -311,6 +314,9 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                             </div>
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <p className="font-medium">{platform.description}</p>
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">

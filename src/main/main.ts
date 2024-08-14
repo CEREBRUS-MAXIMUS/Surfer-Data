@@ -155,7 +155,8 @@ export const createWindow = async (visible: boolean = true) => {
           details.url.includes('about:blank') ||
           details.url.includes('file://') ||
           details.url.includes('https://www.notion.so/verifyNoPopupBlocker') ||
-          details.url.includes('https://appleid.apple.com/auth/')
+          details.url.includes('https://appleid.apple.com/auth/') ||
+          details.url.includes('https://proddatamgmtqueue.blob.core.windows.net/exportcontainer/')
         ) {
           console.log('ALLOWING THIS URL: ', details.url);
           return { action: 'allow' };
@@ -217,7 +218,7 @@ export const createWindow = async (visible: boolean = true) => {
     if (process.env.START_MINIMIZED) {
       mainWindow.minimize();
     } else {
-      mainWindow.show();
+      mainWindow.show(); 
     }
   });
 
@@ -316,42 +317,52 @@ export const createWindow = async (visible: boolean = true) => {
 
     const userData = app.getPath('userData');
     const surferDataPath = path.join(userData, 'surfer_data');
-    let platformPath;
+    let companyPath: string;
+    let platformPath: string;
+    let idPath: string;
 
     if (url.includes('file.notion.so')) {
-      platformPath = path.join(surferDataPath, 'Notion');
+      companyPath = path.join(surferDataPath, 'Notion');
+      platformPath = path.join(companyPath, 'Notion');
+      idPath = path.join(platformPath, `notion-001-${Date.now()}`);
+    } else if (url.includes('proddatamgmtqueue.blob.core.windows.net/exportcontainer/')) {
+      companyPath = path.join(surferDataPath, 'OpenAI');
+      platformPath = path.join(companyPath, 'ChatGPT');
+      idPath = path.join(platformPath, `chatgpt-001-${Date.now()}`);
+    } else {
+      console.error('Unknown download URL, needs to be handled:', url);
+      return;
     }
 
     // Create surfer_data folder if it doesn't exist
     if (!fs.existsSync(surferDataPath)) {
       fs.mkdirSync(surferDataPath);
     }
-    // Create platform_name folder if it doesn't exist, and clear it if it does
-    if (!fs.existsSync(platformPath)) {
-      fs.mkdirSync(platformPath);
-    } else {
-      fs.readdirSync(platformPath).forEach((file) => {
-        const filePath = path.join(platformPath, file);
-        if (fs.lstatSync(filePath).isDirectory()) {
-          fs.rmSync(filePath, { recursive: true });
-        } else {
-          fs.unlinkSync(filePath);
-        }
-      });
+
+    // Create company folder if it doesn't exist
+    if (!fs.existsSync(companyPath)) {
+      fs.mkdirSync(companyPath);
     }
 
-    // Create a workspace-specific folder within the downloads directory
+    // Create or clear platform_name folder
+    if (!fs.existsSync(platformPath)) {
+      fs.mkdirSync(platformPath);
+    }
+
+    if (!fs.existsSync(idPath)) {
+      fs.mkdirSync(idPath);
+    }
 
     event.preventDefault();
 
     console.log('Starting download:', url);
 
     download(mainWindow, url, {
-      directory: platformPath,
+      directory: idPath,
       filename: fileName,
-      onStarted: (downloadItem) => {
+      onStarted: (downloadItem: Electron.DownloadItem) => {
         console.log('Download started:', url);
-        downloadItem.on('done', (event, state) => {
+        downloadItem.on('done', (event: Electron.Event, state: string) => {
           if (state === 'completed') {
             console.log('Download completed successfully:', url);
           } else if (state === 'cancelled') {
@@ -359,7 +370,7 @@ export const createWindow = async (visible: boolean = true) => {
           }
         });
       },
-      onProgress: (percent) => {
+      onProgress: (percent: number) => {
         console.log(`Download progress for ${url}: ${percent}%`);
         mainWindow?.webContents.send('download-progress', {
           fileName,
@@ -368,27 +379,22 @@ export const createWindow = async (visible: boolean = true) => {
       },
       saveAs: false,
     })
-      .then((dl) => {
+      .then((dl: Electron.DownloadItem) => {
         console.log('Download completed:', dl.getSavePath());
         const filePath = dl.getSavePath();
 
         if (path.extname(filePath).toLowerCase() === '.zip') {
           console.log('Zip file detected. Starting extraction...');
-          extractZip(filePath, platformPath)
+          extractZip(filePath, idPath)
             .then(() => {
-              console.log('Zip file extracted successfully to:', platformPath);
+              console.log('Zip file extracted successfully to:', idPath);
 
               fs.unlinkSync(filePath);
               console.log('Original zip file removed:', filePath);
-              mainWindow?.webContents.send('export-complete', 'Notion', 'Notion', 0, platformPath);
-              mainWindow?.webContents.send('download-complete', {
-                fileName,
-                filePath: platformPath,
-                fileSize,
-                extracted: true,
-              });
+              mainWindow?.webContents.send('export-complete', path.basename(companyPath), path.basename(platformPath), 0, idPath);
+
             })
-            .catch((error) => {
+            .catch((error: Error) => {
               console.error('Error extracting zip file:', error);
               mainWindow?.webContents.send('download-error', {
                 fileName,
@@ -397,15 +403,16 @@ export const createWindow = async (visible: boolean = true) => {
             });
         } else {
           console.log('Non-zip file. No extraction needed.');
-          mainWindow?.webContents.send('download-complete', {
-            fileName,
-            filePath,
-            fileSize,
-            extracted: false,
-          });
+              mainWindow?.webContents.send(
+                'export-complete',
+                path.basename(companyPath),
+                path.basename(platformPath),
+                0,
+                idPath,
+              );
         }
       })
-      .catch((error) => {
+      .catch((error: Error) => {
         console.error('Download failed:', error);
         console.error('Error stack:', error.stack);
         mainWindow?.webContents.send('download-error', {
@@ -414,8 +421,7 @@ export const createWindow = async (visible: boolean = true) => {
         });
       });
   });
-
-};
+}
 
 
 ipcMain.on('open-external', (event, url) => {
@@ -451,22 +457,28 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
   const surferDataPath = path.join(userData, 'surfer_data');
   const platformPath = path.join(surferDataPath, platform_name);
   const namePath = path.join(platformPath, name);
+  const idPath = path.join(namePath, runID);
 
-  // Create surfer_data folder if it doesn't exist
+  // Create surfer_data folder
   if (!fs.existsSync(surferDataPath)) {
     fs.mkdirSync(surferDataPath);
   }
 
-  // Create platform_name folder if it doesn't exist
+  // Create platform_name folder
   if (!fs.existsSync(platformPath)) {
     fs.mkdirSync(platformPath);
   }
 
-  // Create or overwrite the name folder
-  if (fs.existsSync(namePath)) {
-    fs.rmSync(namePath, { recursive: true });
+  // Create the name folder
+  if (!fs.existsSync(namePath)) {
+    fs.mkdirSync(namePath);
   }
-  fs.mkdirSync(namePath);
+
+  // Create the runID folder
+  if (!fs.existsSync(idPath)) {
+    fs.mkdirSync(idPath);
+  }
+
 
   const formatContent = (data) => {
     return typeof data === 'object'
@@ -478,16 +490,16 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
     content.forEach((item, index) => {
       const timestamp = Date.now();
       const fileName = `${name}_${timestamp}_${index}.txt`;
-      const filePath = path.join(namePath, fileName);
+      const filePath = path.join(idPath, fileName);
       fs.writeFileSync(filePath, formatContent(item));
     });
   } else {
     const fileName = `${name}_${Date.now()}.txt`;
-    const filePath = path.join(namePath, fileName);
+    const filePath = path.join(idPath, fileName);
     fs.writeFileSync(filePath, formatContent(content));
   }
 
-  mainWindow?.webContents.send('export-complete', platform_name, name, runID, namePath); // would send this to datasources.jsx
+  mainWindow?.webContents.send('export-complete', platform_name, name, runID, idPath); // would send this to datasources.jsx
 });
 
 ipcMain.on('connect-website', (event, company) => {

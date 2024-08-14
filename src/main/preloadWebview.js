@@ -17,7 +17,7 @@ const exportTwitter = require('./Companies/X Corp/twitter');
 const electronHandler = require('./preloadElectron');
 const exportGmail = require('./Companies/Google/gmail');
 const exportYouTube = require('./Companies/Google/youtube');
-const exportChatgpt = require('./Companies/OpenAI/chatgpt');
+const { exportChatgpt, continueExportChatgpt } = require('./Companies/OpenAI/chatgpt');
 contextBridge.exposeInMainWorld('electron', electronHandler);
 
 ipcRenderer.on('export-website', async (event, company, name, runID) => {
@@ -44,7 +44,7 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
       await exportYouTube(company, name, runID);
       break;
     case 'ChatGPT':
-      await exportChatgpt(company, name, runID);
+      await exportChatgpt(company, runID);
       break;
   }
 });
@@ -54,3 +54,9 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
     await continueExportGithub();
   }
 })();
+
+ipcRenderer.on('change-url-success', async (event, url, id) => {
+  if (id.includes('chatgpt-001')) {
+    await continueExportChatgpt(id);
+  }
+})

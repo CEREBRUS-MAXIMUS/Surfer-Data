@@ -124,22 +124,28 @@ const runsReducer = (state: IRun[] = initialAppState.runs, action: any): IRun[] 
           ? { ...run, status: action.payload.isRunning ? 'running' : 'pending' }
           : run
       );
-      case 'STOP_ALL_JOBS':
-        return state.map(run => ({
-          ...run,
-          status: run.status === 'running' ? 'stopped' : run.status,
-          endDate: run.status === 'running' ? new Date().toISOString() : run.endDate,
-          tasks: run.tasks.map(task => ({
-            ...task,
-            status: task.status === 'running' ? 'stopped' : task.status,
-            endTime: task.status === 'running' ? new Date().toISOString() : task.endTime,
-            steps: task.steps.map(step => ({
-              ...step,
-              status: step.status === 'running' ? 'stopped' : step.status,
-              endTime: step.status === 'running' ? new Date().toISOString() : step.endTime,
-            })),
+    case 'STOP_ALL_JOBS':
+      return state.map(run => ({
+        ...run,
+        status: run.status === 'running' ? 'stopped' : run.status,
+        endDate: run.status === 'running' ? new Date().toISOString() : run.endDate,
+        tasks: run.tasks.map(task => ({
+          ...task,
+          status: task.status === 'running' ? 'stopped' : task.status,
+          endTime: task.status === 'running' ? new Date().toISOString() : task.endTime,
+          steps: task.steps.map(step => ({
+            ...step,
+            status: step.status === 'running' ? 'stopped' : step.status,
+            endTime: step.status === 'running' ? new Date().toISOString() : step.endTime,
           })),
-        }));
+        })),
+      })); 
+    case 'UPDATE_RUN_URL':
+      return state.map(run =>
+        run.id === action.payload.runId
+          ? { ...run, url: action.payload.newUrl }
+          : run
+      );
     default:
       return state;
   }

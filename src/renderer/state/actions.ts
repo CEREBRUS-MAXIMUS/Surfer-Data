@@ -110,9 +110,9 @@ export const stopRun = (runId: string) => ({
   payload: runId,
 });
 
-export const updateExportStatus = (platformId: string, name: string, runID: string, exportPath: string) => ({
+export const updateExportStatus = (company: string, name: string, runID: string, exportPath: string) => ({
   type: 'UPDATE_EXPORT_STATUS',
-  payload: { platformId, name, runID, exportPath },
+  payload: { company, name, runID, exportPath },
 });
 
 export const setExportRunning = (platformId: string, isRunning: boolean) => ({
@@ -148,3 +148,8 @@ export const updateBreadcrumbToIndex = (index: number) => ({
 export const stopAllJobs = () => ({
   type: 'STOP_ALL_JOBS',
 });
+
+export const updateRunURL = (runId: string, newUrl: string) => ({
+  type: 'UPDATE_RUN_URL',
+  payload: { runId, newUrl }
+}); 

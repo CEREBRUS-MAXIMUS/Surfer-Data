@@ -50,6 +50,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'github-001',
     name: 'GitHub',
+    description: 'Gets repository names, links, and descriptions (if any).',
     logo: {
       light: GithubLight,
       dark: GithubDark,
@@ -168,6 +169,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'gmail-001',
     name: 'Gmail',
+    description: 'Gets all emails.',
     logo: {
       light: GmailLight,
       dark: GmailDark,
@@ -231,26 +233,10 @@ export const platforms: IPlatform[] = [
       { id: 'step-004', name: 'Export Data', status: 'pending' },
     ],
   },
-  // {
-  //   id: 'slack-001',
-  //   name: 'Slack',
-  //   logo: {
-  //     light: SlackLight,
-  //     dark: SlackDark,
-  //   },
-  //   company: 'Salesforce',
-  //   companyLogo: '/assets/logos/salesforce.png',
-  //   home_url: 'https://app.slack.com',
-  //   subRuns: [
-  //     { id: 'slack-001-messages', name: 'Messages', icon: MessageSquare, description: 'Extracts all messages', extractionMethod: 'Slack API - /chat.postMessage endpoint', tasks: [] },
-  //     { id: 'slack-001-channels', name: 'Channels', icon: MessageSquare, description: 'Extracts channel information', extractionMethod: 'Slack API - /conversations.list endpoint', tasks: [] },
-  //     { id: 'slack-001-users', name: 'Users', icon: Users, description: 'Extracts user data', extractionMethod: 'Slack API - /users.list endpoint', tasks: [] },
-  //   ],
-  //   supportedOS: ['mac', 'windows', 'linux'],
-  // },
   {
     id: 'notion-001',
     name: 'Notion',
+    description: 'Gets your entire workspace.',
     logo: {
       light: NotionLight,
       dark: NotionDark,
@@ -306,6 +292,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'linkedin-001',
     name: 'LinkedIn',
+    description: 'Gets your profile information.',
     logo: {
       light: LinkedInLight,
       dark: LinkedInDark,
@@ -359,6 +346,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'twitter-001',
     name: 'Twitter',
+    description: 'Gets your posts.',
     logo: {
       light: XLight,
       dark: XDark,
@@ -411,6 +399,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'youtube-001',
     name: 'YouTube',
+    description: 'Gets the videos in your recommended feed.',
     logo: {
       light: YoutubeLight,
       dark: YoutubeDark,
@@ -463,11 +452,12 @@ export const platforms: IPlatform[] = [
   {
     id: 'chatgpt-001',
     name: 'ChatGPT',
+    description: 'Gets your entire ChatGPT history.',
     logo: {
       light: ChatGPTLight,
       dark: ChatGPTDark,
     },
-    company: 'Open AI',
+    company: 'OpenAI',
     companyLogo: '/assets/logos/openai.png',
     home_url: 'https://chatgpt.com/#settings/DataControls',
     subRuns: [],
@@ -476,7 +466,27 @@ export const platforms: IPlatform[] = [
       { id: 'step-001', name: 'Go to ChatGPT Data Controls', status: 'pending' },
       { id: 'step-002', name: 'Click on Export', status: 'pending' },
       { id: 'step-003', name: 'Click on Confirm Export', status: 'pending' },
+      { id: 'step-004', name: 'Go to Gmail and wait for export email', status: 'pending' },
+      { id: 'step-005', name: 'Click on export email', status: 'pending' },
+      { id: 'step-007', name: 'Download export', status: 'pending' },
     ],
+  },
+  {
+    id: 'slack-001',
+    name: 'Slack',
+    // logo: {
+    //   light: SlackLight,
+    //   dark: SlackDark,
+    // },
+    company: 'Salesforce',
+    companyLogo: '/assets/logos/salesforce.png',
+    home_url: 'https://app.slack.com',
+    subRuns: [
+      { id: 'slack-001-messages', name: 'Messages', icon: MessageSquare, description: 'Extracts all messages', extractionMethod: 'Slack API - /chat.postMessage endpoint', tasks: [] },
+      { id: 'slack-001-channels', name: 'Channels', icon: MessageSquare, description: 'Extracts channel information', extractionMethod: 'Slack API - /conversations.list endpoint', tasks: [] },
+      { id: 'slack-001-users', name: 'Users', icon: Users, description: 'Extracts user data', extractionMethod: 'Slack API - /users.list endpoint', tasks: [] },
+    ],
+    supportedOS: ['mac', 'windows', 'linux'],
   },
   {
     id: 'google-calendar-001',
