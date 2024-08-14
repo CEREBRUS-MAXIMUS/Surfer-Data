@@ -68,30 +68,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   //   window.electron.ipcRenderer.send('show-dev-tools')
   // }, [])
 
-  useEffect(() => {
-    const handleExportComplete = (company, name, runID, namePath) => {
 
-      if (runID === 0) {
-        console.log('stopping download run: ', runs)
-        const downloadRun = runs.filter(run => run.platformId === `${name.toLowerCase()}-001`)[0];
-        // change this to .filter or smth else later to account for multiple download runs
-        dispatch(updateExportStatus(company, name, downloadRun.id, namePath));
-      }
-
-      else {
-        console.log('stopping run for platform id: ', company, name, ', and runID: ', runID)
-        dispatch(updateExportStatus(company, name, runID, namePath));
-
-      }
-
-    };
-
-    window.electron.ipcRenderer.on('export-complete', handleExportComplete);
-
-    return () => {
-      window.electron.ipcRenderer.removeAllListeners('export-complete');
-    };
-  }, [dispatch]);
 
   const getLatestRun = useCallback((platformId) => {
     const platformRuns = runs.filter(run => run.platformId === platformId);
