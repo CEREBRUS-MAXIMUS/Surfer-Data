@@ -611,13 +611,31 @@ export const SurferHeader = () => {
     dispatch(toggleRunVisibility());
   };
 
-  const getIconForBreadcrumb = (text) => {
-    switch (text) {
-      case 'Home':
-        return <Home size={16} className="mr-2" />;
-      default:
-        return null;
+  const LOGO_SIZE = 22; // Set a consistent size for all logos
+
+  const getPlatformLogo = (platform) => {
+    const Logo = theme === 'dark' ? platform.logo.dark : platform.logo.light;
+    return Logo ? (
+      <div style={{ width: `${LOGO_SIZE}px`, height: `${LOGO_SIZE}px`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '8px' }}>
+        <Logo style={{ width: '100%', height: '100%' }} />
+      </div>
+    ) : null;
+  };
+
+  const getIconForBreadcrumb = (item) => {
+    console.log("BREADCRUMB TEXT", item);
+    if(item.text === 'Home') {
+      return <Home size={16} className="mr-2" />;
     }
+    if(item.link.startsWith('/platform/')) {
+      const platformId = item.link.split('/')[2];
+      const platform = platforms.find(p => p.id === platformId);
+      return getPlatformLogo(platform);
+    }
+    if(item.link.startsWith('/subrun/')) {
+      return null;
+    }
+    return null;
   };
 
   return (
@@ -638,7 +656,7 @@ export const SurferHeader = () => {
                         onClick={() => handleBreadcrumbClick(item.link, index)}
                         className="flex items-center px-2 py-1"
                       >
-                        {getIconForBreadcrumb(item.text)}
+                        {getIconForBreadcrumb(item)}
                         {item.text}
                       </Button>
                     </BreadcrumbItem>
