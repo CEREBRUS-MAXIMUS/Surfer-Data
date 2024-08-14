@@ -92,7 +92,7 @@ function Surfer() {
   return (
     <div className={`flex h-screen`}>
       <div className="flex-1 transition-all duration-300">
-        <div className="w-full h-full">
+        <div className="w-full h-full bg-background">
           {currentRoute === '/' ? (
             renderContent()
           ) : (

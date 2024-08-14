@@ -161,6 +161,8 @@ const breadcrumbReducer = (state: { text: string; link: string }[] = [], action:
   switch (action.type) {
     case 'UPDATE_BREADCRUMB':
       return action.payload;
+    case 'UPDATE_BREADCRUMB_TO_INDEX':
+      return state.slice(0, action.payload + 1);
     default:
       return state;
   }
@@ -202,19 +204,10 @@ const selectedRunIdReducer = (state = initialAppState.selectedRunId, action: any
   }
 };
 
-const appReducer = (state = { currentRoute: '/' }, action) => {
+const appReducer = (state = { currentRoute: '/home' }, action) => {
   switch (action.type) {
     case 'SET_CURRENT_ROUTE':
       return { ...state, currentRoute: action.payload };
-    default:
-      return state;
-  }
-};
-
-const routingReducer = (state = { currentRoute: '/', params: {} }, action) => {
-  switch (action.type) {
-    case 'SET_ROUTE':
-      return { ...state, currentRoute: action.payload.route, params: action.payload.params };
     default:
       return state;
   }
@@ -266,7 +259,6 @@ const rootReducer = customCombineReducers({
   selectedSubRunId: selectedSubRunIdReducer,
   selectedRunId: selectedRunIdReducer,
   app: appReducer,
-  routing: routingReducer,
   isFullScreen: isFullScreenReducer,
   isMac: isMacReducer,
 });

@@ -139,3 +139,8 @@ export const setIsMac = (isMac: boolean) => ({
   type: 'SET_IS_MAC',
   payload: isMac,
 });
+
+export const updateBreadcrumbToIndex = (index: number) => ({
+  type: 'UPDATE_BREADCRUMB_TO_INDEX',
+  payload: index,
+});

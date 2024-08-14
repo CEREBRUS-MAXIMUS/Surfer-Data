@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from '../ui/tooltip';
 import { useTheme } from '../ui/theme-provider';
-import { setCurrentRoute, toggleRunVisibility } from '../../state/actions';
+import { setCurrentRoute, toggleRunVisibility, updateBreadcrumbToIndex } from '../../state/actions';
 import { Button } from '../ui/button';
 import SettingsButton from './SettingsButton';
 import SupportButton from './SupportButton';
@@ -594,9 +594,10 @@ export const SurferHeader = () => {
 
   const { theme } = useTheme();
 
-  const handleBreadcrumbClick = (link) => {
+  const handleBreadcrumbClick = (link, index) => {
     console.log('Breadcrumb clicked:', link);
     dispatch(setCurrentRoute(link));
+    dispatch(updateBreadcrumbToIndex(index));
   };
 
   const handleViewRuns = () => {
@@ -633,7 +634,7 @@ export const SurferHeader = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleBreadcrumbClick(item.link)}
+                        onClick={() => handleBreadcrumbClick(item.link, index)}
                         className="flex items-center px-2 py-1"
                       >
                         {getIconForBreadcrumb(item.text)}
