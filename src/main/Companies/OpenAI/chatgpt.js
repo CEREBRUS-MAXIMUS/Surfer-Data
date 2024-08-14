@@ -36,14 +36,56 @@ async function exportChatgpt(company, runID) {
   confirmExport.click();
 
     // TODO: automatically go to user's email and download the file
-
-    // ipcRenderer.sendToHost('new-url', 'https://gmail.com')
-
-    // ipcRenderer.on('new-url-success', (event, url) => {
-    //     customConsoleLog('New URL:', url);
-    //     // execute clicking the email + downloading!
-    // });
-
+    await wait(3)
+  bigStepper(runID)
+  ipcRenderer.sendToHost('change-url', 'https://gmail.com', runID) // later this will not be hardcoded
 }
 
-module.exports = exportChatgpt;
+async function continueExportChatgpt(id){
+    // Check for the email every second
+  if (document.querySelector('h1')) {
+    ipcRenderer.send('connect-website', company);
+    return;
+  }
+  
+      let emailFound = false;
+      const checkEmails = async () => {
+        const emails = await waitForElement("div.xS[role='link']", 'Download Email', true);
+        for (const email of emails) {
+          if (email.innerText.includes('ChatGPT - Your data export is ready')) {
+            bigStepper(id)
+            email.click();
+            emailFound = true;
+            break;
+          }
+        }
+      };
+
+      while (!emailFound) {
+        await checkEmails();
+        if (!emailFound) {
+          await wait(1); // Wait for 1 second before checking again
+        }
+      }
+
+      // Wait for the email to load
+      await wait(2);
+
+      let downloadBtns = [];
+      while (downloadBtns.length === 0) {
+        downloadBtns = await waitForElement(
+          'a[href*="https://proddatamgmtqueue.blob.core.windows.net/exportcontainer/"]',
+          'Download button',
+          true
+        );
+        if (downloadBtns.length === 0) {
+          await wait(1); // Wait for 1 second before checking again
+        }
+      }
+      customConsoleLog('downloadBtns: ', downloadBtns);
+      bigStepper(id)
+      downloadBtns[downloadBtns.length - 1].click();
+  
+}
+
+module.exports = { exportChatgpt, continueExportChatgpt };

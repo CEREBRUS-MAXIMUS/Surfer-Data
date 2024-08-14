@@ -465,7 +465,7 @@ export const platforms: IPlatform[] = [
       light: ChatGPTLight,
       dark: ChatGPTDark,
     },
-    company: 'Open AI',
+    company: 'OpenAI',
     companyLogo: '/assets/logos/openai.png',
     home_url: 'https://chatgpt.com/#settings/DataControls',
     subRuns: [],
@@ -474,6 +474,9 @@ export const platforms: IPlatform[] = [
       { id: 'step-001', name: 'Go to ChatGPT Data Controls', status: 'pending' },
       { id: 'step-002', name: 'Click on Export', status: 'pending' },
       { id: 'step-003', name: 'Click on Confirm Export', status: 'pending' },
+      { id: 'step-004', name: 'Go to Gmail and wait for export email', status: 'pending' },
+      { id: 'step-005', name: 'Click on export email', status: 'pending' },
+      { id: 'step-007', name: 'Download export', status: 'pending' },
     ],
   },
   {

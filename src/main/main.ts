@@ -155,7 +155,8 @@ export const createWindow = async (visible: boolean = true) => {
           details.url.includes('about:blank') ||
           details.url.includes('file://') ||
           details.url.includes('https://www.notion.so/verifyNoPopupBlocker') ||
-          details.url.includes('https://appleid.apple.com/auth/')
+          details.url.includes('https://appleid.apple.com/auth/') ||
+          details.url.includes('https://proddatamgmtqueue.blob.core.windows.net/exportcontainer/')
         ) {
           console.log('ALLOWING THIS URL: ', details.url);
           return { action: 'allow' };
@@ -217,7 +218,7 @@ export const createWindow = async (visible: boolean = true) => {
     if (process.env.START_MINIMIZED) {
       mainWindow.minimize();
     } else {
-      mainWindow.show();
+      mainWindow.show(); 
     }
   });
 
@@ -316,21 +317,35 @@ export const createWindow = async (visible: boolean = true) => {
 
     const userData = app.getPath('userData');
     const surferDataPath = path.join(userData, 'surfer_data');
-    let platformPath;
+    let companyPath: string;
+    let platformPath: string;
 
     if (url.includes('file.notion.so')) {
-      platformPath = path.join(surferDataPath, 'Notion');
+      companyPath = path.join(surferDataPath, 'Notion');
+      platformPath = path.join(companyPath, 'Notion');
+    } else if (url.includes('proddatamgmtqueue.blob.core.windows.net/exportcontainer/')) {
+      companyPath = path.join(surferDataPath, 'OpenAI');
+      platformPath = path.join(companyPath, 'ChatGPT');
+    } else {
+      console.error('Unknown download URL:', url);
+      return;
     }
 
     // Create surfer_data folder if it doesn't exist
     if (!fs.existsSync(surferDataPath)) {
       fs.mkdirSync(surferDataPath);
     }
-    // Create platform_name folder if it doesn't exist, and clear it if it does
+
+    // Create company folder if it doesn't exist
+    if (!fs.existsSync(companyPath)) {
+      fs.mkdirSync(companyPath);
+    }
+
+    // Create or clear platform_name folder
     if (!fs.existsSync(platformPath)) {
       fs.mkdirSync(platformPath);
     } else {
-      fs.readdirSync(platformPath).forEach((file) => {
+      fs.readdirSync(platformPath).forEach((file: string) => {
         const filePath = path.join(platformPath, file);
         if (fs.lstatSync(filePath).isDirectory()) {
           fs.rmSync(filePath, { recursive: true });
@@ -340,8 +355,6 @@ export const createWindow = async (visible: boolean = true) => {
       });
     }
 
-    // Create a workspace-specific folder within the downloads directory
-
     event.preventDefault();
 
     console.log('Starting download:', url);
@@ -349,9 +362,9 @@ export const createWindow = async (visible: boolean = true) => {
     download(mainWindow, url, {
       directory: platformPath,
       filename: fileName,
-      onStarted: (downloadItem) => {
+      onStarted: (downloadItem: Electron.DownloadItem) => {
         console.log('Download started:', url);
-        downloadItem.on('done', (event, state) => {
+        downloadItem.on('done', (event: Electron.Event, state: string) => {
           if (state === 'completed') {
             console.log('Download completed successfully:', url);
           } else if (state === 'cancelled') {
@@ -359,7 +372,7 @@ export const createWindow = async (visible: boolean = true) => {
           }
         });
       },
-      onProgress: (percent) => {
+      onProgress: (percent: number) => {
         console.log(`Download progress for ${url}: ${percent}%`);
         mainWindow?.webContents.send('download-progress', {
           fileName,
@@ -368,7 +381,7 @@ export const createWindow = async (visible: boolean = true) => {
       },
       saveAs: false,
     })
-      .then((dl) => {
+      .then((dl: Electron.DownloadItem) => {
         console.log('Download completed:', dl.getSavePath());
         const filePath = dl.getSavePath();
 
@@ -380,7 +393,7 @@ export const createWindow = async (visible: boolean = true) => {
 
               fs.unlinkSync(filePath);
               console.log('Original zip file removed:', filePath);
-              mainWindow?.webContents.send('export-complete', 'Notion', 'Notion', 0, platformPath);
+              mainWindow?.webContents.send('export-complete', path.basename(companyPath), path.basename(platformPath), 0, platformPath);
               mainWindow?.webContents.send('download-complete', {
                 fileName,
                 filePath: platformPath,
@@ -388,7 +401,7 @@ export const createWindow = async (visible: boolean = true) => {
                 extracted: true,
               });
             })
-            .catch((error) => {
+            .catch((error: Error) => {
               console.error('Error extracting zip file:', error);
               mainWindow?.webContents.send('download-error', {
                 fileName,
@@ -405,7 +418,7 @@ export const createWindow = async (visible: boolean = true) => {
           });
         }
       })
-      .catch((error) => {
+      .catch((error: Error) => {
         console.error('Download failed:', error);
         console.error('Error stack:', error.stack);
         mainWindow?.webContents.send('download-error', {
@@ -414,8 +427,7 @@ export const createWindow = async (visible: boolean = true) => {
         });
       });
   });
-
-};
+}
 
 
 ipcMain.on('open-external', (event, url) => {

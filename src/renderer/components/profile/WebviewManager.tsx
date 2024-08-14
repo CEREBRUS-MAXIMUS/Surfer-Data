@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 import { ChevronLeft, ChevronRight, X, Square, Bug } from 'lucide-react';
 import { IAppState } from '../../types/interfaces';
-import { setActiveRunIndex, closeRun, toggleRunVisibility, stopRun, adjustActiveRunIndex, updateExportStatus } from '../../state/actions';
+import { setActiveRunIndex, closeRun, toggleRunVisibility, stopRun, adjustActiveRunIndex, updateRunURL } from '../../state/actions';
 import { platforms } from '../../config/platforms';
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
@@ -199,11 +199,17 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
         // UPDATE IN REDUX HERE!
       }
 
-      if (channel === 'new-url') {
-        console.log('new url: ', args[0])
-        webview.src = args[0];
+      if (channel === 'change-url') {
+        const url = args[0]
+        const id = args[1]
+        console.log('this runs: ', runs)
+        console.log('this url: ', url)
+        console.log('this id: ', id)
+        const run = runs.find(run => run.id === id)
+        console.log('this run: ', run)
+        dispatch(updateRunURL(id, url));
         await new Promise((resolve) => setTimeout(resolve, 2000))
-        webview.send('new-url-success')
+        webview.send('change-url-success', url, id)
       }
     };
 

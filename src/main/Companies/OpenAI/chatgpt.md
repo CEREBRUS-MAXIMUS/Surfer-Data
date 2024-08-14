@@ -8,6 +8,7 @@ The `exportChatgpt()` function performs these tasks:
 1. Checks if the user is connected to ChatGPT.
 2. Navigates through the ChatGPT interface to reach the export dialog.
 3. Initiates the export of all conversation history.
+4. Goes to gmail and downloads the exported file.
 
 ## Implementation
 
@@ -22,10 +23,11 @@ The ChatGPT export process is integrated into the main application via `preloadW
 1. DOM Manipulation: The module relies on specific element attributes and text content to navigate the ChatGPT interface.
 2. Timing: Fixed timeouts are used to account for page load times.
 3. Element Visibility: The function waits for specific elements to appear before interacting with them.
+4. Dynamic Download: The function goes to gmail and downloads the exported file.
 
 ## Future Improvements
 
 1. Error Handling: Implement more robust error handling for each step of the process.
 2. Dynamic Waiting: Replace fixed timeouts with dynamic waiting for elements to appear.
-3. Automatic Download: Implement automatic access to the user's email to download the exported file.
+3. Dynamic Download: While this works on gmail, not every user has a gmail account. Thus, other platforms need to be handled.
 4. Progress Tracking: Implement a way to track and report the export progress.
