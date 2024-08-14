@@ -8,7 +8,7 @@ import Platform from './pages/Platform';
 import SubRun from './pages/SubRun';
 import Settings from './pages/Settings';
 import RunDetailsPage from './components/profile/RunDetailsPage';
-import { setContentScale, setCurrentRoute, updateBreadcrumb } from './state/actions';
+import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs } from './state/actions';
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
 import { platforms } from './config/platforms';
@@ -56,11 +56,20 @@ function Surfer() {
       dispatch(setCurrentRoute(route));
     });
 
+    const handleStopAllJobs = async () => {
+      console.log('Stopping all jobs...');
+      await dispatch(stopAllJobs());
+      window.electron.ipcRenderer.send('jobs-stopped');
+    };
+
+    window.electron.ipcRenderer.on('stop-all-jobs', handleStopAllJobs);
+
     // Cleanup
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.electron.ipcRenderer.removeAllListeners('connect-website');
       window.electron.ipcRenderer.removeAllListeners('route-change');
+      window.electron.ipcRenderer.removeListener('stop-all-jobs', handleStopAllJobs);
     };
   }, [dispatch, contentScale]);
 

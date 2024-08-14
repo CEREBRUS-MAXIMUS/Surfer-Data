@@ -738,3 +738,14 @@ ipcMain.on('get-artifact-files', (event, exportPath) => {
     event.reply('artifact-files', []); // Always send an array, even if empty
   }
 });
+
+app.on('before-quit', (event) => {
+  event.preventDefault(); // Prevent the app from quitting immediately
+  mainWindow?.webContents.send('stop-all-jobs');
+});
+
+// ... rest of the existing code ...
+
+ipcMain.on('jobs-stopped', () => {
+  app.exit(0); // Now we can safely exit the app
+});

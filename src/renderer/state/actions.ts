@@ -144,3 +144,7 @@ export const updateBreadcrumbToIndex = (index: number) => ({
   type: 'UPDATE_BREADCRUMB_TO_INDEX',
   payload: index,
 });
+
+export const stopAllJobs = () => ({
+  type: 'STOP_ALL_JOBS',
+});

@@ -630,7 +630,7 @@ export const SurferHeader = () => {
               <BreadcrumbList>
                 {breadcrumb.map((item, index) => (
                   <React.Fragment key={index}>
-                    {index > 0 && <BreadcrumbSeparator />}
+                    {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
                     <BreadcrumbItem>
                       <Button
                         variant="ghost"
@@ -665,11 +665,12 @@ export const SurferHeader = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={handleViewRuns}
-                  className="history-button relative"
+                  onClick={activeRuns > 0 ? handleViewRuns : undefined}
+                  className={`history-button relative ${activeRuns === 0 ? 'cursor-not-allowed opacity-50' : ''}`}
+                  disabled={activeRuns === 0}
                 >
                   <Eye size={18} />
-                  {runs.length > 0 && (
+                  {activeRuns > 0 && (
                     <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
                       {activeRuns}
                     </span>
@@ -677,7 +678,7 @@ export const SurferHeader = () => {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>View Runs</p>
+                <p>{activeRuns > 0 ? "View Runs" : "No Active Runs"}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

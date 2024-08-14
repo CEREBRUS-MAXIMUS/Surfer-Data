@@ -160,6 +160,10 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     ) : null;
   };
 
+  const isExportRunning = useCallback((platformId) => {
+    return runs.some(run => run.platformId === platformId && run.status === 'running');
+  }, [runs]);
+
   const renderExportStatus = (platform) => {
     const latestRun = getLatestRun(platform.id);
 
@@ -259,6 +263,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                 {paginatedPlatforms.map((platform) => {
                   const latestRun = getLatestRun(platform.id);
                   const logoComponent = getPlatformLogo(platform);
+                  const exportRunning = isExportRunning(platform.id);
 
                   return (
                     <TableRow key={platform.id}>
@@ -286,9 +291,10 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                             variant="outline"
                             className="flex items-center"
                             onClick={() => handleExportClick(platform)}
+                            disabled={exportRunning}
                           >
                             <HardDriveDownload size={16} className="mr-2" />
-                            Export
+                            {exportRunning ? 'Exporting...' : 'Export'}
                           </Button>
                         </div>
                       </TableCell>
