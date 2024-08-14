@@ -6,18 +6,18 @@ if (window.trustedTypes && window.trustedTypes.createPolicy) {
 
 const { contextBridge, ipcRenderer, BrowserWindow } = require('electron');
 const { customConsoleLog } = require('./preloadFunctions');
-const exportNotion = require('./Companies/Notion/notion');
+const exportNotion = require('./Scrapers/Notion/notion');
 const {
   exportGithub,
   continueExportGithub,
-} = require('./Companies/Microsoft/github');
-const exportLinkedin = require('./Companies/Microsoft/linkedin');
-const exportTwitter = require('./Companies/X Corp/twitter');
+} = require('./Scrapers/Microsoft/github');
+const exportLinkedin = require('./Scrapers/Microsoft/linkedin');
+const exportTwitter = require('./Scrapers/X Corp/twitter');
 
 const electronHandler = require('./preloadElectron');
-const exportGmail = require('./Companies/Google/gmail');
-const exportYouTube = require('./Companies/Google/youtube');
-const { exportChatgpt, continueExportChatgpt } = require('./Companies/OpenAI/chatgpt');
+const exportGmail = require('./Scrapers/Google/gmail');
+const exportYouTube = require('./Scrapers/Google/youtube');
+const { exportChatgpt, continueExportChatgpt } = require('./Scrapers/OpenAI/chatgpt');
 contextBridge.exposeInMainWorld('electron', electronHandler);
 
 ipcRenderer.on('export-website', async (event, company, name, runID) => {
