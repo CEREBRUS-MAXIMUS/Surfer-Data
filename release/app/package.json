@@ -2,7 +2,7 @@
   "description": "Surfer is the world's first digital footprint exporter.",
   "productName": "Surfer",
   "name": "surfer",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "keywords": [
     "electron",
     "ai",

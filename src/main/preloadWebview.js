@@ -5,7 +5,7 @@ if (window.trustedTypes && window.trustedTypes.createPolicy) {
 }
 
 const { contextBridge, ipcRenderer, BrowserWindow } = require('electron');
-const { customConsoleLog } = require('./preloadFunctions')
+const { customConsoleLog } = require('./preloadFunctions');
 const exportNotion = require('./Companies/Notion/notion');
 const {
   exportGithub,
@@ -16,72 +16,41 @@ const exportTwitter = require('./Companies/X Corp/twitter');
 
 const electronHandler = require('./preloadElectron');
 const exportGmail = require('./Companies/Google/gmail');
-
+const exportYouTube = require('./Companies/Google/youtube');
+const exportChatgpt = require('./Companies/OpenAI/chatgpt');
 contextBridge.exposeInMainWorld('electron', electronHandler);
 
-// Custom console log function to send logs to ipcRenderer
-
 ipcRenderer.on('export-website', async (event, company, name, runID) => {
-  
   customConsoleLog('company: ', company);
   customConsoleLog('name: ', name);
   customConsoleLog('runID: ', runID);
-  customConsoleLog("EXPORT WEBSITE CALLED!!!!!")
   switch (name) {
     case 'Notion':
-      const notionRes = await exportNotion();
-      if (notionRes) {
-        customConsoleLog('SENDING CONNECT WEBSITE!')
-        ipcRenderer.send('connect-website', company)
-      }
+      await exportNotion(company, runID);
       break;
     case 'GitHub':
-      const githubRes = await exportGithub();
-      if (githubRes) {
-        ipcRenderer.send('connect-website', company);
-      }
+      await exportGithub(company, name, runID);
       break;
     case 'LinkedIn':
-      let profile = await exportLinkedin();
-
-      if (profile === 'Not connected') {
-        ipcRenderer.send('connect-website', company);
-      } else {
-        ipcRenderer.send('handle-export', company, name, JSON.stringify(profile, null, 2), runID)
-      }
+      await exportLinkedin(company, name, runID);
       break;
     case 'Twitter':
-      const tweetArray = await exportTwitter();
-
-      if (tweetArray === 'Not connected') {
-        ipcRenderer.send('connect-website', company);
-      } else {
-        ipcRenderer.send('handle-export', company, name, tweetArray, runID);
-      }
+      await exportTwitter(company, name, runID);
       break;
     case 'Gmail':
-      const emails = await exportGmail()
-
-      if (emails === 'Not connected') {
-        ipcRenderer.send('connect-website', company)
-      }
-
-      else {
-        ipcRenderer.send('handle-export', company, name, emails, runID)
-      }
+      await exportGmail(company, name, runID);
+      break;
+    case 'YouTube':
+      await exportYouTube(company, name, runID);
+      break;
+    case 'ChatGPT':
+      await exportChatgpt(company, name, runID);
       break;
   }
 });
 
 (async () => {
   if (window.location.href.includes('?tab=repositories')) {
-    customConsoleLog('tryna get run id and shit!!')
-    ipcRenderer.sendToHost('get-run-id');
-    ipcRenderer.on('got-run-id', async (event, id) => {  
-      customConsoleLog('got run id! ', id)
-      const repos = await continueExportGithub();
-      ipcRenderer.send('handle-export', 'Microsoft', 'GitHub', repos, id);
-    });
-
+    await continueExportGithub();
   }
 })();

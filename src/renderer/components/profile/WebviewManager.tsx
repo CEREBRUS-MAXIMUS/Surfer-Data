@@ -175,7 +175,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
 
   useEffect(() => {
     const webview = webviewRef.current;
-    const ipcMessageHandler = (event) => {
+    const ipcMessageHandler = async (event) => {
       const { channel, args } = event; // Assuming the event has channel and args properties
       if (channel === 'get-run-id') {
         const runningRuns = runs.filter(run => run.status === 'running');
@@ -188,7 +188,23 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
       if (channel === 'console-log') {
         console.log('logs from preloadWebview: ', args);
       }
-      // Handle the IPC message as needed
+
+      if (channel === 'toggle-visibility') {
+        dispatch(toggleRunVisibility());
+      }
+
+      if (channel === 'big-stepper') {
+        console.log('go to next step for run id: ', args[0])
+
+        // UPDATE IN REDUX HERE!
+      }
+
+      if (channel === 'new-url') {
+        console.log('new url: ', args[0])
+        webview.src = args[0];
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        webview.send('new-url-success')
+      }
     };
 
     if (webview) {
@@ -379,7 +395,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
                 id={`webview-${run.id}`}
                 allowpopups=""
                 nodeintegration="true"
-                crossorigin="anonymous"
+                crossOrigin="anonymous"
               />
             ))}
           </div>

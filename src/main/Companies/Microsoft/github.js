@@ -1,83 +1,87 @@
-const { customConsoleLog } = require('../../preloadFunctions');
+const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../preloadFunctions');
+const { ipcRenderer } = require('electron');
 
-async function exportGithub() {
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-  // Add your GitHub export logic here
-  const tabButton = document.querySelectorAll(
-    '[aria-label="Open user navigation menu"]',
-  )[0];
+async function exportGithub(company, name, runID) {
+  await wait(2);
+  if (document.querySelector('a[href="/login"]')) {
+    ipcRenderer.send('connect-website', company);
+    return;
+  }
+  const tabButton = await waitForElement('button[aria-label="Open user navigation menu"]', 'User navigation menu');
 
   if (!tabButton) {
-    customConsoleLog('user not connected');
-    return 'Not connected';
-
-    // send msg here that user needs to SIGN IN first!
-  }
-
-  tabButton.click();
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-
-  const links = Array.from(document.querySelectorAll('a'));
-  const repoTab = links.filter((link) =>
-    link.href.includes('tab=repositories'),
-  )[0];
-
-  if (!repoTab) {
-    customConsoleLog('Repository tab not found');
+    ipcRenderer.send('connect-website', company);
     return;
   }
 
+  bigStepper(runID);
+  tabButton.click();
+
+  await wait(2);
+  const repoTab = await waitForElement(
+    '#\\:rg\\:',
+    'Repository link',
+  );
+
+  bigStepper(runID);
   repoTab.click();
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  await wait(2);
 
   return;
 }
 
 async function continueExportGithub() {
-  customConsoleLog('CONTINUE GITHUB!!!!');
+      ipcRenderer.sendToHost('get-run-id');
+      ipcRenderer.on('got-run-id', async (event, id) => {
+        bigStepper(id);
+        customConsoleLog('got run id! ', id);
+        
+        const repos = [];
 
-  const repos = [];
+        while (true) {
+          await wait(2);
+          const repoLinks = await waitForElement('a[itemprop="name codeRepository"]', 'Repository links', true);
+          for (const repoLink of repoLinks) {
+            let desc = '';
 
-  while (true) {
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+            const siblingDiv =
+              repoLink.parentElement.parentElement.nextElementSibling;
+            if (siblingDiv && siblingDiv.childNodes[1]) {
+              desc = siblingDiv.childNodes[1].innerText;
+            }
+            repos.push({
+              name: repoLink.innerText,
+              url: repoLink.href,
+              description: desc,
+            });
+          }
 
-    const repoLinks = document.querySelectorAll(
-      'a[itemprop="name codeRepository"]',
+          await wait(2);
+
+          const nextPageButton = await waitForElement('a.next_page', 'Next page button');
+          if (!nextPageButton) {
+            break;
+          }
+          nextPageButton.scrollIntoView({
+            behavior: 'instant',
+            block: 'center',
+          });
+          nextPageButton.click();
+
+          await wait(2);
+        }
+
+
+    customConsoleLog(
+      'GitHub export completed. Total repositories:',
+      repos.length,
     );
-    customConsoleLog('these repo links!!! ', repoLinks);
 
-    for (const repoLink of repoLinks) {
-      let desc = '';
-
-      const siblingDiv =
-        repoLink.parentElement.parentElement.nextElementSibling;
-      if (siblingDiv && siblingDiv.childNodes[1]) {
-        desc = siblingDiv.childNodes[1].innerText;
-      }
-      repos.push({
-        name: repoLink.innerText,
-        url: repoLink.href,
-        description: desc,
-      });
-    }
-
-    const nextPageButton = document.querySelector('a.next_page');
-    if (!nextPageButton) {
-      break; // Exit the loop if there's no next page button
-    }
-    nextPageButton.scrollIntoView({
-      behavior: 'instant',
-      block: 'center',
-    });
-    nextPageButton.click();
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-  }
-
-  // Assuming ipcRenderer is available in this context
-
-  customConsoleLog('GitHub export completed. Total repositories:', repos.length);
-
-  return repos;
+    bigStepper(id);
+    ipcRenderer.send('handle-export', 'Microsoft', 'GitHub', repos, id);
+    return;
+  });
 }
 
 module.exports = { exportGithub, continueExportGithub };
