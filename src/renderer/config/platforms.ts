@@ -465,7 +465,7 @@ export const platforms: IPlatform[] = [
       light: ChatGPTLight,
       dark: ChatGPTDark,
     },
-    company: 'OpenAI',
+    company: 'Open AI',
     companyLogo: '/assets/logos/openai.png',
     home_url: 'https://chatgpt.com/#settings/DataControls',
     subRuns: [],
@@ -529,19 +529,6 @@ export const platforms: IPlatform[] = [
     supportedOS: ['mac', 'windows', 'linux'],
   },
   {
-    id: 'youtube-001',
-    name: 'Youtube',
-    logo: {
-      light: YoutubeLight,
-      dark: YoutubeDark,
-    },
-    company: 'Google',
-    companyLogo: '/assets/logos/google.png',
-    home_url: 'https://www.youtube.com',
-    subRuns: [],
-    supportedOS: ['mac', 'windows', 'linux'],
-  },
-  {
     id: 'devpost-001',
     name: 'Devpost',
     logo: {
@@ -579,18 +566,5 @@ export const platforms: IPlatform[] = [
     home_url: 'https://discord.com',
     subRuns: [],
     supportedOS: ['mac', 'windows', 'linux'],
-  },
-  {
-    id: 'chatgpt-001',
-    name: 'ChatGPT',
-    logo: {
-      light: ChatGPTLight,
-      dark: ChatGPTDark,
-    },
-    company: 'OpenAI',
-    companyLogo: '/assets/logos/openai.png',
-    home_url: 'https://chat.openai.com',
-    subRuns: [],
-    supportedOS: ['mac', 'windows', 'linux'],
-  },
+  }
 ];

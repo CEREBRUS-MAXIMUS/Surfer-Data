@@ -2,7 +2,7 @@ import React from 'react';
 
 const DevpostDark: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="44" height="29" viewBox="0 0 44 29" version="1.1">
+    <svg xmlns="http://www.w3.org/2000/svg"  width="44" height="29" viewBox="0 0 44 29" version="1.1">
     <title>devpost-logo</title>
     <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="layout/site-header-mobile-minilogo" transform="translate(-54.000000, -14.000000)" fill-rule="nonzero">
