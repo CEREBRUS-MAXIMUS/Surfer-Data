@@ -168,15 +168,6 @@ const breadcrumbReducer = (state: { text: string; link: string }[] = [], action:
   }
 };
 
-const currentViewReducer = (state = initialAppState.currentView, action: any) => {
-  switch (action.type) {
-    case 'SET_CURRENT_VIEW':
-      return action.payload.view;
-    default:
-      return state;
-  }
-};
-
 const selectedPlatformIdReducer = (state = initialAppState.selectedPlatformId, action: any) => {
   switch (action.type) {
     case 'SET_CURRENT_VIEW':
@@ -204,10 +195,10 @@ const selectedRunIdReducer = (state = initialAppState.selectedRunId, action: any
   }
 };
 
-const appReducer = (state = { currentRoute: '/home' }, action) => {
+const appReducer = (state = { params: {} }, action) => {
   switch (action.type) {
     case 'SET_CURRENT_ROUTE':
-      return { ...state, currentRoute: action.payload };
+      return { ...state, ...action.payload };
     default:
       return state;
   }
@@ -254,7 +245,6 @@ const rootReducer = customCombineReducers({
   activeRunIndex: activeRunIndexReducer,
   isRunLayerVisible: isRunLayerVisibleReducer,
   breadcrumb: breadcrumbReducer,
-  currentView: currentViewReducer,
   selectedPlatformId: selectedPlatformIdReducer,
   selectedSubRunId: selectedSubRunIdReducer,
   selectedRunId: selectedRunIdReducer,

@@ -7,14 +7,16 @@ import Landing from './pages/Landing';
 import Platform from './pages/Platform';
 import SubRun from './pages/SubRun';
 import Settings from './pages/Settings';
+import RunDetailsPage from './components/profile/RunDetailsPage';
 import { setContentScale, setCurrentRoute, updateBreadcrumb } from './state/actions';
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
+import { platforms } from './config/platforms';
 
 function Surfer() {
   const dispatch = useDispatch();
   const contentScale = useSelector((state: IAppState) => state.preferences.contentScale);
-  const currentRoute = useSelector((state: IAppState) => state.app.currentRoute);
+  const route = useSelector((state: IAppState) => state.app.route);
   const webviewRef = useRef(null);
   const [showNotConnectedAlert, setShowNotConnectedAlert] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
@@ -63,23 +65,74 @@ function Surfer() {
   }, [dispatch, contentScale]);
 
   useEffect(() => {
-    console.log('Current route:', currentRoute);
-  }, [currentRoute]);
+    console.log('Current route:', route);
+  }, [route]);
 
   const safeContentScale = isNaN(contentScale) ? 1 : contentScale;
 
   const renderContent = () => {
-    console.log('Rendering content for route:', currentRoute);
-    switch (currentRoute.route) {
-      case '/':
-        return <Landing />;
-      case '/home':
+    const currentRoute = route || '/home';
+    const routeParts = currentRoute.split('/').filter(Boolean);
+
+    switch (routeParts[0]) {
+      case 'home':
         return <Home />;
-      case '/settings':
+      case 'settings':
         return <Settings />;
+      case 'platform':
+        if (routeParts.length > 1) {
+          const platformId = routeParts[1];
+          const platform = platforms.find(p => p.id === platformId);
+          if (platform) {
+            return <Platform platform={platform} />;
+          } else {
+            console.warn(`Platform not found for id: ${platformId}`);
+            return <Home />;
+          }
+        }
+        return <Home />;
+      case 'subrun':
+        if (routeParts.length > 2) {
+          const platformId = routeParts[1];
+          const subRunId = routeParts[2];
+          const platform = platforms.find(p => p.id === platformId);
+          if (platform) {
+            const subRun = platform.subRuns.find(sr => sr.id === subRunId);
+            if (subRun) {
+              return <SubRun platform={platform} subRun={subRun} />;
+            } else {
+              console.warn(`SubRun not found for id: ${subRunId}`);
+              return <Platform platform={platform} />;
+            }
+          } else {
+            console.warn(`Platform not found for id: ${platformId}`);
+            return <Home />;
+          }
+        }
+        return <Home />;
+      case 'run':
+        if (routeParts.length > 1) {
+          const runId = routeParts[1];
+          // Assuming you have a way to get the run details
+          // You might need to fetch this from your state or an API
+          const run = getRun(runId); // Implement this function
+          if (run) {
+            const platform = platforms.find(p => p.id === run.platformId);
+            if (platform) {
+              return (
+                <RunDetailsPage
+                  runId={runId}
+                  onClose={() => dispatch(setCurrentRoute('/home'))}
+                  platform={platform}
+                />
+              );
+            }
+          }
+        }
+        return <Home />;
       default:
         console.warn('Unknown route:', currentRoute);
-        return <Home />; // Change this to Home or any other appropriate fallback
+        return <Home />;
     }
   };
 
@@ -93,8 +146,8 @@ function Surfer() {
     <div className={`flex h-screen`}>
       <div className="flex-1 transition-all duration-300">
         <div className="w-full h-full bg-background">
-          {currentRoute === '/' ? (
-            renderContent()
+          {(route === '/' || route === undefined) ? (
+            <Landing />
           ) : (
             <Layout
               webviewRef={webviewRef}

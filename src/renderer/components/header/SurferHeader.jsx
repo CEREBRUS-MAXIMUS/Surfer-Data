@@ -595,8 +595,23 @@ export const SurferHeader = () => {
   const { theme } = useTheme();
 
   const handleBreadcrumbClick = (link, index) => {
-    console.log('Breadcrumb clicked:', link);
-    dispatch(setCurrentRoute(link));
+    const parts = link.split('/');
+    let view = 'home';
+    let params = {};
+
+    if (parts.length > 1) {
+      view = parts[1];
+      if (view === 'platform' && parts.length > 2) {
+        const platform = platforms.find(p => p.id === parts[2]);
+        params = { platform };
+      } else if (view === 'subrun' && parts.length > 4) {
+        const platform = platforms.find(p => p.id === parts[2]);
+        const subRun = platform.subRuns.find(sr => sr.id === parts[4]);
+        params = { platform, subRun };
+      }
+    }
+
+    dispatch(setCurrentRoute(link, params));
     dispatch(updateBreadcrumbToIndex(index));
   };
 
@@ -606,7 +621,7 @@ export const SurferHeader = () => {
 
   const handleHomeClick = () => {
     console.log('Home clicked');
-    dispatch(setCurrentRoute('/home'));
+    dispatch(setCurrentRoute('/home', 'home'));
   };
 
   const getIconForBreadcrumb = (text) => {

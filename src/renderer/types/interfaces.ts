@@ -30,7 +30,6 @@ export interface IUser {
 
 export interface IAppState {
   currentPage: string;
-  currentView: 'home' | 'platform' | 'subrun' | 'run';
   selectedPlatformId: string | null;
   selectedSubRunId: string | null;
   selectedRunId: string | null;
@@ -46,7 +45,6 @@ export interface IAppState {
 
 export const initialState: IAppState = {
   currentPage: 'tabs',
-  currentView: 'home',
   selectedPlatformId: null,
   selectedSubRunId: null,
   selectedRunId: null,

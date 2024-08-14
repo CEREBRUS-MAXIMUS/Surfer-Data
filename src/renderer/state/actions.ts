@@ -125,9 +125,9 @@ export const updateBreadcrumb = (breadcrumb: { text: string; link: string }[]) =
   payload: breadcrumb,
 });
 
-export const setCurrentRoute = (route: string, breadcrumb: { text: string; link: string }[]) => ({
+export const setCurrentRoute = (route: string, params: any = {}) => ({
   type: 'SET_CURRENT_ROUTE',
-  payload: { route, breadcrumb },
+  payload: { route, params },
 });
 
 export const setIsFullScreen = (isFullScreen: boolean) => ({
