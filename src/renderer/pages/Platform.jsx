@@ -11,8 +11,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useDispatch } from 'react-redux';
 import { deleteRunsForPlatform } from '../state/actions';
 import { deleteRunsForPlatformFromDB } from '../lib/databases';
+import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
 
-const Platform = ({ platform, onSubRunClick, selectedSubRun }) => {
+const Platform = ({ platform }) => {
   const [runs, setRuns] = useState([]);
   const [expandedRuns, setExpandedRuns] = useState({});
   const [selectedRunId, setSelectedRunId] = useState(null);
@@ -47,7 +48,12 @@ const Platform = ({ platform, onSubRunClick, selectedSubRun }) => {
   };
 
   const handleSubRunClick = (subRun) => {
-    onSubRunClick(subRun);
+    dispatch(setCurrentRoute(`/subrun/${platform.id}/${subRun.id}`));
+    dispatch(updateBreadcrumb([
+      { icon: 'Home', text: 'Home', link: '/home' },
+      { text: platform.name, link: `/platform/${platform.id}` },
+      { text: subRun.name, link: `/subrun/${platform.id}/${subRun.id}` }
+    ]));
   };
 
   const handleDeleteAllData = async () => {
@@ -68,10 +74,6 @@ const Platform = ({ platform, onSubRunClick, selectedSubRun }) => {
       </div>
     ) : null;
   };
-
-  if (selectedSubRun) {
-    return <SubRun platform={platform} subRun={selectedSubRun} />;
-  }
 
   return (
     <div className="space-y-8 px-[50px] pt-6">

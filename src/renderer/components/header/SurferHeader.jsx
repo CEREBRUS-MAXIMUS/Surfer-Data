@@ -1,10 +1,8 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
-import { Clock, Plus, Home, Wrench, Eye } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { Eye, Home } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
-import { TransitionGroup, CSSTransition } from 'react-transition-group';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '../ui/breadcrumb';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "../ui/breadcrumb";
 import {
   Tooltip,
   TooltipContent,
@@ -12,11 +10,11 @@ import {
   TooltipTrigger,
 } from '../ui/tooltip';
 import { useTheme } from '../ui/theme-provider';
-import { setCurrentRoute, toggleRunVisibility, updateBreadcrumbToIndex } from '../../state/actions';
+import { setCurrentRoute, toggleRunVisibility, updateBreadcrumbToIndex, setIsMac, setIsFullScreen } from '../../state/actions';
 import { Button } from '../ui/button';
 import SettingsButton from './SettingsButton';
 import SupportButton from './SupportButton';
-import { setIsFullScreen, setIsMac } from '../../state/actions';
+import { platforms } from '../../config/platforms';
 
 const getStyleHorizontalLock = (style) =>
   style?.transform
@@ -562,6 +560,8 @@ export const SurferHeader = () => {
   const runs = useSelector((state) => state.runs);
   const isFullScreen = useSelector((state) => state.isFullScreen);
   const isMac = useSelector((state) => state.isMac);
+  const { theme } = useTheme();
+
   const activeRuns = runs.filter((run) => run.status === 'running').length;
 
   useEffect(() => {
@@ -575,43 +575,35 @@ export const SurferHeader = () => {
       dispatch(setIsFullScreen(isFullScreen));
     };
 
-    // Set up listeners
     window.electron.ipcRenderer.on('platform', handlePlatformReply);
     window.electron.ipcRenderer.on('fullscreen-changed', handleFullscreenChange);
 
-    // Request platform information
     window.electron.ipcRenderer.send('get-platform');
-
-    // Request initial fullscreen state
     window.electron.ipcRenderer.send('get-fullscreen-state');
 
     return () => {
-      // Clean up listeners
       window.electron.ipcRenderer.removeListener('platform', handlePlatformReply);
       window.electron.ipcRenderer.removeListener('fullscreen-changed', handleFullscreenChange);
     };
   }, [dispatch]);
 
-  const { theme } = useTheme();
-
   const handleBreadcrumbClick = (link, index) => {
     const parts = link.split('/');
     let view = 'home';
-    let params = {};
 
     if (parts.length > 1) {
       view = parts[1];
       if (view === 'platform' && parts.length > 2) {
         const platform = platforms.find(p => p.id === parts[2]);
-        params = { platform };
-      } else if (view === 'subrun' && parts.length > 4) {
-        const platform = platforms.find(p => p.id === parts[2]);
-        const subRun = platform.subRuns.find(sr => sr.id === parts[4]);
-        params = { platform, subRun };
+      } else if (view === 'subrun' && parts.length > 3) {
+        const platformId = parts[2];
+        const subRunId = parts[3];
+        const platform = platforms.find(p => p.id === platformId);
+        const subRun = platform?.subRuns.find(sr => sr.id === subRunId);
       }
     }
 
-    dispatch(setCurrentRoute(link, params));
+    dispatch(setCurrentRoute(link));
     dispatch(updateBreadcrumbToIndex(index));
   };
 
@@ -619,16 +611,10 @@ export const SurferHeader = () => {
     dispatch(toggleRunVisibility());
   };
 
-  const handleHomeClick = () => {
-    console.log('Home clicked');
-    dispatch(setCurrentRoute('/home', 'home'));
-  };
-
   const getIconForBreadcrumb = (text) => {
     switch (text) {
       case 'Home':
         return <Home size={16} className="mr-2" />;
-      // Add cases for other icons if needed
       default:
         return null;
     }

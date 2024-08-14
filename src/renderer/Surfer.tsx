@@ -99,34 +99,14 @@ function Surfer() {
           if (platform) {
             const subRun = platform.subRuns.find(sr => sr.id === subRunId);
             if (subRun) {
-              return <SubRun platform={platform} subRun={subRun} />;
+              return <SubRun platform={platform} subRun={subRun} />
             } else {
               console.warn(`SubRun not found for id: ${subRunId}`);
-              return <Platform platform={platform} />;
+              return <Platform platform={platform} />
             }
           } else {
             console.warn(`Platform not found for id: ${platformId}`);
             return <Home />;
-          }
-        }
-        return <Home />;
-      case 'run':
-        if (routeParts.length > 1) {
-          const runId = routeParts[1];
-          // Assuming you have a way to get the run details
-          // You might need to fetch this from your state or an API
-          const run = getRun(runId); // Implement this function
-          if (run) {
-            const platform = platforms.find(p => p.id === run.platformId);
-            if (platform) {
-              return (
-                <RunDetailsPage
-                  runId={runId}
-                  onClose={() => dispatch(setCurrentRoute('/home'))}
-                  platform={platform}
-                />
-              );
-            }
           }
         }
         return <Home />;

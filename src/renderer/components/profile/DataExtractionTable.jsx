@@ -13,7 +13,7 @@ import { Checkbox } from "../ui/checkbox";
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { Progress } from "../ui/progress";
 
-const DataExtractionTable = ({ onPlatformClick, webviewRef, onViewRunDetails }) => {
+const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
   const runs = useSelector(state => state.runs);
   const [searchTerm, setSearchTerm] = useState('');

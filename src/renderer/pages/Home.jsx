@@ -7,8 +7,6 @@ import { platforms } from '../config/platforms';
 
 const Home = () => {
   const dispatch = useDispatch();
-  const params = useSelector((state) => state.app.params);
-
   const handlePlatformClick = (platform) => {
     dispatch(setCurrentRoute(`/platform/${platform.id}`, { platform }));
     dispatch(updateBreadcrumb([
@@ -17,20 +15,11 @@ const Home = () => {
     ]));
   };
 
-  const handleViewRunDetails = (run) => {
-    dispatch(setCurrentRoute(`/run/${run.id}`,  { run }));
-    dispatch(updateBreadcrumb([
-      { text: 'Home', link: '/home' },
-      { text: 'Run Details', link: `/run/${run.id}` },
-    ]));
-  };
-
   return (
     <div className="w-full flex flex-col bg-background pt-6">
       <div className="w-10/11 pr-4">
         <DataExtractionTable
           onPlatformClick={handlePlatformClick}
-          onViewRunDetails={handleViewRunDetails}
         />
       </div>
     </div>

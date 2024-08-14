@@ -195,7 +195,7 @@ const selectedRunIdReducer = (state = initialAppState.selectedRunId, action: any
   }
 };
 
-const appReducer = (state = { params: {} }, action) => {
+const appReducer = (state = { }, action) => {
   switch (action.type) {
     case 'SET_CURRENT_ROUTE':
       return { ...state, ...action.payload };

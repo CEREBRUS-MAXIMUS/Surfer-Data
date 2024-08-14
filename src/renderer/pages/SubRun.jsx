@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { addRun, stopRun } from '../state/actions';
+import { addRun, stopRun, setCurrentRoute } from '../state/actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
@@ -9,7 +9,7 @@ import { openDB } from 'idb';
 import RunDetailsPage from '../components/profile/RunDetailsPage';
 import { platforms } from '../config/platforms';
 
-const SubRun = ({ platform, subRun, onBack }) => {
+const SubRun = ({ platform, subRun }) => {
   const dispatch = useDispatch();
   const [runs, setRuns] = useState([]);
   const [expandedRuns, setExpandedRuns] = useState({});
@@ -17,6 +17,8 @@ const SubRun = ({ platform, subRun, onBack }) => {
 
   useEffect(() => {
     const loadRuns = async () => {
+      if (!platform || !subRun) return;
+
       const db = await openDB('dataExtractionDB', 1, {
         upgrade(db) {
           db.createObjectStore('runs', { keyPath: 'id' });
@@ -26,7 +28,7 @@ const SubRun = ({ platform, subRun, onBack }) => {
       setRuns(loadedRuns.filter(run => run.platformId === platform.id && run.subRunId === subRun.id));
     };
     loadRuns();
-  }, [platform.id, subRun.id]);
+  }, [platform, subRun]);
 
   const toggleRunExpansion = (runId) => {
     setExpandedRuns(prev => ({ ...prev, [runId]: !prev[runId] }));
@@ -41,13 +43,7 @@ const SubRun = ({ platform, subRun, onBack }) => {
   };
 
   const handleStartNewRun = () => {
-    const currentPlatform = platforms.find(p => p.id === platform.id);
-    const currentSubRun = currentPlatform?.subRuns.find(sr => sr.id === subRun.id);
-
-    if (!currentSubRun) {
-      console.error('SubRun not found in config');
-      return;
-    }
+    if (!platform || !subRun) return;
 
     const startTime = new Date().toISOString();
     const newRun = {
@@ -56,7 +52,7 @@ const SubRun = ({ platform, subRun, onBack }) => {
       subRunId: subRun.id,
       startDate: startTime,
       status: 'pending',
-      tasks: currentSubRun.tasks.map(task => ({
+      tasks: subRun.tasks.map(task => ({
         ...task,
         startTime,
         steps: task.steps.map(step => ({ ...step, status: 'pending', startTime })),
@@ -64,27 +60,22 @@ const SubRun = ({ platform, subRun, onBack }) => {
       })),
     };
 
-    // Dispatch the action to add the new run to Redux
     dispatch(addRun(newRun));
 
-    // Add the run to IndexedDB
     const addRunToDB = async () => {
       const db = await openDB('dataExtractionDB', 1);
       await db.add('runs', newRun);
     };
     addRunToDB();
 
-    // Update the local state
     setRuns(prevRuns => [...prevRuns, newRun]);
 
     console.log('Starting new run for', subRun.name);
   };
 
   const handleStopRun = (runId) => {
-    // Dispatch action to stop the run
     dispatch(stopRun(runId));
 
-    // Update the run status in IndexedDB
     const updateRunInDB = async () => {
       const db = await openDB('dataExtractionDB', 1);
       const run = await db.get('runs', runId);
@@ -96,13 +87,16 @@ const SubRun = ({ platform, subRun, onBack }) => {
     };
     updateRunInDB();
 
-    // Update the local state
     setRuns(prevRuns => prevRuns.map(run =>
       run.id === runId ? { ...run, status: 'stopped', endDate: new Date().toISOString() } : run
     ));
 
     console.log('Stopping run:', runId);
   };
+
+  if (!platform || !subRun) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-8 px-[50px] pt-6">
