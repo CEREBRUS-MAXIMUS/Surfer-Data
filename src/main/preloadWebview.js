@@ -17,6 +17,7 @@ const exportTwitter = require('./Companies/X Corp/twitter');
 const electronHandler = require('./preloadElectron');
 const exportGmail = require('./Companies/Google/gmail');
 const exportYouTube = require('./Companies/Google/youtube');
+const exportChatgpt = require('./Companies/OpenAI/chatgpt');
 contextBridge.exposeInMainWorld('electron', electronHandler);
 
 ipcRenderer.on('export-website', async (event, company, name, runID) => {
@@ -41,6 +42,9 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
       break;
     case 'YouTube':
       await exportYouTube(company, name, runID);
+      break;
+    case 'ChatGPT':
+      await exportChatgpt(company, name, runID);
       break;
   }
 });

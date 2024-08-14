@@ -12,6 +12,8 @@ To download the app, head over to [https://surfsup.web.app](https://surfsup.web.
 
 For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md), [Helper Functions Documentation](docs/HELPER_FUNCTIONS.md), and [Guide to Adding New Platforms](docs/ADD_PLATFORMS.md).
 
+See the [open issues](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues) for a full list of proposed features (and known issues).
+
 ## About The Project
 
 Surfer is the world's first digital footprint exporter, designed to centralize all your personal data from various online platforms into a single folder.
@@ -34,8 +36,6 @@ We believe that personal data centralization is the key to enabling truly useful
 - [ ] Adding sub-tasks within platforms (i.e. Twitter Bookmarks, LinkedIn Connections Data, etc)
 - [ ] Integrate with other agentic frameworks like LangChain for advanced personal AI assistants
 - [ ] Explore integration with wearable devices for enhanced personal data tracking and acknowledgment
-
-See the [open issues](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues) for a full list of proposed features (and known issues).
 
 ## License
 

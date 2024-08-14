@@ -175,7 +175,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
 
   useEffect(() => {
     const webview = webviewRef.current;
-    const ipcMessageHandler = (event) => {
+    const ipcMessageHandler = async (event) => {
       const { channel, args } = event; // Assuming the event has channel and args properties
       if (channel === 'get-run-id') {
         const runningRuns = runs.filter(run => run.status === 'running');
@@ -198,7 +198,13 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
 
         // UPDATE IN REDUX HERE!
       }
-      // Handle the IPC message as needed
+
+      if (channel === 'new-url') {
+        console.log('new url: ', args[0])
+        webview.src = args[0];
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        webview.send('new-url-success')
+      }
     };
 
     if (webview) {
@@ -358,8 +364,8 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
             </LeftSection>
             <RightSection>
               {!isConnected && (<Button onClick={handleNewRun}>I've signed in!</Button>)}
-              <HeaderButton onClick={handleRunDetails}>Run Details</HeaderButton>
-              <HeaderButton onClick={handleLearnMode}>Learn Mode</HeaderButton>
+              {/* <HeaderButton onClick={handleRunDetails}>Run Details</HeaderButton>
+              <HeaderButton onClick={handleLearnMode}>Learn Mode</HeaderButton> */}
               {isActiveRunStoppable() && (
                 <StopButton onClick={handleStopRun}>
                   <Square size={16} style={{ marginRight: '4px' }} />

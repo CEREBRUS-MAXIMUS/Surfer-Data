@@ -26,6 +26,8 @@ import NotionLight from '../components/assets/platforms/NotionLight';
 import NotionDark from '../components/assets/platforms/NotionDark';
 import YoutubeLight from '../components/assets/platforms/YoutubeLight';
 import YoutubeDark from '../components/assets/platforms/YoutubeDark';
+import ChatgptLight from '../components/assets/platforms/ChatgptLight';
+import ChatgptDark from '../components/assets/platforms/ChatgptDark';
 import { IPlatform } from '../types/interfaces';
 
 export const platforms: IPlatform[] = [
@@ -440,6 +442,24 @@ export const platforms: IPlatform[] = [
       { id: 'step-002', name: 'Wait for page to load', status: 'pending' },
       { id: 'step-003', name: 'Extract video titles', status: 'pending' },
       { id: 'step-004', name: 'Export Data', status: 'pending' },
+    ],
+  },
+  {
+    id: 'chatgpt-001',
+    name: 'ChatGPT',
+    logo: {
+      light: ChatgptLight,
+      dark: ChatgptDark,
+    },
+    company: 'OpenAI',
+    companyLogo: '/assets/logos/openai.png',
+    home_url: 'https://chatgpt.com/#settings/DataControls',
+    subRuns: [],
+    supportedOS: ['mac', 'windows', 'linux'],
+    steps: [
+      { id: 'step-001', name: 'Go to ChatGPT Data Controls', status: 'pending' },
+      { id: 'step-002', name: 'Click on Export', status: 'pending' },
+      { id: 'step-003', name: 'Click on Confirm Export', status: 'pending' },
     ],
   },
 ];
