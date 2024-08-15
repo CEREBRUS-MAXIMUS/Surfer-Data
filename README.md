@@ -6,6 +6,14 @@
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 
+![Surfer Diagram](assets/SurferDiagram.png)
+
+Surfer is the world's first digital footprint exporter, designed to centralize all your personal data from various online platforms into a single folder.
+
+Currently, your personal data is scattered across hundreds of platforms and the companies operating these platforms have no incentive to give this data back to you. Surfer solves this problem by navigating to websites and scraping data from these websites.
+
+We believe that personal data centralization is the key to enabling truly useful, universal personal assistants.
+
 ## Getting Started
 
 To download the app, head over to [https://surfsup.web.app](https://surfsup.web.app). Or you can go to the releases page.
@@ -13,14 +21,6 @@ To download the app, head over to [https://surfsup.web.app](https://surfsup.web.
 For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md), [Helper Functions Documentation](docs/HELPER_FUNCTIONS.md), and [Guide to Adding New Platforms](docs/ADD_PLATFORMS.md).
 
 See the [open issues](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues) for a full list of proposed features (and known issues).
-
-## About The Project
-
-Surfer is the world's first digital footprint exporter, designed to centralize all your personal data from various online platforms into a single folder.
-
-Currently, your personal data is scattered across hundreds of platforms and the companies operating these platforms have no incentive to give this data back to you. Surfer solves this problem by navigating to websites and scraping data from these websites.
-
-We believe that personal data centralization is the key to enabling truly useful, universal personal assistants.
 
 ## Roadmap
 
