@@ -144,7 +144,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
   const { theme } = useTheme();
 
   useEffect(() => {
-    if (runs.length === 0 && isRunLayerVisible) {
+    if (activeRuns.length === 0 && isRunLayerVisible) {
       dispatch(toggleRunVisibility());
 
     }

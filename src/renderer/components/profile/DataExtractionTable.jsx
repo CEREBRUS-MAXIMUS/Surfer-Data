@@ -14,6 +14,7 @@ import { formatDistanceToNow, parseISO } from 'date-fns';
 import { Progress } from "../ui/progress";
 import RunDetailsPage from './RunDetailsPage';
 import { platform } from 'os';
+import { MoonLoader } from 'react-spinners';
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -193,7 +194,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       case 'running':
         return (
           <div className="flex items-center space-x-2">
-            <Progress value={latestRun.progress || 0} className="w-24" />
+            <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
             <span>{latestRun.progress ? `${latestRun.progress}%` : 'Running...'}</span>
             {viewDetailsButton}
           </div>
