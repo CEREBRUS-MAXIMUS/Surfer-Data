@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 import { ChevronLeft, ChevronRight, X, Square, Bug } from 'lucide-react';
 import { IAppState } from '../../types/interfaces';
-import { setActiveRunIndex, closeRun, toggleRunVisibility, stopRun, adjustActiveRunIndex, updateRunURL } from '../../state/actions';
+import { setActiveRunIndex, closeRun, toggleRunVisibility, stopRun, adjustActiveRunIndex, updateRunURL, updateExportStatus } from '../../state/actions';
 import { platforms } from '../../config/platforms';
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
@@ -144,11 +144,11 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
   const { theme } = useTheme();
 
   useEffect(() => {
-    if (runs.length === 0 && isRunLayerVisible) {
+    if (activeRuns.length === 0 && isRunLayerVisible) {
       dispatch(toggleRunVisibility());
 
     }
-  }, [runs, isRunLayerVisible, dispatch]);
+  }, [activeRuns, isRunLayerVisible, dispatch]);
 
   const handleNewRun = async () => {
   setIsConnected(true)
@@ -233,6 +233,33 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
     }
 
   }, [runs.length]);
+
+  useEffect(() => {
+    const handleExportComplete = (company: string, name: string, runID: number, namePath: string) => {
+
+      if (runID === 0) {
+        console.log('stopping download run: ', runs)
+        const downloadRun = runs.filter(run => run.platformId === `${name.toLowerCase()}-001`)[0];
+        // change this to .filter or smth else later to account for multiple download runs
+        dispatch(updateExportStatus(company, name, downloadRun.id, namePath));
+      }
+
+      else {
+        console.log('stopping run for platform id: ', company, name, ', and runID: ', runID)
+        dispatch(updateExportStatus(company, name, runID.toString(), namePath));
+
+      }
+
+    };
+
+    window.electron.ipcRenderer.on('export-complete', handleExportComplete);
+
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('export-complete');
+    };
+  }, [dispatch, runs]);
+
+
 
   useEffect(() => {
     dispatch(adjustActiveRunIndex());

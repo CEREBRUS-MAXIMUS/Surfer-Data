@@ -32,6 +32,7 @@ const StatusIndicator = ({ status }) => {
 const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   const dispatch = useDispatch();
   const reduxRuns = useSelector(state => state.app.runs);
+  const activeRunIndex = useSelector((state) => state.app.activeRunIndex);
   const [run, setRun] = useState(null);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [expandedSteps, setExpandedSteps] = useState({});
@@ -130,8 +131,8 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
       dispatch(closeRun(activeRun.id));
 
       // Adjust active run index if necessary
-      if (activeRunIndex >= runs.length - 1) {
-        dispatch(setActiveRunIndex(Math.max(0, runs.length - 2)));
+      if (activeRunIndex >= reduxRuns.length - 1) {
+        dispatch(setActiveRunIndex(Math.max(0, reduxRuns.length - 2)));
       }
     }
   };
