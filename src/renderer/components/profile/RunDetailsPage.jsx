@@ -30,7 +30,7 @@ const StatusIndicator = ({ status }) => {
 
 const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   const dispatch = useDispatch();
-  const reduxRuns = useSelector(state => state.runs);
+  const reduxRuns = useSelector(state => state.app.runs);
   const [run, setRun] = useState(null);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [expandedSteps, setExpandedSteps] = useState({});

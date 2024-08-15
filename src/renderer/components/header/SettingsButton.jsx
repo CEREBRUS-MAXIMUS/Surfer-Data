@@ -37,7 +37,6 @@ import { setCurrentRoute } from '../../state/actions';
 
 const SettingsButton = ({ handleOpenHistory }) => {
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.user);
 
   const { setTheme } = useTheme();
 

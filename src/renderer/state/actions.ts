@@ -1,9 +1,5 @@
 import { IPreferences, IUser, IRun } from '../types/interfaces';
 
-export const setCurrentPage = (page: string, breadcrumb: { text: string; link: string }[]) => ({
-  type: 'SET_CURRENT_PAGE',
-  payload: { page, breadcrumb },
-});
 
 export const setApplicationFont = (font: string) => ({
   type: 'SET_APPLICATION_FONT',
@@ -115,9 +111,9 @@ export const updateExportStatus = (company: string, name: string, runID: string,
   payload: { company, name, runID, exportPath },
 });
 
-export const setExportRunning = (platformId: string, isRunning: boolean) => ({
+export const setExportRunning = (runId: string, isRunning: boolean) => ({
   type: 'SET_EXPORT_RUNNING',
-  payload: { platformId, isRunning },
+  payload: { runId, isRunning },
 });
 
 export const updateBreadcrumb = (breadcrumb: { text: string; link: string }[]) => ({
@@ -152,4 +148,9 @@ export const stopAllJobs = () => ({
 export const updateRunURL = (runId: string, newUrl: string) => ({
   type: 'UPDATE_RUN_URL',
   payload: { runId, newUrl }
-}); 
+});
+
+export const setIsRunLayerVisible = (isVisible: boolean) => ({
+  type: 'SET_IS_RUN_LAYER_VISIBLE',
+  payload: isVisible,
+});

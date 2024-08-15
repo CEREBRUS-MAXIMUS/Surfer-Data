@@ -17,7 +17,7 @@ import { platform } from 'os';
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
-  const runs = useSelector(state => state.runs);
+  const runs = useSelector(state => state.app.runs);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
@@ -68,30 +68,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   //   window.electron.ipcRenderer.send('show-dev-tools')
   // }, [])
 
-  useEffect(() => {
-    const handleExportComplete = (company, name, runID, namePath) => {
 
-      if (runID === 0) {
-        console.log('stopping download run: ', runs)
-        const downloadRun = runs.filter(run => run.platformId === `${name.toLowerCase()}-001`)[0];
-        // change this to .filter or smth else later to account for multiple download runs
-        dispatch(updateExportStatus(company, name, downloadRun.id, namePath));
-      }
-
-      else {
-        console.log('stopping run for platform id: ', company, name, ', and runID: ', runID)
-        dispatch(updateExportStatus(company, name, runID, namePath));
-
-      }
-
-    };
-
-    window.electron.ipcRenderer.on('export-complete', handleExportComplete);
-
-    return () => {
-      window.electron.ipcRenderer.removeAllListeners('export-complete');
-    };
-  }, [dispatch]);
 
   const getLatestRun = useCallback((platformId) => {
     const platformRuns = runs.filter(run => run.platformId === platformId);
@@ -157,8 +134,8 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     };
 
     dispatch(startRun(newRun));
-    dispatch(toggleRunVisibility());
-    dispatch(setExportRunning(platform.id, true));
+    // dispatch(toggleRunVisibility());
+    dispatch(setExportRunning(newRun.id, true));
 
     // Trigger the export process
     window.electron.ipcRenderer.send('export-website', platform.company, platform.name, newRun.id);
@@ -217,7 +194,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
         return (
           <div className="flex items-center space-x-2">
             <Progress value={latestRun.progress || 0} className="w-24" />
-            <span>{latestRun.progress ? `${latestRun.progress}%` : 'Starting...'}</span>
+            <span>{latestRun.progress ? `${latestRun.progress}%` : 'Runing...'}</span>
             {viewDetailsButton}
           </div>
         );
@@ -248,13 +225,21 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
             {viewDetailsButton}
           </div>
         );
+      case 'stopped':
+        return (
+          <div className="flex items-center space-x-2">
+            <X className="text-red-500" size={16} />
+            <span>Export stopped</span>
+            {viewDetailsButton}
+          </div>
+        );
       default:
         return <span>Unknown status</span>;
     }
   };
 
   return (
-    <div className="w-full mx-auto space-y-4 px-[50px] pt-6 select-none">
+    <div className="w-full h-full flex flex-col px-[50px] pt-6 pb-4 select-none">
       <div className="flex items-center mb-4">
         <div className="relative w-full max-w-2xl">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -279,8 +264,8 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
         </div>
       </div>
       {paginatedPlatforms.length > 0 ? (
-        <>
-          <div className="overflow-x-auto">
+        <div className="flex flex-col h-full">
+          <div className="overflow-auto flex-grow">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -368,16 +353,18 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               </div>
             </div>
           )}
-        </>
+        </div>
       ) : (
-        <div className="text-center py-8 bg-gray-100 rounded-md">
-          <p className="text-gray-500 text-lg">No platforms found matching "{searchTerm}"</p>
-          <button
-            onClick={clearSearch}
-            className="mt-2 text-blue-500 hover:underline"
-          >
-            Clear search
-          </button>
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center py-8 bg-gray-100 rounded-md">
+            <p className="text-gray-500 text-lg">No platforms found matching "{searchTerm}"</p>
+            <button
+              onClick={clearSearch}
+              className="mt-2 text-blue-500 hover:underline"
+            >
+              Clear search
+            </button>
+          </div>
         </div>
       )}
       {selectedRun && (

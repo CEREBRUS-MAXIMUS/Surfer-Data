@@ -12,11 +12,13 @@ import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs } from 
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
 import { platforms } from './config/platforms';
+import { updateExportStatus } from './state/actions';
 
 function Surfer() {
   const dispatch = useDispatch();
   const contentScale = useSelector((state: IAppState) => state.preferences.contentScale);
   const route = useSelector((state: IAppState) => state.app.route);
+  const runs = useSelector((state: IAppState) => state.app.runs);
   const webviewRef = useRef(null);
   const [showNotConnectedAlert, setShowNotConnectedAlert] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
@@ -72,6 +74,31 @@ function Surfer() {
       window.electron.ipcRenderer.removeListener('stop-all-jobs', handleStopAllJobs);
     };
   }, [dispatch, contentScale]);
+
+  useEffect(() => {
+    const handleExportComplete = (company: string, name: string, runID: number, namePath: string) => {
+
+      if (runID === 0) {
+        console.log('stopping download run: ', runs)
+        const downloadRun = runs.filter(run => run.platformId === `${name.toLowerCase()}-001`)[0];
+        // change this to .filter or smth else later to account for multiple download runs
+        dispatch(updateExportStatus(company, name, downloadRun.id, namePath));
+      }
+
+      else {
+        console.log('stopping run for platform id: ', company, name, ', and runID: ', runID)
+        dispatch(updateExportStatus(company, name, runID.toString(), namePath));
+
+      }
+
+    };
+
+    window.electron.ipcRenderer.on('export-complete', handleExportComplete);
+
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('export-complete');
+    };
+  }, [dispatch]);
 
   useEffect(() => {
     console.log('Current route:', route);

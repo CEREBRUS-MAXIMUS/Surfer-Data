@@ -13,6 +13,7 @@ import { useTheme } from '../ui/theme-provider';
 import { setCurrentRoute, toggleRunVisibility, updateBreadcrumbToIndex, setIsMac, setIsFullScreen } from '../../state/actions';
 import { Button } from '../ui/button';
 import SettingsButton from './SettingsButton';
+import { setIsRunLayerVisible } from '../../state/actions';
 import SupportButton from './SupportButton';
 import { platforms } from '../../config/platforms';
 
@@ -555,13 +556,14 @@ const StyledSurferHeader = styled.div`
 
 export const SurferHeader = () => {
   const dispatch = useDispatch();
-  const breadcrumb = useSelector((state) => state.breadcrumb);
-  const isRunLayerVisible = useSelector((state) => state.isRunLayerVisible);
-  const runs = useSelector((state) => state.runs);
-  const isFullScreen = useSelector((state) => state.isFullScreen);
-  const isMac = useSelector((state) => state.isMac);
+  const breadcrumb = useSelector((state) => state.app.breadcrumb);
+  const isRunLayerVisible = useSelector((state) => state.app.isRunLayerVisible);
+  const runs = useSelector((state) => state.app.runs);
+  const isFullScreen = useSelector((state) => state.app.isFullScreen);
+  const isMac = useSelector((state) => state.app.isMac);
   const { theme } = useTheme();
 
+  console.log("RUNS", runs);
   const activeRuns = runs.filter((run) => run.status === 'running').length;
 
   useEffect(() => {
@@ -586,6 +588,10 @@ export const SurferHeader = () => {
       window.electron.ipcRenderer.removeListener('fullscreen-changed', handleFullscreenChange);
     };
   }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(setIsRunLayerVisible(runs.some(run => run.status === 'running') && isRunLayerVisible));
+  }, [runs, dispatch]);
 
   const handleBreadcrumbClick = (link, index) => {
     const parts = link.split('/');
