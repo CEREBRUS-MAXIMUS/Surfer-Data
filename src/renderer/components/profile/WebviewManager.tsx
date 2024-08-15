@@ -137,6 +137,7 @@ interface WebviewManagerProps {
 const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected, setIsConnected }) => {
   const dispatch = useDispatch();
   const runs = useSelector((state: IAppState) => state.app.runs);
+  let activeRuns = runs.filter(run => run.status === 'pending' || run.status === 'running');
   const activeRunIndex = useSelector((state: IAppState) => state.app.activeRunIndex);
   const isRunLayerVisible = useSelector((state: IAppState) => state.app.isRunLayerVisible);
 
@@ -266,7 +267,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
   };
 
   const handleStopRun = async () => {
-    const activeRun = runs[activeRunIndex];
+    const activeRun = activeRuns[activeRunIndex];
     if (activeRun && (activeRun.status === 'pending' || activeRun.status === 'running')) {
       dispatch(stopRun(activeRun.id));
       console.log("Stopping run:", activeRun.id);
@@ -287,11 +288,11 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
   };
 
   const isActiveRunStoppable = () => {
-    const activeRun = runs[activeRunIndex];
+    const activeRun = activeRuns[activeRunIndex];
+    console.log('this is active run: ', activeRun)
     return activeRun && (activeRun.status === 'running');
   };
 
-  const activeRuns = runs.filter(run => run.status === 'pending' || run.status === 'running');
   const currentRunIndex = Math.min(activeRunIndex, activeRuns.length - 1);
 
   const handleOpenDevTools = () => {
