@@ -1,8 +1,13 @@
-const { customConsoleLog, wait, waitForElement, bigStepper } = require('../../preloadFunctions');
+const {
+  customConsoleLog,
+  wait,
+  waitForElement,
+  bigStepper,
+} = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
 async function exportGmail(company, name, runID) {
-  await wait(2)
+  await wait(2);
   if (document.querySelector('h1')) {
     ipcRenderer.send('connect-website', company);
     return;
@@ -44,7 +49,7 @@ async function exportGmail(company, name, runID) {
     }
 
     olderButton.click();
-    await wait(0.25);
+    await wait(2);
   }
   const uniqueEmails = [...new Set(emails)];
   customConsoleLog('Unique emails collected:', uniqueEmails.length);
