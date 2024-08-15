@@ -176,7 +176,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     const latestRun = getLatestRun(platform.id);
 
     if (!latestRun) {
-      return <span>Not exported</span>;
+      return <span></span>;
     }
 
     const viewDetailsButton = (
