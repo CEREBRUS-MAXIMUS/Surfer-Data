@@ -4,7 +4,7 @@ import {} from '../../';
 import path, { parse } from 'path';
 import MenuBuilder from './utils/menu';
 
-import yauzl from 'yauzl'
+import yauzl from 'yauzl';
 import { getFilesInFolder } from './utils/util';
 import {
   app,
@@ -24,7 +24,6 @@ import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
 
 let appIcon: Tray | null = null;
-
 
 require('dotenv').config();
 const { download } = require('electron-dl');
@@ -46,7 +45,6 @@ ipcMain.on('get-platform', (event) => {
   event.reply('platform', process.platform);
 });
 
-
 app.on('web-contents-created', (_event, contents) => {
   contents.on('will-attach-webview', (_wawevent, webPreferences, _params) => {
     // Use __dirname to get the path of the current directory
@@ -64,12 +62,9 @@ ipcMain.on('open-external', (event, url) => {
   shell.openExternal(url);
 });
 
-
-
 ipcMain.on('get-version-number', (event) => {
   event.reply('version-number', app.getVersion());
 });
-
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -149,25 +144,26 @@ export const createWindow = async (visible: boolean = true) => {
     wc.setWindowOpenHandler((details) => {
       console.log('webview-new-window', wc.id, details);
 
-        // THIS IS MAINLY FOR AUTH-RELATED STUFF. WE CAN INCORPORTATE HUMAN IN THE LOOP HERE FOR AUTH PURPOSES!
-        if (
-          details.url.includes('https://accounts.google.com') ||
-          details.url.includes('about:blank') ||
-          details.url.includes('file://') ||
-          details.url.includes('https://www.notion.so/verifyNoPopupBlocker') ||
-          details.url.includes('https://appleid.apple.com/auth/') ||
-          details.url.includes('https://proddatamgmtqueue.blob.core.windows.net/exportcontainer/')
-        ) {
-          console.log('ALLOWING THIS URL: ', details.url);
-          return { action: 'allow' };
-        }
+      // THIS IS MAINLY FOR AUTH-RELATED STUFF. WE CAN INCORPORTATE HUMAN IN THE LOOP HERE FOR AUTH PURPOSES!
+      if (
+        details.url.includes('https://accounts.google.com') ||
+        details.url.includes('about:blank') ||
+        details.url.includes('file://') ||
+        details.url.includes('https://www.notion.so/verifyNoPopupBlocker') ||
+        details.url.includes('https://appleid.apple.com/auth/') ||
+        details.url.includes(
+          'https://proddatamgmtqueue.blob.core.windows.net/exportcontainer/',
+        )
+      ) {
+        console.log('ALLOWING THIS URL: ', details.url);
+        return { action: 'allow' };
+      }
 
-        //mainWindow?.webContents.send('webview-new-window', wc.id, details);
-        mainWindow?.webContents.send('url', details.url);
-        console.log('opening in same tab: ', details.url);
+      //mainWindow?.webContents.send('webview-new-window', wc.id, details);
+      mainWindow?.webContents.send('url', details.url);
+      console.log('opening in same tab: ', details.url);
 
-        return { action: 'deny' };
-
+      return { action: 'deny' };
     });
   });
 
@@ -253,176 +249,185 @@ export const createWindow = async (visible: boolean = true) => {
     mainWindow.webContents.send('update-web-artifact', data);
   });
 
- function extractZip(source, target) {
-   return new Promise((resolve, reject) => {
-     yauzl.open(source, { lazyEntries: true }, (err, zipfile) => {
-       if (err) return reject(err);
+  function extractZip(source, target) {
+    return new Promise((resolve, reject) => {
+      yauzl.open(source, { lazyEntries: true }, (err, zipfile) => {
+        if (err) return reject(err);
 
-       zipfile.readEntry();
-       zipfile.on('entry', (entry) => {
-         const fullPath = path.join(target, entry.fileName);
-         const directory = path.dirname(fullPath);
+        zipfile.readEntry();
+        zipfile.on('entry', (entry) => {
+          const fullPath = path.join(target, entry.fileName);
+          const directory = path.dirname(fullPath);
 
-         if (/\/$/.test(entry.fileName)) {
-           // Directory entry
-           try {
-             fs.mkdirSync(fullPath, { recursive: true });
-             zipfile.readEntry();
-           } catch (err) {
-             reject(err);
-           }
-         } else {
-           // File entry
-           try {
-             fs.mkdirSync(directory, { recursive: true });
-             zipfile.openReadStream(entry, (err, readStream) => {
-               if (err) return reject(err);
-               const writeStream = fs.createWriteStream(fullPath);
-               readStream.on('end', () => {
-                 writeStream.end();
-                 zipfile.readEntry();
-               });
-               readStream.pipe(writeStream);
-             });
-           } catch (err) {
-             reject(err);
-           }
-         }
-       });
+          if (/\/$/.test(entry.fileName)) {
+            // Directory entry
+            try {
+              fs.mkdirSync(fullPath, { recursive: true });
+              zipfile.readEntry();
+            } catch (err) {
+              reject(err);
+            }
+          } else {
+            // File entry
+            try {
+              fs.mkdirSync(directory, { recursive: true });
+              zipfile.openReadStream(entry, (err, readStream) => {
+                if (err) return reject(err);
+                const writeStream = fs.createWriteStream(fullPath);
+                readStream.on('end', () => {
+                  writeStream.end();
+                  zipfile.readEntry();
+                });
+                readStream.pipe(writeStream);
+              });
+            } catch (err) {
+              reject(err);
+            }
+          }
+        });
 
-       zipfile.on('end', resolve);
-       zipfile.on('error', reject);
-     });
-   });
- }
+        zipfile.on('end', resolve);
+        zipfile.on('error', reject);
+      });
+    });
+  }
 
   let lastDownloadUrl = '';
   let lastDownloadTime = 0;
 
-  mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
-    const url = item.getURL();
-    const fileName = item.getFilename();
-    const fileSize = item.getTotalBytes();
+  mainWindow.webContents.session.on(
+    'will-download',
+    (event, item, webContents) => {
+      const url = item.getURL();
+      const fileName = item.getFilename();
+      const fileSize = item.getTotalBytes();
 
-    const now = Date.now();
-    if (url === lastDownloadUrl && now - lastDownloadTime < 1000) {
-      console.log('Ignoring duplicate download request');
-      return;
-    }
+      const now = Date.now();
+      if (url === lastDownloadUrl && now - lastDownloadTime < 1000) {
+        console.log('Ignoring duplicate download request');
+        return;
+      }
 
-    lastDownloadUrl = url;
-    lastDownloadTime = now;
+      lastDownloadUrl = url;
+      lastDownloadTime = now;
 
-    console.log('Intercepted download:', { url, fileName, fileSize });
+      console.log('Intercepted download:', { url, fileName, fileSize });
 
-    const userData = app.getPath('userData');
-    const surferDataPath = path.join(userData, 'surfer_data');
-    let companyPath: string;
-    let platformPath: string;
-    let idPath: string;
+      const userData = app.getPath('userData');
+      const surferDataPath = path.join(userData, 'surfer_data');
+      let companyPath: string;
+      let platformPath: string;
+      let idPath: string;
 
-    if (url.includes('file.notion.so')) {
-      companyPath = path.join(surferDataPath, 'Notion');
-      platformPath = path.join(companyPath, 'Notion');
-      idPath = path.join(platformPath, `notion-001-${Date.now()}`);
-    } else if (url.includes('proddatamgmtqueue.blob.core.windows.net/exportcontainer/')) {
-      companyPath = path.join(surferDataPath, 'OpenAI');
-      platformPath = path.join(companyPath, 'ChatGPT');
-      idPath = path.join(platformPath, `chatgpt-001-${Date.now()}`);
-    } else {
-      console.error('Unknown download URL, needs to be handled:', url);
-      return;
-    }
+      if (url.includes('file.notion.so')) {
+        companyPath = path.join(surferDataPath, 'Notion');
+        platformPath = path.join(companyPath, 'Notion');
+        idPath = path.join(platformPath, `notion-001-${Date.now()}`);
+      } else if (
+        url.includes('proddatamgmtqueue.blob.core.windows.net/exportcontainer/')
+      ) {
+        companyPath = path.join(surferDataPath, 'OpenAI');
+        platformPath = path.join(companyPath, 'ChatGPT');
+        idPath = path.join(platformPath, `chatgpt-001-${Date.now()}`);
+      } else {
+        console.error('Unknown download URL, needs to be handled:', url);
+        return;
+      }
 
-    // Create surfer_data folder if it doesn't exist
-    if (!fs.existsSync(surferDataPath)) {
-      fs.mkdirSync(surferDataPath);
-    }
+      // Create surfer_data folder if it doesn't exist
+      if (!fs.existsSync(surferDataPath)) {
+        fs.mkdirSync(surferDataPath);
+      }
 
-    // Create company folder if it doesn't exist
-    if (!fs.existsSync(companyPath)) {
-      fs.mkdirSync(companyPath);
-    }
+      // Create company folder if it doesn't exist
+      if (!fs.existsSync(companyPath)) {
+        fs.mkdirSync(companyPath);
+      }
 
-    // Create or clear platform_name folder
-    if (!fs.existsSync(platformPath)) {
-      fs.mkdirSync(platformPath);
-    }
+      // Create or clear platform_name folder
+      if (!fs.existsSync(platformPath)) {
+        fs.mkdirSync(platformPath);
+      }
 
-    if (!fs.existsSync(idPath)) {
-      fs.mkdirSync(idPath);
-    }
+      if (!fs.existsSync(idPath)) {
+        fs.mkdirSync(idPath);
+      }
 
-    event.preventDefault();
+      event.preventDefault();
 
-    console.log('Starting download:', url);
+      console.log('Starting download:', url);
 
-    download(mainWindow, url, {
-      directory: idPath,
-      filename: fileName,
-      onStarted: (downloadItem: Electron.DownloadItem) => {
-        console.log('Download started:', url);
-        downloadItem.on('done', (event: Electron.Event, state: string) => {
-          if (state === 'completed') {
-            console.log('Download completed successfully:', url);
-          } else if (state === 'cancelled') {
-            console.log('Download was cancelled:', url);
-          }
-        });
-      },
-      onProgress: (percent: number) => {
-        console.log(`Download progress for ${url}: ${percent}%`);
-        mainWindow?.webContents.send('download-progress', {
-          fileName,
-          percent,
-        });
-      },
-      saveAs: false,
-    })
-      .then((dl: Electron.DownloadItem) => {
-        console.log('Download completed:', dl.getSavePath());
-        const filePath = dl.getSavePath();
-
-        if (path.extname(filePath).toLowerCase() === '.zip') {
-          console.log('Zip file detected. Starting extraction...');
-          extractZip(filePath, idPath)
-            .then(() => {
-              console.log('Zip file extracted successfully to:', idPath);
-
-              fs.unlinkSync(filePath);
-              console.log('Original zip file removed:', filePath);
-              mainWindow?.webContents.send('export-complete', path.basename(companyPath), path.basename(platformPath), 0, idPath);
-
-            })
-            .catch((error: Error) => {
-              console.error('Error extracting zip file:', error);
-              mainWindow?.webContents.send('download-error', {
-                fileName,
-                error: `Error extracting zip file: ${error.message}`,
-              });
-            });
-        } else {
-          console.log('Non-zip file. No extraction needed.');
-              mainWindow?.webContents.send(
-                'export-complete',
-                path.basename(companyPath),
-                path.basename(platformPath),
-                0,
-                idPath,
-              );
-        }
+      download(mainWindow, url, {
+        directory: idPath,
+        filename: fileName,
+        onStarted: (downloadItem: Electron.DownloadItem) => {
+          console.log('Download started:', url);
+          downloadItem.on('done', (event: Electron.Event, state: string) => {
+            if (state === 'completed') {
+              console.log('Download completed successfully:', url);
+            } else if (state === 'cancelled') {
+              console.log('Download was cancelled:', url);
+            }
+          });
+        },
+        onProgress: (percent: number) => {
+          console.log(`Download progress for ${url}: ${percent}%`);
+          mainWindow?.webContents.send('download-progress', {
+            fileName,
+            percent,
+          });
+        },
+        saveAs: false,
       })
-      .catch((error: Error) => {
-        console.error('Download failed:', error);
-        console.error('Error stack:', error.stack);
-        mainWindow?.webContents.send('download-error', {
-          fileName,
-          error: error.message,
-        });
-      });
-  });
-}
+        .then((dl: Electron.DownloadItem) => {
+          console.log('Download completed:', dl.getSavePath());
+          const filePath = dl.getSavePath();
 
+          if (path.extname(filePath).toLowerCase() === '.zip') {
+            console.log('Zip file detected. Starting extraction...');
+            extractZip(filePath, idPath)
+              .then(() => {
+                console.log('Zip file extracted successfully to:', idPath);
+
+                fs.unlinkSync(filePath);
+                console.log('Original zip file removed:', filePath);
+                mainWindow?.webContents.send(
+                  'export-complete',
+                  path.basename(companyPath),
+                  path.basename(platformPath),
+                  0,
+                  idPath,
+                );
+              })
+              .catch((error: Error) => {
+                console.error('Error extracting zip file:', error);
+                mainWindow?.webContents.send('download-error', {
+                  fileName,
+                  error: `Error extracting zip file: ${error.message}`,
+                });
+              });
+          } else {
+            console.log('Non-zip file. No extraction needed.');
+            mainWindow?.webContents.send(
+              'export-complete',
+              path.basename(companyPath),
+              path.basename(platformPath),
+              0,
+              idPath,
+            );
+          }
+        })
+        .catch((error: Error) => {
+          console.error('Download failed:', error);
+          console.error('Error stack:', error.stack);
+          mainWindow?.webContents.send('download-error', {
+            fileName,
+            error: error.message,
+          });
+        });
+    },
+  );
+};
 
 ipcMain.on('open-external', (event, url) => {
   shell.openExternal(url);
@@ -440,8 +445,6 @@ ipcMain.handle('set-default-browser', async () => {
   }
 });
 
-
-
 ipcMain.on('close-url', (event) => {
   mainWindow?.removeBrowserView(mainWindow?.getBrowserView());
 });
@@ -451,7 +454,14 @@ ipcMain.on('check-for-updates', () => {
 });
 
 ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
-  console.log('handling export for: ', platform_name, ', specific name: ', name, ', runID: ', runID);
+  console.log(
+    'handling export for: ',
+    platform_name,
+    ', specific name: ',
+    name,
+    ', runID: ',
+    runID,
+  );
 
   const userData = app.getPath('userData');
   const surferDataPath = path.join(userData, 'surfer_data');
@@ -479,7 +489,6 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
     fs.mkdirSync(idPath);
   }
 
-
   const formatContent = (data) => {
     return typeof data === 'object'
       ? JSON.stringify(data, null, 2)
@@ -499,13 +508,18 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
     fs.writeFileSync(filePath, formatContent(content));
   }
 
-  mainWindow?.webContents.send('export-complete', platform_name, name, runID, idPath); // would send this to datasources.jsx
+  mainWindow?.webContents.send(
+    'export-complete',
+    platform_name,
+    name,
+    runID,
+    idPath,
+  ); // would send this to datasources.jsx
 });
 
 ipcMain.on('connect-website', (event, company) => {
-  mainWindow?.webContents.send('connect-website', company)
-})
-
+  mainWindow?.webContents.send('connect-website', company);
+});
 
 autoUpdater.on('update-available', (info) => {
   console.log('AUTOUPDATER');
@@ -643,7 +657,6 @@ app
 
     powerMonitor.on('resume', () => {
       console.log('System resumed from sleep, checking for missed jobs.');
-
     });
 
     protocol.handle('media', (req) => {
@@ -713,7 +726,8 @@ app.on('will-finish-launching', () => {
 
 ipcMain.on('open-folder', (event, folderPath) => {
   if (folderPath) {
-    shell.openPath(folderPath)
+    shell
+      .openPath(folderPath)
       .then((error) => {
         if (error) {
           console.error('Error opening folder:', error);
@@ -737,7 +751,7 @@ ipcMain.on('get-artifact-files', (event, exportPath) => {
   try {
     console.log('Reading artifact files from:', exportPath);
     const files = fs.readdirSync(exportPath);
-    const artifactFiles = files.map(file => {
+    const artifactFiles = files.map((file) => {
       const filePath = path.join(exportPath, file);
       const content = fs.readFileSync(filePath, 'utf-8');
       return { name: file, content };

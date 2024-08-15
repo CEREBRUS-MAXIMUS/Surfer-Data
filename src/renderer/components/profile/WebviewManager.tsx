@@ -3,12 +3,20 @@ import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 import { ChevronLeft, ChevronRight, X, Square, Bug } from 'lucide-react';
 import { IAppState } from '../../types/interfaces';
-import { setActiveRunIndex, closeRun, toggleRunVisibility, stopRun, adjustActiveRunIndex, updateRunURL, updateExportStatus } from '../../state/actions';
+import {
+  setActiveRunIndex,
+  closeRun,
+  toggleRunVisibility,
+  stopRun,
+  adjustActiveRunIndex,
+  updateRunURL,
+  updateExportStatus,
+} from '../../state/actions';
 import { platforms } from '../../config/platforms';
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
-import { Alert, AlertTitle, AlertDescription } from '../ui/alert'
+import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
   position: fixed;
@@ -17,8 +25,8 @@ const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
   z-index: 50;
   display: flex;
   flex-direction: column;
-  opacity: ${props => props.isVisible ? 1 : 0};
-  pointer-events: ${props => props.isVisible ? 'auto' : 'none'};
+  opacity: ${(props) => (props.isVisible ? 1 : 0)};
+  pointer-events: ${(props) => (props.isVisible ? 'auto' : 'none')};
   transition: opacity 0.1s ease-in-out;
 `;
 
@@ -134,52 +142,66 @@ interface WebviewManagerProps {
   setIsConnected: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected, setIsConnected }) => {
+const WebviewManager: React.FC<WebviewManagerProps> = ({
+  webviewRef,
+  isConnected,
+  setIsConnected,
+}) => {
   const dispatch = useDispatch();
   const runs = useSelector((state: IAppState) => state.app.runs);
-  let activeRuns = runs.filter(run => run.status === 'pending' || run.status === 'running');
-  const activeRunIndex = useSelector((state: IAppState) => state.app.activeRunIndex);
-  const isRunLayerVisible = useSelector((state: IAppState) => state.app.isRunLayerVisible);
+  let activeRuns = runs.filter(
+    (run) => run.status === 'pending' || run.status === 'running',
+  );
+  const activeRunIndex = useSelector(
+    (state: IAppState) => state.app.activeRunIndex,
+  );
+  const isRunLayerVisible = useSelector(
+    (state: IAppState) => state.app.isRunLayerVisible,
+  );
 
   const { theme } = useTheme();
 
   useEffect(() => {
     if (activeRuns.length === 0 && isRunLayerVisible) {
       dispatch(toggleRunVisibility());
-
     }
   }, [activeRuns, isRunLayerVisible, dispatch]);
 
   const handleNewRun = async () => {
-  setIsConnected(true)
-  const newRun = runs[runs.length - 1];
-  if (newRun && newRun.status === 'running') {
-    console.log('Run started:', newRun.id);
+    setIsConnected(true);
+    const newRun = runs[runs.length - 1];
+    if (newRun && newRun.status === 'running') {
+      console.log('Run started:', newRun.id);
 
-    // Parse the run ID
-    const parsedId = newRun.id.split('-').slice(0, 2).join('-');
+      // Parse the run ID
+      const parsedId = newRun.id.split('-').slice(0, 2).join('-');
 
-    // Find the corresponding platform
-    const platform = platforms.find(p => p.id === parsedId);
+      // Find the corresponding platform
+      const platform = platforms.find((p) => p.id === parsedId);
 
-    if (platform) {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      if (webviewRef.current) {
-        console.log('exporting this: ', platform.company, platform.name)
-        webviewRef.current.send('export-website', platform.company, platform.name, newRun.id);
+      if (platform) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        if (webviewRef.current) {
+          console.log('exporting this: ', platform.company, platform.name);
+          webviewRef.current.send(
+            'export-website',
+            platform.company,
+            platform.name,
+            newRun.id,
+          );
+        }
+      } else {
+        console.error('Platform not found for ID:', parsedId);
       }
-    } else {
-      console.error('Platform not found for ID:', parsedId);
     }
-  }
-};
+  };
 
   useEffect(() => {
     const webview = webviewRef.current;
     const ipcMessageHandler = async (event) => {
       const { channel, args } = event; // Assuming the event has channel and args properties
       if (channel === 'get-run-id') {
-        const runningRuns = runs.filter(run => run.status === 'running');
+        const runningRuns = runs.filter((run) => run.status === 'running');
         if (runningRuns.length > 0) {
           console.log('sent run id');
           webview.send('got-run-id', runningRuns[runningRuns.length - 1].id);
@@ -195,27 +217,27 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
       }
 
       if (channel === 'big-stepper') {
-        console.log('go to next step for run id: ', args[0])
+        console.log('go to next step for run id: ', args[0]);
 
         // UPDATE IN REDUX HERE!
       }
 
       if (channel === 'change-url') {
-        const url = args[0]
-        const id = args[1]
-        console.log('this runs: ', runs)
-        console.log('this url: ', url)
-        console.log('this id: ', id)
-        const run = runs.find(run => run.id === id)
-        console.log('this run: ', run)
+        const url = args[0];
+        const id = args[1];
+        console.log('this runs: ', runs);
+        console.log('this url: ', url);
+        console.log('this id: ', id);
+        const run = runs.find((run) => run.id === id);
+        console.log('this run: ', run);
         dispatch(updateRunURL(id, url));
-        await new Promise((resolve) => setTimeout(resolve, 2000))
-        webview.send('change-url-success', url, id)
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        webview.send('change-url-success', url, id);
       }
     };
 
     if (webview) {
-      console.log('adding event listener!')
+      console.log('adding event listener!');
       webview.addEventListener('ipc-message', ipcMessageHandler);
     }
 
@@ -228,28 +250,35 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
 
   useEffect(() => {
     if (runs.length > 0) {
-      console.log('THIS RUNS ', runs)
-    handleNewRun();
+      console.log('THIS RUNS ', runs);
+      handleNewRun();
     }
-
   }, [runs.length]);
 
   useEffect(() => {
-    const handleExportComplete = (company: string, name: string, runID: number, namePath: string) => {
-
+    const handleExportComplete = (
+      company: string,
+      name: string,
+      runID: number,
+      namePath: string,
+    ) => {
       if (runID === 0) {
-        console.log('stopping download run: ', runs)
-        const downloadRun = runs.filter(run => run.platformId === `${name.toLowerCase()}-001`)[0];
+        console.log('stopping download run: ', runs);
+        const downloadRun = runs.filter(
+          (run) => run.platformId === `${name.toLowerCase()}-001`,
+        )[0];
         // change this to .filter or smth else later to account for multiple download runs
         dispatch(updateExportStatus(company, name, downloadRun.id, namePath));
-      }
-
-      else {
-        console.log('stopping run for platform id: ', company, name, ', and runID: ', runID)
+      } else {
+        console.log(
+          'stopping run for platform id: ',
+          company,
+          name,
+          ', and runID: ',
+          runID,
+        );
         dispatch(updateExportStatus(company, name, runID.toString(), namePath));
-
       }
-
     };
 
     window.electron.ipcRenderer.on('export-complete', handleExportComplete);
@@ -258,8 +287,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
       window.electron.ipcRenderer.removeAllListeners('export-complete');
     };
   }, [dispatch, runs]);
-
-
 
   useEffect(() => {
     dispatch(adjustActiveRunIndex());
@@ -277,7 +304,15 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
     if (!platform || !platform.logo) return null;
     const Logo = theme === 'dark' ? platform.logo.dark : platform.logo.light;
     return Logo ? (
-      <div style={{ width: `${LOGO_SIZE}px`, height: `${LOGO_SIZE}px`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        style={{
+          width: `${LOGO_SIZE}px`,
+          height: `${LOGO_SIZE}px`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <Logo style={{ width: '100%', height: '100%' }} />
       </div>
     ) : null;
@@ -285,23 +320,30 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
 
   const handleRunDetails = () => {
     // Implement run details functionality
-    console.log("Run details clicked");
+    console.log('Run details clicked');
   };
 
   const handleLearnMode = () => {
     // Implement learn mode functionality
-    console.log("Learn mode clicked");
+    console.log('Learn mode clicked');
   };
 
   const handleStopRun = async () => {
     const activeRun = activeRuns[activeRunIndex];
-    if (activeRun && (activeRun.status === 'pending' || activeRun.status === 'running')) {
+    if (
+      activeRun &&
+      (activeRun.status === 'pending' || activeRun.status === 'running')
+    ) {
       dispatch(stopRun(activeRun.id));
-      console.log("Stopping run:", activeRun.id);
+      console.log('Stopping run:', activeRun.id);
 
       // Update the run in IndexedDB
       const db = await openDB('dataExtractionDB', 1);
-      const updatedRun = { ...activeRun, status: 'stopped', endDate: new Date().toISOString() };
+      const updatedRun = {
+        ...activeRun,
+        status: 'stopped',
+        endDate: new Date().toISOString(),
+      };
       await db.put('runs', updatedRun);
 
       // Remove the run from Redux state
@@ -316,8 +358,8 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
 
   const isActiveRunStoppable = () => {
     const activeRun = activeRuns[activeRunIndex];
-    console.log('this is active run: ', activeRun)
-    return activeRun && (activeRun.status === 'running');
+    console.log('this is active run: ', activeRun);
+    return activeRun && activeRun.status === 'running';
   };
 
   const currentRunIndex = Math.min(activeRunIndex, activeRuns.length - 1);
@@ -328,7 +370,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
     }
   };
 
-   function modifyUserAgent(userAgent) {
+  function modifyUserAgent(userAgent) {
     // Regular expression to match the Chrome version
     const chromeVersionRegex = /(Chrome\/)\d+(\.\d+){3}/;
 
@@ -336,12 +378,9 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
     return userAgent.replace(chromeVersionRegex, '$1127.0.0.0');
   }
 
-
   useEffect(() => {
     const webview = webviewRef.current;
     if (webview) {
-
-
       const setWebview = () => {
         const oldAgent = webview.getUserAgent();
         const newAgent = modifyUserAgent(oldAgent);
@@ -376,21 +415,28 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
           <BrowserHeader>
             <LeftSection>
               <NavButtons>
-
-                  <IconButton onClick={handleOpenDevTools}>
-                    <Bug size={18} color="#ffffffb3" />
-                  </IconButton>
-                <IconButton onClick={handlePrevRun} disabled={activeRunIndex === 0}>
+                <IconButton onClick={handleOpenDevTools}>
+                  <Bug size={18} color="#ffffffb3" />
+                </IconButton>
+                <IconButton
+                  onClick={handlePrevRun}
+                  disabled={activeRunIndex === 0}
+                >
                   <ChevronLeft size={16} />
                 </IconButton>
                 <RunCounter>{`${currentRunIndex + 1}/${activeRuns.length}`}</RunCounter>
-                <IconButton onClick={handleNextRun} disabled={activeRunIndex === activeRuns.length - 1}>
+                <IconButton
+                  onClick={handleNextRun}
+                  disabled={activeRunIndex === activeRuns.length - 1}
+                >
                   <ChevronRight size={16} />
                 </IconButton>
               </NavButtons>
             </LeftSection>
             <RightSection>
-              {!isConnected && (<Button onClick={handleNewRun}>I've signed in!</Button>)}
+              {!isConnected && (
+                <Button onClick={handleNewRun}>I've signed in!</Button>
+              )}
               {isActiveRunStoppable() && (
                 <StopButton onClick={handleStopRun}>
                   <Square size={16} style={{ marginRight: '4px' }} />
@@ -417,7 +463,10 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
                   top: 0,
                   left: 0,
                   opacity: index === currentRunIndex ? 1 : 0,
-                  pointerEvents: index === currentRunIndex && isRunLayerVisible ? 'auto' : 'none',
+                  pointerEvents:
+                    index === currentRunIndex && isRunLayerVisible
+                      ? 'auto'
+                      : 'none',
                 }}
                 id={`webview-${run.id}`}
                 allowpopups=""
@@ -428,8 +477,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
           </div>
         </FakeBrowser>
       </WebviewContainer>
-
-
     </FullScreenOverlay>
   );
 };

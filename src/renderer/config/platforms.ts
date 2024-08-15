@@ -13,6 +13,7 @@ import {
   FileText,
   Briefcase,
   AtSign,
+  Cloud,
 } from 'lucide-react';
 import GithubLight from '../components/assets/platforms/GithubLight';
 import GithubDark from '../components/assets/platforms/GithubDark';
@@ -34,6 +35,8 @@ import MediumLight from '../components/assets/platforms/MediumLight';
 import MediumDark from '../components/assets/platforms/MediumDark';
 import YoutubeLight from '../components/assets/platforms/YoutubeLight';
 import YoutubeDark from '../components/assets/platforms/YoutubeDark';
+import WeatherLight from '../components/assets/platforms/WeatherLight';
+import WeatherDark from '../components/assets/platforms/WeatherDark';
 import DevpostLight from '../components/assets/platforms/DevpostLight';
 import DevpostDark from '../components/assets/platforms/DevpostDark';
 import UnsplashLight from '../components/assets/platforms/UnsplashLight';
@@ -463,10 +466,18 @@ export const platforms: IPlatform[] = [
     subRuns: [],
     supportedOS: ['mac', 'windows', 'linux'],
     steps: [
-      { id: 'step-001', name: 'Go to ChatGPT Data Controls', status: 'pending' },
+      {
+        id: 'step-001',
+        name: 'Go to ChatGPT Data Controls',
+        status: 'pending',
+      },
       { id: 'step-002', name: 'Click on Export', status: 'pending' },
       { id: 'step-003', name: 'Click on Confirm Export', status: 'pending' },
-      { id: 'step-004', name: 'Go to Gmail and wait for export email', status: 'pending' },
+      {
+        id: 'step-004',
+        name: 'Go to Gmail and wait for export email',
+        status: 'pending',
+      },
       { id: 'step-005', name: 'Click on export email', status: 'pending' },
       { id: 'step-007', name: 'Download export', status: 'pending' },
     ],
@@ -482,9 +493,30 @@ export const platforms: IPlatform[] = [
     companyLogo: '/assets/logos/salesforce.png',
     home_url: 'https://app.slack.com',
     subRuns: [
-      { id: 'slack-001-messages', name: 'Messages', icon: MessageSquare, description: 'Extracts all messages', extractionMethod: 'Slack API - /chat.postMessage endpoint', tasks: [] },
-      { id: 'slack-001-channels', name: 'Channels', icon: MessageSquare, description: 'Extracts channel information', extractionMethod: 'Slack API - /conversations.list endpoint', tasks: [] },
-      { id: 'slack-001-users', name: 'Users', icon: Users, description: 'Extracts user data', extractionMethod: 'Slack API - /users.list endpoint', tasks: [] },
+      {
+        id: 'slack-001-messages',
+        name: 'Messages',
+        icon: MessageSquare,
+        description: 'Extracts all messages',
+        extractionMethod: 'Slack API - /chat.postMessage endpoint',
+        tasks: [],
+      },
+      {
+        id: 'slack-001-channels',
+        name: 'Channels',
+        icon: MessageSquare,
+        description: 'Extracts channel information',
+        extractionMethod: 'Slack API - /conversations.list endpoint',
+        tasks: [],
+      },
+      {
+        id: 'slack-001-users',
+        name: 'Users',
+        icon: Users,
+        description: 'Extracts user data',
+        extractionMethod: 'Slack API - /users.list endpoint',
+        tasks: [],
+      },
     ],
     supportedOS: ['mac', 'windows', 'linux'],
   },
@@ -591,5 +623,101 @@ export const platforms: IPlatform[] = [
     home_url: 'https://claude.ai',
     subRuns: [],
     supportedOS: ['mac', 'windows', 'linux'],
+  },
+  {
+    id: 'weather-001',
+    name: 'Weather',
+    description: 'Exports current weather and forecast data.',
+    logo: {
+      light: WeatherLight,
+      dark: WeatherDark,
+    },
+    company: 'Google',
+    companyLogo: '/assets/logos/google.svg',
+    home_url: 'https://www.google.com/search?q=my+current+weather',
+    subRuns: [
+      {
+        id: 'weather-001-current',
+        name: 'Current Weather',
+        icon: Cloud,
+        description: 'Extracts current weather information',
+        extractionMethod: 'Web scraping - Google search results',
+        tasks: [
+          {
+            id: 'weather-001-current-task-1',
+            name: 'Extract Current Weather',
+            steps: [
+              {
+                id: 'step-1',
+                name: 'Search for "my current weather"',
+                status: 'pending',
+              },
+              {
+                id: 'step-2',
+                name: 'Wait for weather data to load',
+                status: 'pending',
+              },
+              {
+                id: 'step-3',
+                name: 'Extract temperature, location, and condition',
+                status: 'pending',
+              },
+            ],
+            status: 'pending',
+          },
+        ],
+      },
+      {
+        id: 'weather-001-forecast',
+        name: 'Weather Forecast',
+        icon: Cloud,
+        description: 'Extracts weather forecast for upcoming days',
+        extractionMethod: 'Web scraping - Google search results',
+        tasks: [
+          {
+            id: 'weather-001-forecast-task-1',
+            name: 'Extract Weather Forecast',
+            steps: [
+              {
+                id: 'step-1',
+                name: 'Locate forecast elements',
+                status: 'pending',
+              },
+              {
+                id: 'step-2',
+                name: 'Extract forecast data for each day',
+                status: 'pending',
+              },
+              {
+                id: 'step-3',
+                name: 'Compile forecast information',
+                status: 'pending',
+              },
+            ],
+            status: 'pending',
+          },
+        ],
+      },
+    ],
+    supportedOS: ['mac', 'windows', 'linux'],
+    steps: [
+      { id: 'step-001', name: 'Go to Google', status: 'pending' },
+      {
+        id: 'step-002',
+        name: 'Search for "my current weather"',
+        status: 'pending',
+      },
+      {
+        id: 'step-003',
+        name: 'Wait for weather data to load',
+        status: 'pending',
+      },
+      {
+        id: 'step-004',
+        name: 'Extract current weather and forecast',
+        status: 'pending',
+      },
+      { id: 'step-005', name: 'Export Data', status: 'pending' },
+    ],
   },
 ];

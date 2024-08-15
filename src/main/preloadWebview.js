@@ -17,7 +17,11 @@ const exportTwitter = require('./Scrapers/X Corp/twitter');
 const electronHandler = require('./preloadElectron');
 const exportGmail = require('./Scrapers/Google/gmail');
 const exportYouTube = require('./Scrapers/Google/youtube');
-const { exportChatgpt, continueExportChatgpt } = require('./Scrapers/OpenAI/chatgpt');
+const exportGoogleWeather = require('./Scrapers/Google/weather');
+const {
+  exportChatgpt,
+  continueExportChatgpt,
+} = require('./Scrapers/OpenAI/chatgpt');
 contextBridge.exposeInMainWorld('electron', electronHandler);
 
 ipcRenderer.on('export-website', async (event, company, name, runID) => {
@@ -46,6 +50,9 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
     case 'ChatGPT':
       await exportChatgpt(company, runID);
       break;
+    case 'Weather':
+      await exportGoogleWeather(company, name, runID);
+      break;
   }
 });
 
@@ -59,4 +66,4 @@ ipcRenderer.on('change-url-success', async (event, url, id) => {
   if (id.includes('chatgpt-001')) {
     await continueExportChatgpt(id);
   }
-})
+});
