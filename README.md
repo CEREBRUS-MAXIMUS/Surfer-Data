@@ -21,8 +21,7 @@
 
 ## Demo (click to view)
 
-[![YouTube](http://i.ytimg.com/vi/2P25iOd14qw/hqdefault.jpg)](https://www.youtube.com/watch?v=2P25iOd14qw)
-
+[![YouTube](http://i.ytimg.com/vi/2P25iOd14qw/hqdefault.jpg)](https://www.youtube.com/watch?v=2P25iOd14qw){:target="_blank"}
 
 Surfer is the world's first digital footprint exporter, designed to centralize all your personal data from various online platforms into a single folder.
 
