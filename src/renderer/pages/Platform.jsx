@@ -77,7 +77,7 @@ const Platform = ({ platform }) => {
 
   return (
     <div className="space-y-8 px-[50px] pt-6">
-          {getPlatformLogo()}
+          {/* {getPlatformLogo()}
           <div>
             <CardTitle className="text-2xl">{platform.name}</CardTitle>
           </div>
@@ -96,7 +96,7 @@ const Platform = ({ platform }) => {
             ))}
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       <Card>
         <CardHeader>

@@ -10,7 +10,7 @@ import Surfer from './Surfer';
 export default function App() {
   return (
     <Provider store={store}>
-      <ThemeProvider defaultTheme="dark" storageKey="app-theme">
+      <ThemeProvider defaultTheme="light" storageKey="app-theme">
         <PhotoProvider>
           <Surfer />
         </PhotoProvider>

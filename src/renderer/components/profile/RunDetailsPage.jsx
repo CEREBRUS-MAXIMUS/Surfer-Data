@@ -10,7 +10,7 @@ import { updateRunStatus, deleteRun } from '../../state/actions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import MonacoEditor from '@monaco-editor/react';
 import { stopRun, closeRun } from '../../state/actions';
-
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 
 const StatusIndicator = ({ status }) => {
   switch (status) {
@@ -38,6 +38,7 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   const [, forceUpdate] = useState();
   const [artifacts, setArtifacts] = useState([]);
   const [currentArtifactIndex, setCurrentArtifactIndex] = useState(0);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const loadRun = async () => {
@@ -143,12 +144,11 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   };
 
   const handleDeleteRun = async () => {
-    if (window.confirm('Are you sure you want to delete this run?')) {
-      dispatch(deleteRun(runId));
-      const db = await openDB('dataExtractionDB', 1);
-      await db.delete('runs', runId);
-      onClose(); // Close the dialog after deletion
-    }
+    dispatch(deleteRun(runId));
+    const db = await openDB('dataExtractionDB', 1);
+    await db.delete('runs', runId);
+    setIsDeleteDialogOpen(false);
+    onClose(); // Close the main dialog after deletion
   };
 
   const handleViewRun = () => {
@@ -207,10 +207,26 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={handleDeleteRun}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Run
-              </Button>
+              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Run
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure you want to delete this run?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete the run and remove all associated data.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteRun}>Delete</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               {(run?.status === 'pending' || run?.status === 'running') && (
                 <Button variant="destructive" size="sm" onClick={handleStopRun}>
                   <XCircle className="mr-2 h-4 w-4" />
