@@ -13,7 +13,7 @@ const {
 } = require('./Scrapers/Microsoft/github');
 const exportLinkedin = require('./Scrapers/Microsoft/linkedin');
 const exportTwitter = require('./Scrapers/X Corp/twitter');
-
+const exportXTrending = require('./Scrapers/X Corp/trending');
 const electronHandler = require('./preloadElectron');
 const exportGmail = require('./Scrapers/Google/gmail');
 const exportYouTube = require('./Scrapers/Google/youtube');
@@ -52,6 +52,9 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
       break;
     case 'Weather':
       await exportGoogleWeather(company, name, runID);
+      break;
+    case 'X Trending':
+      await exportXTrending(company, name, runID);
       break;
   }
 });

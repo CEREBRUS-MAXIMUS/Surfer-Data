@@ -37,6 +37,8 @@ import YoutubeLight from '../components/assets/platforms/YoutubeLight';
 import YoutubeDark from '../components/assets/platforms/YoutubeDark';
 import WeatherLight from '../components/assets/platforms/WeatherLight';
 import WeatherDark from '../components/assets/platforms/WeatherDark';
+import XTrendingLight from '../components/assets/platforms/XTrendingLight';
+import XTrendingDark from '../components/assets/platforms/XTrendingDark';
 import DevpostLight from '../components/assets/platforms/DevpostLight';
 import DevpostDark from '../components/assets/platforms/DevpostDark';
 import UnsplashLight from '../components/assets/platforms/UnsplashLight';
@@ -715,6 +717,70 @@ export const platforms: IPlatform[] = [
       {
         id: 'step-004',
         name: 'Extract current weather and forecast',
+        status: 'pending',
+      },
+      { id: 'step-005', name: 'Export Data', status: 'pending' },
+    ],
+  },
+  {
+    id: 'xTrending-001',
+    name: 'X Trending',
+    description: 'Exports trending topics from X (formerly Twitter).',
+    logo: {
+      light: XTrendingLight,
+      dark: XTrendingDark,
+    },
+    company: 'X Corp',
+    companyLogo: '/assets/logos/x.png',
+    home_url: 'https://x.com/explore/tabs/keyword',
+    subRuns: [
+      {
+        id: 'xTrending-001-topics',
+        name: 'Trending Topics',
+        description: 'Extracts current trending topics',
+        extractionMethod: 'Web scraping - X explore page',
+        tasks: [
+          {
+            id: 'xTrending-001-topics-task-1',
+            name: 'Extract Trending Topics',
+            steps: [
+              {
+                id: 'step-1',
+                name: 'Navigate to X explore page',
+                status: 'pending',
+              },
+              {
+                id: 'step-2',
+                name: 'Wait for trending topics to load',
+                status: 'pending',
+              },
+              {
+                id: 'step-3',
+                name: 'Extract trending topics data',
+                status: 'pending',
+              },
+            ],
+            status: 'pending',
+          },
+        ],
+      },
+    ],
+    supportedOS: ['mac', 'windows', 'linux'],
+    steps: [
+      { id: 'step-001', name: 'Go to X', status: 'pending' },
+      {
+        id: 'step-002',
+        name: 'Navigate to Explore',
+        status: 'pending',
+      },
+      {
+        id: 'step-003',
+        name: 'Wait for trending topics',
+        status: 'pending',
+      },
+      {
+        id: 'step-004',
+        name: 'Extract trending data',
         status: 'pending',
       },
       { id: 'step-005', name: 'Export Data', status: 'pending' },
