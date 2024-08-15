@@ -18,7 +18,7 @@ function Surfer() {
   const dispatch = useDispatch();
   const contentScale = useSelector((state: IAppState) => state.preferences.contentScale);
   const route = useSelector((state: IAppState) => state.app.route);
-  const runs = useSelector((state: IAppState) => state.runs);
+  const runs = useSelector((state: IAppState) => state.app.runs);
   const webviewRef = useRef(null);
   const [showNotConnectedAlert, setShowNotConnectedAlert] = useState(false);
   const [isConnected, setIsConnected] = useState(true);

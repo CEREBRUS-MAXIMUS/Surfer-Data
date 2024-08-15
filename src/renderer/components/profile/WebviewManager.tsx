@@ -136,7 +136,7 @@ interface WebviewManagerProps {
 
 const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected, setIsConnected }) => {
   const dispatch = useDispatch();
-  const runs = useSelector((state: IAppState) => state.runs);
+  const runs = useSelector((state: IAppState) => state.app.runs);
   const activeRunIndex = useSelector((state: IAppState) => state.app.activeRunIndex);
   const isRunLayerVisible = useSelector((state: IAppState) => state.app.isRunLayerVisible);
 
@@ -162,8 +162,8 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
     const platform = platforms.find(p => p.id === parsedId);
 
     if (platform) {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
       if (webviewRef.current) {
-        await new Promise((resolve) => setTimeout(resolve, 2000))
         console.log('exporting this: ', platform.company, platform.name)
         webviewRef.current.send('export-website', platform.company, platform.name, newRun.id);
       }
@@ -245,13 +245,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
     dispatch(setActiveRunIndex(activeRunIndex + 1));
   };
 
-  const handleCloseRun = (runId: string) => {
-    dispatch(closeRun(runId));
-    if (runs.length === 1) {
-      dispatch(toggleRunVisibility());
-    }
-  };
-
   const getPlatformLogo = (platform) => {
     if (!platform || !platform.logo) return null;
     const Logo = theme === 'dark' ? platform.logo.dark : platform.logo.light;
@@ -295,7 +288,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected
 
   const isActiveRunStoppable = () => {
     const activeRun = runs[activeRunIndex];
-    return activeRun && (activeRun.status === 'pending' || activeRun.status === 'running');
+    return activeRun && (activeRun.status === 'running');
   };
 
   const activeRuns = runs.filter(run => run.status === 'pending' || run.status === 'running');

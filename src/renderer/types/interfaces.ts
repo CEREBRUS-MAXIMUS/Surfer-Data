@@ -25,7 +25,6 @@ export interface IDataSource {
 
 export interface IAppState {
   preferences: IPreferences;
-  runs: IRun[];
   app: {
     route: string;
     activeRunIndex: number;
@@ -33,6 +32,7 @@ export interface IAppState {
     isMac: boolean;
     isRunLayerVisible: boolean;
     breadcrumb: { text: string; link: string }[];
+    runs: IRun[];
   };
 }
 
@@ -40,7 +40,6 @@ export const initialState: IAppState = {
   preferences: {
     contentScale: 1,
   },
-  runs: [],
   app: {
     route: '/',
     activeRunIndex: 0,
@@ -48,6 +47,7 @@ export const initialState: IAppState = {
     isMac: false,
     isRunLayerVisible: false,
     breadcrumb: [{ text: 'Home', link: '/' }],
+    runs: [],
   },
 };
 

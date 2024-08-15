@@ -17,7 +17,7 @@ import { platform } from 'os';
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
-  const runs = useSelector(state => state.runs);
+  const runs = useSelector(state => state.app.runs);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
@@ -134,8 +134,8 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     };
 
     dispatch(startRun(newRun));
-    dispatch(toggleRunVisibility());
-    dispatch(setExportRunning(platform.id, true));
+    // dispatch(toggleRunVisibility());
+    dispatch(setExportRunning(newRun.id, true));
 
     // Trigger the export process
     window.electron.ipcRenderer.send('export-website', platform.company, platform.name, newRun.id);
@@ -194,7 +194,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
         return (
           <div className="flex items-center space-x-2">
             <Progress value={latestRun.progress || 0} className="w-24" />
-            <span>{latestRun.progress ? `${latestRun.progress}%` : 'Starting...'}</span>
+            <span>{latestRun.progress ? `${latestRun.progress}%` : 'Runing...'}</span>
             {viewDetailsButton}
           </div>
         );
@@ -222,6 +222,14 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
           <div className="flex items-center space-x-2">
             <X className="text-red-500" size={16} />
             <span>Export failed</span>
+            {viewDetailsButton}
+          </div>
+        );
+      case 'stopped':
+        return (
+          <div className="flex items-center space-x-2">
+            <X className="text-red-500" size={16} />
+            <span>Export stopped</span>
             {viewDetailsButton}
           </div>
         );

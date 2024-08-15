@@ -6,7 +6,6 @@ export const initialPreferencesState: IPreferences = {
 
 export const initialAppState: IAppState = {
   preferences: initialPreferencesState,
-  runs: [],
   app: {
     route: '/',
     activeRunIndex: 0,
@@ -14,5 +13,6 @@ export const initialAppState: IAppState = {
     isMac: false,
     isRunLayerVisible: false,
     breadcrumb: [{ text: 'Home', link: '/' }],
+    runs: [],
   },
 };
