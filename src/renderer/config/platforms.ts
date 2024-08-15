@@ -49,6 +49,8 @@ import ChatGPTLight from '../components/assets/platforms/ChatGPTLight';
 import ChatGPTDark from '../components/assets/platforms/ChatGPTDark';
 import ClaudeLight from '../components/assets/platforms/ClaudeLight';
 import ClaudeDark from '../components/assets/platforms/ClaudeDark';
+import NewsLight from '../components/assets/platforms/NewsLight';
+import NewsDark from '../components/assets/platforms/NewsDark';
 import { IPlatform } from '../types/interfaces';
 
 export const platforms: IPlatform[] = [
@@ -784,6 +786,95 @@ export const platforms: IPlatform[] = [
         status: 'pending',
       },
       { id: 'step-005', name: 'Export Data', status: 'pending' },
+    ],
+  },
+  {
+    id: 'news-001',
+    name: 'News',
+    description: 'Exports current top news headlines and stories.',
+    logo: {
+      light: NewsLight,
+      dark: NewsDark,
+    },
+    company: 'Google',
+    companyLogo: '/assets/logos/google.svg',
+    home_url: 'https://www.google.com/search?q=news',
+    subRuns: [
+      {
+        id: 'news-001-headlines',
+        name: 'Headlines',
+        icon: FileText,
+        description: 'Extracts current top news headlines',
+        extractionMethod: 'Web scraping - Google News',
+        tasks: [
+          {
+            id: 'news-001-headlines-task-1',
+            name: 'Extract Top Headlines',
+            steps: [
+              {
+                id: 'step-1',
+                name: 'Navigate to Google News',
+                status: 'pending',
+              },
+              {
+                id: 'step-2',
+                name: 'Wait for headlines to load',
+                status: 'pending',
+              },
+              {
+                id: 'step-3',
+                name: 'Extract headline data',
+                status: 'pending',
+              },
+            ],
+            status: 'pending',
+          },
+        ],
+      },
+      {
+        id: 'news-001-categories',
+        name: 'News Categories',
+        icon: Folder,
+        description: 'Extracts news from different categories',
+        extractionMethod: 'Web scraping - Google News categories',
+        tasks: [
+          {
+            id: 'news-001-categories-task-1',
+            name: 'Extract Category News',
+            steps: [
+              {
+                id: 'step-1',
+                name: 'Navigate to category sections',
+                status: 'pending',
+              },
+              {
+                id: 'step-2',
+                name: 'Extract news from each category',
+                status: 'pending',
+              },
+              {
+                id: 'step-3',
+                name: 'Compile category news data',
+                status: 'pending',
+              },
+            ],
+            status: 'pending',
+          },
+        ],
+      },
+    ],
+    supportedOS: ['mac', 'windows', 'linux'],
+    steps: [
+      { id: 'step-001', name: 'Go to Google News', status: 'pending' },
+      { id: 'step-002', name: 'Wait for page to load', status: 'pending' },
+      { id: 'step-003', name: 'Extract top headlines', status: 'pending' },
+      {
+        id: 'step-004',
+        name: 'Navigate through categories',
+        status: 'pending',
+      },
+      { id: 'step-005', name: 'Extract category news', status: 'pending' },
+      { id: 'step-006', name: 'Export Data', status: 'pending' },
     ],
   },
 ];

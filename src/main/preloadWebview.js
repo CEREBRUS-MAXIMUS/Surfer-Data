@@ -18,6 +18,7 @@ const electronHandler = require('./preloadElectron');
 const exportGmail = require('./Scrapers/Google/gmail');
 const exportYouTube = require('./Scrapers/Google/youtube');
 const exportGoogleWeather = require('./Scrapers/Google/weather');
+const exportNews = require('./Scrapers/Google/news');
 const {
   exportChatgpt,
   continueExportChatgpt,
@@ -55,6 +56,9 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
       break;
     case 'X Trending':
       await exportXTrending(company, name, runID);
+      break;
+    case 'News':
+      await exportNews(company, name, runID);
       break;
   }
 });
