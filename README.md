@@ -6,13 +6,37 @@
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 
-![Surfer Diagram](assets/SurferDiagram.png)
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#how-it-works">How it works</a></li>
+    <li><a href="#getting-started">Getting Started</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#acknowledgements">Acknowledgements</a></li>
+  </ol>
+</details>
 
 Surfer is the world's first digital footprint exporter, designed to centralize all your personal data from various online platforms into a single folder.
 
 Currently, your personal data is scattered across hundreds of platforms and the companies operating these platforms have no incentive to give this data back to you. Surfer solves this problem by navigating to websites and scraping data from these websites.
 
 We believe that personal data centralization is the key to enabling truly useful, universal personal assistants.
+
+## How it works
+
+![Surfer Diagram](assets/SurferDiagram.png)
+
+1. Click on "Export" to initiate the data extraction process.
+2. The app waits for the target page to load completely.
+3. The system checks if the user is signed in to the platform being scraped.
+4. If not signed in, the user is prompted to sign in.
+5. If signed in, the process continues.
+6. Once signed in, the app interacts with the platform's user interface.
+7. The app then scrapes the user's data from the platform.
+8. Finally, the extracted data is exported and saved to your local storage.
 
 ## Getting Started
 
@@ -41,7 +65,7 @@ See the [open issues](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues) fo
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-### Built With
+## Built With
 
 * [![Electron][Electron.js]][Electron-url]
 * [![React][React.js]][React-url]
