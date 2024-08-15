@@ -19,6 +19,10 @@
   </ol>
 </details>
 
+
+![Surfer Diagram](assets/SurferDemo.mp4)
+
+
 Surfer is the world's first digital footprint exporter, designed to centralize all your personal data from various online platforms into a single folder.
 
 Currently, your personal data is scattered across hundreds of platforms and the companies operating these platforms have no incentive to give this data back to you. Surfer solves this problem by navigating to websites and scraping data from these websites.
