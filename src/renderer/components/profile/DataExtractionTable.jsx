@@ -231,7 +231,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   };
 
   return (
-    <div className="w-full mx-auto space-y-4 px-[50px] pt-6 select-none">
+    <div className="w-full h-full flex flex-col px-[50px] pt-6 pb-4 select-none">
       <div className="flex items-center mb-4">
         <div className="relative w-full max-w-2xl">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -256,8 +256,8 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
         </div>
       </div>
       {paginatedPlatforms.length > 0 ? (
-        <>
-          <div className="overflow-x-auto">
+        <div className="flex flex-col h-full">
+          <div className="overflow-auto flex-grow">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -345,16 +345,18 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               </div>
             </div>
           )}
-        </>
+        </div>
       ) : (
-        <div className="text-center py-8 bg-gray-100 rounded-md">
-          <p className="text-gray-500 text-lg">No platforms found matching "{searchTerm}"</p>
-          <button
-            onClick={clearSearch}
-            className="mt-2 text-blue-500 hover:underline"
-          >
-            Clear search
-          </button>
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center py-8 bg-gray-100 rounded-md">
+            <p className="text-gray-500 text-lg">No platforms found matching "{searchTerm}"</p>
+            <button
+              onClick={clearSearch}
+              className="mt-2 text-blue-500 hover:underline"
+            >
+              Clear search
+            </button>
+          </div>
         </div>
       )}
       {selectedRun && (

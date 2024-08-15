@@ -16,8 +16,8 @@ const Home = () => {
   };
 
   return (
-    <div className="w-full flex flex-col bg-background pt-6">
-      <div className="w-10/11 pr-4">
+    <div className="w-full flex flex-col bg-background h-screen">
+      <div className="flex-grow overflow-hidden">
         <DataExtractionTable
           onPlatformClick={handlePlatformClick}
         />

@@ -50,7 +50,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'github-001',
     name: 'GitHub',
-    description: 'Gets repository names, links, and descriptions (if any).',
+    description: 'Exports repository names, links, and descriptions (if any).',
     logo: {
       light: GithubLight,
       dark: GithubDark,
@@ -169,7 +169,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'gmail-001',
     name: 'Gmail',
-    description: 'Gets all emails.',
+    description: 'Exports all emails.',
     logo: {
       light: GmailLight,
       dark: GmailDark,
@@ -236,7 +236,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'notion-001',
     name: 'Notion',
-    description: 'Gets your entire workspace.',
+    description: 'Exports your entire workspace.',
     logo: {
       light: NotionLight,
       dark: NotionDark,
@@ -292,7 +292,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'linkedin-001',
     name: 'LinkedIn',
-    description: 'Gets your profile information.',
+    description: 'Exports your profile information.',
     logo: {
       light: LinkedInLight,
       dark: LinkedInDark,
@@ -346,7 +346,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'twitter-001',
     name: 'Twitter',
-    description: 'Gets your posts.',
+    description: 'Exports your posts.',
     logo: {
       light: XLight,
       dark: XDark,
@@ -399,7 +399,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'youtube-001',
     name: 'YouTube',
-    description: 'Gets the videos in your recommended feed.',
+    description: 'Exports the videos in your recommended feed.',
     logo: {
       light: YoutubeLight,
       dark: YoutubeDark,
@@ -452,7 +452,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'chatgpt-001',
     name: 'ChatGPT',
-    description: 'Gets your entire ChatGPT history.',
+    description: 'Exports your entire ChatGPT history.',
     logo: {
       light: ChatGPTLight,
       dark: ChatGPTDark,

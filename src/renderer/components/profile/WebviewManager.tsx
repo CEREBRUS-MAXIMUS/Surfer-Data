@@ -137,8 +137,8 @@ interface WebviewManagerProps {
 const WebviewManager: React.FC<WebviewManagerProps> = ({ webviewRef, isConnected, setIsConnected }) => {
   const dispatch = useDispatch();
   const runs = useSelector((state: IAppState) => state.runs);
-  const activeRunIndex = useSelector((state: IAppState) => state.activeRunIndex);
-  const isRunLayerVisible = useSelector((state: IAppState) => state.isRunLayerVisible);
+  const activeRunIndex = useSelector((state: IAppState) => state.app.activeRunIndex);
+  const isRunLayerVisible = useSelector((state: IAppState) => state.app.isRunLayerVisible);
 
   const { theme } = useTheme();
 

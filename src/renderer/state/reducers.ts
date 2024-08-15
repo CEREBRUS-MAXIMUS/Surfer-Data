@@ -2,9 +2,7 @@ import { combineReducers } from 'redux';
 import {
   IAppState,
   IPreferences,
-  IUser,
   IRun,
-  ITask,
 } from '../types/interfaces';
 import { initialAppState } from '../config/initialStates';
 
@@ -13,8 +11,6 @@ const preferencesReducer = (
   action: any,
 ): IPreferences => {
   switch (action.type) {
-    case 'SET_APPLICATION_FONT':
-      return { ...state, applicationFont: action.payload };
     case 'SET_CONTENT_SCALE':
       return { ...state, contentScale: action.payload }; // Add this case for contentScale
     default:
@@ -22,28 +18,37 @@ const preferencesReducer = (
   }
 };
 
-const userReducer = (state: IUser = initialAppState.user, action: any): IUser => {
+
+const appReducer = (state = initialAppState.app, action: any) => {
   switch (action.type) {
-    case 'SET_USER_OS':
-      return { ...state, os: action.payload };
-    case 'SET_DATA_SOURCE_IMPORT_STATUS':
+    case 'SET_CURRENT_ROUTE':
+      return { ...state, route: action.payload.route };
+    case 'SET_ACTIVE_RUN_INDEX':
       return {
         ...state,
-        dataSources: state.dataSources.map(source =>
-          source.id === action.payload.sourceId
-            ? { ...source, status: action.payload.status }
-            : source
-        ),
+        activeRunIndex: Math.min(Math.max(0, action.payload), state.runs.length - 1)
       };
+    case 'TOGGLE_RUN_VISIBILITY':
+      return { ...state, isRunLayerVisible: !state.isRunLayerVisible };
+    case 'UPDATE_BREADCRUMB':
+      return { ...state, breadcrumb: action.payload };
+    case 'UPDATE_BREADCRUMB_TO_INDEX':
+      return { ...state, breadcrumb: state.breadcrumb.slice(0, action.payload + 1) };
+    case 'SET_IS_FULL_SCREEN':
+      return { ...state, isFullScreen: action.payload };
+    case 'SET_IS_MAC':
+      return { ...state, isMac: action.payload };
     default:
       return state;
   }
 };
 
-const runsReducer = (state: IRun[] = initialAppState.runs, action: any): IRun[] => {
+const runsReducer = (state = initialAppState.runs, action: any) => {
   switch (action.type) {
     case 'START_RUN':
       return [...state, action.payload];
+    case 'CLOSE_RUN':
+      return state.filter(run => run.id !== action.payload);
     case 'UPDATE_RUN_STATUS':
       return state.map(run =>
         run.id === action.payload.runId
@@ -101,8 +106,6 @@ const runsReducer = (state: IRun[] = initialAppState.runs, action: any): IRun[] 
           ? { ...run, status: 'stopped', endDate: new Date().toISOString() }
           : run
       );
-    case 'CLOSE_RUN':
-      return state.filter(run => run.id !== action.payload);
     case 'UPDATE_EXPORT_STATUS':
       return state.map(run =>
         run.id === action.payload.runID
@@ -142,128 +145,17 @@ const runsReducer = (state: IRun[] = initialAppState.runs, action: any): IRun[] 
   }
 };
 
-const activeRunIndexReducer = (state: number = initialAppState.activeRunIndex, action: any, runs: IRun[]): number => {
-  switch (action.type) {
-    case 'SET_ACTIVE_RUN_INDEX':
-      return Math.min(Math.max(0, action.payload), runs.length - 1);
-    case 'START_RUN':
-      return runs.length; // Set to the index of the new run
-    case 'CLOSE_RUN':
-    case 'STOP_RUN':
-    case 'ADJUST_ACTIVE_RUN_INDEX':
-      return Math.min(state, Math.max(0, runs.length - 1));
-    default:
-      return state;
-  }
-};
-
-const isRunLayerVisibleReducer = (state = initialAppState.isRunLayerVisible, action) => {
-  switch (action.type) {
-    case 'TOGGLE_RUN_VISIBILITY':
-      return !state;
-    case 'START_RUN':
-      return true;
-    case 'CLOSE_RUN':
-      return state.length > 1; // Keep visible if there are still runs
-    default:
-      return state;
-  }
-};
-
-const breadcrumbReducer = (state: { text: string; link: string }[] = [], action: any) => {
-  switch (action.type) {
-    case 'UPDATE_BREADCRUMB':
-      return action.payload;
-    case 'UPDATE_BREADCRUMB_TO_INDEX':
-      return state.slice(0, action.payload + 1);
-    default:
-      return state;
-  }
-};
-
-const selectedPlatformIdReducer = (state = initialAppState.selectedPlatformId, action: any) => {
-  switch (action.type) {
-    case 'SET_CURRENT_VIEW':
-      return action.payload.platformId || null;
-    default:
-      return state;
-  }
-};
-
-const selectedSubRunIdReducer = (state = initialAppState.selectedSubRunId, action: any) => {
-  switch (action.type) {
-    case 'SET_CURRENT_VIEW':
-      return action.payload.subRunId || null;
-    default:
-      return state;
-  }
-};
-
-const selectedRunIdReducer = (state = initialAppState.selectedRunId, action: any) => {
-  switch (action.type) {
-    case 'SET_CURRENT_VIEW':
-      return action.payload.runId || null;
-    default:
-      return state;
-  }
-};
-
-const appReducer = (state = { }, action) => {
-  switch (action.type) {
-    case 'SET_CURRENT_ROUTE':
-      return { ...state, ...action.payload };
-    default:
-      return state;
-  }
-};
-
-const isFullScreenReducer = (state = false, action: any) => {
-  switch (action.type) {
-    case 'SET_IS_FULL_SCREEN':
-      return action.payload;
-    default:
-      return state;
-  }
-};
-
-const isMacReducer = (state = false, action: any) => {
-  switch (action.type) {
-    case 'SET_IS_MAC':
-      return action.payload;
-    default:
-      return state;
-  }
-};
-
-// Custom combineReducers function
-const customCombineReducers = (reducers: { [key: string]: any }) => {
-  return (state: IAppState = initialAppState, action: any) => {
-    const newState: any = {};
-    for (const key in reducers) {
-      if (key === 'activeRunIndex') {
-        newState[key] = reducers[key](state[key], action, state.runs);
-      } else {
-        newState[key] = reducers[key](state[key], action);
-      }
-    }
-    return newState as IAppState;
-  };
-};
-
-
-const rootReducer = customCombineReducers({
+const rootReducer = combineReducers({
   preferences: preferencesReducer,
-  user: userReducer,
-  runs: runsReducer,
-  activeRunIndex: activeRunIndexReducer,
-  isRunLayerVisible: isRunLayerVisibleReducer,
-  breadcrumb: breadcrumbReducer,
-  selectedPlatformId: selectedPlatformIdReducer,
-  selectedSubRunId: selectedSubRunIdReducer,
-  selectedRunId: selectedRunIdReducer,
   app: appReducer,
-  isFullScreen: isFullScreenReducer,
-  isMac: isMacReducer,
+  runs: runsReducer,
 });
 
 export default rootReducer;
+
+// Selector to get the active run
+export const getActiveRun = (state: IAppState) => {
+  const { runs } = state;
+  const { activeRunIndex } = state.app;
+  return runs[activeRunIndex] || null;
+};

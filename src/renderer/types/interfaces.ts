@@ -23,42 +23,32 @@ export interface IDataSource {
   status: 'not_imported' | 'importing' | 'imported';
 }
 
-export interface IUser {
-  os: 'mac' | 'windows' | 'linux' | null;
-  dataSources: IDataSource[];
-}
-
 export interface IAppState {
-  selectedPlatformId: string | null;
-  selectedSubRunId: string | null;
-  selectedRunId: string | null;
   preferences: IPreferences;
-  user: IUser;
   runs: IRun[];
-  activeRunIndex: number;
-  isRunLayerVisible: boolean;
-  breadcrumb: { text: string; link: string }[];
-  isFullScreen: boolean;
-  isMac: boolean;
+  app: {
+    route: string;
+    activeRunIndex: number;
+    isFullScreen: boolean;
+    isMac: boolean;
+    isRunLayerVisible: boolean;
+    breadcrumb: { text: string; link: string }[];
+  };
 }
 
 export const initialState: IAppState = {
-  selectedPlatformId: null,
-  selectedSubRunId: null,
-  selectedRunId: null,
   preferences: {
     contentScale: 1,
   },
-  user: {
-    os: null,
-    dataSources: [],
-  },
   runs: [],
-  activeRunIndex: 0,
-  isRunLayerVisible: false,
-  breadcrumb: [{ text: 'Home', link: '/' }],
-  isFullScreen: false,
-  isMac: false,
+  app: {
+    route: '/',
+    activeRunIndex: 0,
+    isFullScreen: false,
+    isMac: false,
+    isRunLayerVisible: false,
+    breadcrumb: [{ text: 'Home', link: '/' }],
+  },
 };
 
 export interface IStep {
