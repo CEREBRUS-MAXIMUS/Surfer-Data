@@ -194,7 +194,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
         return (
           <div className="flex items-center space-x-2">
             <Progress value={latestRun.progress || 0} className="w-24" />
-            <span>{latestRun.progress ? `${latestRun.progress}%` : 'Runing...'}</span>
+            <span>{latestRun.progress ? `${latestRun.progress}%` : 'Running...'}</span>
             {viewDetailsButton}
           </div>
         );
