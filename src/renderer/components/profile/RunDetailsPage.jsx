@@ -9,6 +9,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { updateRunStatus, deleteRun } from '../../state/actions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import MonacoEditor from '@monaco-editor/react';
+import { stopRun, closeRun } from '../../state/actions';
 
 
 const StatusIndicator = ({ status }) => {
@@ -113,22 +114,24 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
     return `${hours}:${minutes}:${seconds}`;
   };
 
-  const handleCancelRun = async () => {
-    if (run && (run.status === 'pending' || run.status === 'running')) {
-      const updatedRun = { ...run, status: 'error', endDate: new Date().toISOString() };
+  const handleStopRun = async () => {
+    const activeRun = run;
+    if (activeRun && (activeRun.status === 'pending' || activeRun.status === 'running')) {
+      dispatch(stopRun(activeRun.id));
+      console.log("Stopping run:", activeRun.id);
 
-      // Update Redux
-      dispatch(updateRunStatus(updatedRun));
-
-      // Update IndexedDB
+      // Update the run in IndexedDB
       const db = await openDB('dataExtractionDB', 1);
+      const updatedRun = { ...activeRun, status: 'stopped', endDate: new Date().toISOString() };
       await db.put('runs', updatedRun);
 
-      // Update local state
-      setRun(updatedRun);
+      // Remove the run from Redux state
+      dispatch(closeRun(activeRun.id));
 
-      console.log('Run cancelled:', updatedRun);
-      // Here you would also implement the logic to actually stop the run process
+      // Adjust active run index if necessary
+      if (activeRunIndex >= runs.length - 1) {
+        dispatch(setActiveRunIndex(Math.max(0, runs.length - 2)));
+      }
     }
   };
 
@@ -209,7 +212,7 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
                 Delete Run
               </Button>
               {(run?.status === 'pending' || run?.status === 'running') && (
-                <Button variant="destructive" size="sm" onClick={handleCancelRun}>
+                <Button variant="destructive" size="sm" onClick={handleStopRun}>
                   <XCircle className="mr-2 h-4 w-4" />
                   Cancel Run
                 </Button>

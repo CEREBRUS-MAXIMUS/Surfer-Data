@@ -218,7 +218,7 @@ export const createWindow = async (visible: boolean = true) => {
     if (process.env.START_MINIMIZED) {
       mainWindow.minimize();
     } else {
-      mainWindow.show(); 
+      mainWindow.show();
     }
   });
 
@@ -750,13 +750,13 @@ ipcMain.on('get-artifact-files', (event, exportPath) => {
   }
 });
 
-app.on('before-quit', (event) => {
-  event.preventDefault(); // Prevent the app from quitting immediately
-  mainWindow?.webContents.send('stop-all-jobs');
-});
+// app.on('before-quit', (event) => {
+//   event.preventDefault(); // Prevent the app from quitting immediately
+//   mainWindow?.webContents.send('stop-all-jobs');
+// });
 
-// ... rest of the existing code ...
+// // ... rest of the existing code ...
 
-ipcMain.on('jobs-stopped', () => {
-  app.exit(0); // Now we can safely exit the app
-});
+// ipcMain.on('jobs-stopped', () => {
+//   app.exit(0); // Now we can safely exit the app
+// });
