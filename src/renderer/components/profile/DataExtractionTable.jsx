@@ -15,6 +15,7 @@ import { Progress } from "../ui/progress";
 import RunDetailsPage from './RunDetailsPage';
 import { platform } from 'os';
 import { MoonLoader } from 'react-spinners';
+import ConfettiExplosion from 'react-confetti-explosion';
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -26,6 +27,8 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const [dbUpdateTrigger, setDbUpdateTrigger] = useState(0);
   const dbRef = useRef(null);
   const [selectedRun, setSelectedRun] = useState(null);
+  const [completedRuns, setCompletedRuns] = useState({});
+  const prevRunsRef = useRef({});
 
   const LOGO_SIZE = 24; // Set a consistent size for all logos
 
@@ -205,7 +208,17 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
             <Check className="text-green-500" size={16} />
             <span>{latestRun.exportSize}</span>
             <span>{formatLastRunTime(latestRun.exportDate)}</span>
-            {latestRun.exportPath && (
+            <div className="relative">
+              {completedRuns[latestRun.id] && (
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  <ConfettiExplosion
+                    particleCount={50}
+                    width={200}
+                    duration={2200}
+                    force={0.4}
+                  />
+                </div>
+              )}
               <Button
                 size="sm"
                 variant="ghost"
@@ -214,7 +227,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               >
                 <Folder size={16} />
               </Button>
-            )}
+            </div>
             {viewDetailsButton}
           </div>
         );
@@ -238,6 +251,28 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
         return <span>Unknown status</span>;
     }
   };
+
+  useEffect(() => {
+    runs.forEach(run => {
+      const prevRun = prevRunsRef.current[run.id];
+      if (prevRun && prevRun.status === 'running' && run.status === 'success' && !completedRuns[run.id]) {
+        setCompletedRuns(prev => ({ ...prev, [run.id]: true }));
+        setTimeout(() => {
+          setCompletedRuns(prev => {
+            const newState = { ...prev };
+            delete newState[run.id];
+            return newState;
+          });
+        }, 2200); // Duration of the confetti explosion
+      }
+    });
+
+    // Update prevRunsRef for the next render
+    prevRunsRef.current = runs.reduce((acc, run) => {
+      acc[run.id] = run;
+      return acc;
+    }, {});
+  }, [runs]);
 
   return (
     <div className="w-full h-full flex flex-col px-[50px] pt-6 pb-4 select-none">
