@@ -469,44 +469,30 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
   const namePath = path.join(platformPath, name);
   const idPath = path.join(namePath, runID);
 
-  // Create surfer_data folder
-  if (!fs.existsSync(surferDataPath)) {
-    fs.mkdirSync(surferDataPath);
-  }
+  // Create necessary folders
+  [surferDataPath, platformPath, namePath, idPath].forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
 
-  // Create platform_name folder
-  if (!fs.existsSync(platformPath)) {
-    fs.mkdirSync(platformPath);
-  }
+  const timestamp = Date.now();
+  const fileName = `${name}_${timestamp}.json`;
+  const filePath = path.join(idPath, fileName);
 
-  // Create the name folder
-  if (!fs.existsSync(namePath)) {
-    fs.mkdirSync(namePath);
-  }
-
-  // Create the runID folder
-  if (!fs.existsSync(idPath)) {
-    fs.mkdirSync(idPath);
-  }
-
-  const formatContent = (data) => {
-    return typeof data === 'object'
-      ? JSON.stringify(data, null, 2)
-      : data.toString();
+  // Prepare the data object
+  const exportData = {
+    platform_name,
+    name,
+    runID,
+    timestamp,
+    content: Array.isArray(content) ? content : [content],
   };
 
-  if (Array.isArray(content)) {
-    content.forEach((item, index) => {
-      const timestamp = Date.now();
-      const fileName = `${name}_${timestamp}_${index}.txt`;
-      const filePath = path.join(idPath, fileName);
-      fs.writeFileSync(filePath, formatContent(item));
-    });
-  } else {
-    const fileName = `${name}_${Date.now()}.txt`;
-    const filePath = path.join(idPath, fileName);
-    fs.writeFileSync(filePath, formatContent(content));
-  }
+  // Write the JSON file
+  fs.writeFileSync(filePath, JSON.stringify(exportData, null, 2));
+
+  console.log(`Export saved to: ${filePath}`);
 
   mainWindow?.webContents.send(
     'export-complete',
@@ -514,7 +500,7 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
     name,
     runID,
     idPath,
-  ); // would send this to datasources.jsx
+  );
 });
 
 ipcMain.on('connect-website', (event, company) => {
