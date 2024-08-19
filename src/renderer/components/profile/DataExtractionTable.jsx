@@ -248,12 +248,21 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
         return (
           <div className='flex justify-between items-center w-full h-[36px]'>
             <div className="flex items-center space-x-2">
+              {completedRuns[latestRun.id] && (
+                    <ConfettiExplosion
+                      particleCount={50}
+                      width={200}
+                      duration={2200}
+                      force={0.4}
+                    />
+                )}
               <div
                 onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
                 style={{ cursor: 'pointer' }}
               >
                 <Folder size={17} color="#5a5a5a" />
               </div>
+
               <span
                 className="cursor-pointer hover:underline"
                 onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
@@ -266,6 +275,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                 onClick={() => onViewRunDetails(latestRun, platform)}
               >
                 {formatLastRunTime(latestRun)}
+
                 <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
               </span>
             </div>
