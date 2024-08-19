@@ -10,7 +10,7 @@ import { openDB } from 'idb';
 import { Input } from "../ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
 import { Checkbox } from "../ui/checkbox";
-import { formatDistanceToNow, parseISO } from 'date-fns';
+import { formatDistanceToNow, parseISO, format, isToday, isYesterday } from 'date-fns';
 import { Progress } from "../ui/progress";
 import RunDetailsPage from './RunDetailsPage';
 import { platform } from 'os';
@@ -146,13 +146,17 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     window.electron.ipcRenderer.send('export-website', platform.company, platform.name, newRun.id);
   };
 
-  const formatLastRunTime = (dateString) => {
+  const formatLastRunTime = (run) => {
+    const dateString = run.exportDate || run.startDate;
     if (!dateString) return 'Never';
     const date = parseISO(dateString);
-    return formatDistanceToNow(date, { addSuffix: true })
-      .replace(/^about /, '')
-      .replace(/^less than /, '<')
-      .replace(/^almost /, '');
+    if (isToday(date)) {
+      return `Today at ${format(date, 'h:mm a')}`;
+    } else if (isYesterday(date)) {
+      return `Yesterday at ${format(date, 'h:mm a')}`;
+    } else {
+      return format(date, 'MMM d, yyyy \'at\' h:mm a');
+    }
   };
 
   const getPlatformLogo = (platform) => {
@@ -201,76 +205,82 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     return `${formattedSize} ${units[unitIndex]}`;
   };
 
-  const renderExportStatus = (platform) => {
+  const renderResults = (platform) => {
     const latestRun = getLatestRun(platform.id);
+    const exportRunning = isExportRunning(platform.id);
 
-    if (!latestRun) {
-      return <span></span>;
+    if (!latestRun || latestRun.status === 'idle') {
+      return (
+        <Button
+          size="sm"
+          variant="outline"
+          className="flex items-center"
+          onClick={() => handleExportClick(platform)}
+        >
+          <HardDriveDownload size={16} className="mr-2" />
+          Export
+        </Button>
+      );
     }
-
-    const viewDetailsButton = (
-      <Button
-        size="sm"
-        variant="ghost"
-        className="p-0 ml-2"
-        onClick={() => onViewRunDetails(latestRun, platform)}
-      >
-        <Eye size={16} />
-      </Button>
-    );
 
     switch (latestRun.status) {
       case 'running':
         return (
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 group">
             <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
-            <span>{latestRun.progress ? `${latestRun.progress}%` : 'Running...'}</span>
-            {viewDetailsButton}
+            <span className="group-hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>Running...</span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="p-0 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              onClick={() => onViewRunDetails(latestRun, platform)}
+            >
+              <Eye size={16} />
+            </Button>
           </div>
         );
       case 'success':
         return (
-          <div className="flex items-center space-x-2">
-            <Check className="text-green-500" size={16} />
-            <span>{formatExportSize(latestRun.exportSize)}</span>
-            <span>{formatLastRunTime(latestRun.exportDate)}</span>
-            <div className="relative">
-              {completedRuns[latestRun.id] && (
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <ConfettiExplosion
-                    particleCount={50}
-                    width={200}
-                    duration={2200}
-                    force={0.4}
-                  />
-                </div>
-              )}
-              <Button
-                size="sm"
-                variant="ghost"
-                className="p-0"
-                onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
-              >
-                <Folder size={16} />
-              </Button>
-            </div>
-            {viewDetailsButton}
+          <div className="flex items-center space-x-2 group">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="p-0"
+              onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
+            >
+              <Folder size={16} />
+            </Button>
+            <span className="group-hover:underline cursor-pointer" onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}>
+              {formatExportSize(latestRun.exportSize)} - {formatLastRunTime(latestRun)}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              onClick={() => handleExportClick(platform)}
+            >
+              <HardDriveDownload size={16} className="mr-2" />
+              Export
+            </Button>
           </div>
         );
       case 'error':
-        return (
-          <div className="flex items-center space-x-2">
-            <X className="text-red-500" size={16} />
-            <span>Export failed</span>
-            {viewDetailsButton}
-          </div>
-        );
       case 'stopped':
         return (
           <div className="flex items-center space-x-2">
             <X className="text-red-500" size={16} />
-            <span>Export stopped</span>
-            {viewDetailsButton}
+            <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
+              Export {latestRun.status === 'error' ? 'failed' : 'stopped'}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex items-center"
+              onClick={() => handleExportClick(platform)}
+            >
+              <HardDriveDownload size={16} className="mr-2" />
+              Retry Export
+            </Button>
           </div>
         );
       default:
@@ -332,59 +342,38 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Platform</TableHead>
-                  <TableHead></TableHead>
-                  <TableHead>Actions</TableHead>
-                  <TableHead>Export Status</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Results</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedPlatforms.map((platform) => {
-                  const latestRun = getLatestRun(platform.id);
-                  const logoComponent = getPlatformLogo(platform);
-                  const exportRunning = isExportRunning(platform.id);
-
-                  return (
-                    <TableRow key={platform.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center space-x-2">
-                          {/* Wrap the logo and text in a clickable div */}
-                          <div
-                            className="flex items-center space-x-2 cursor-pointer hover:underline"
-                            onClick={() => onPlatformClick(platform)}
-                          >
-                            {logoComponent}
-                            <div className="flex flex-col">
-                              <p>
-                                <span className="text-gray-500">{platform.company}/</span>
-                                <span className="font-semibold">{platform.name}</span>
-                              </p>
-                            </div>
+                {paginatedPlatforms.map((platform) => (
+                  <TableRow key={platform.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center space-x-2">
+                        {/* Wrap the logo and text in a clickable div */}
+                        <div
+                          className="flex items-center space-x-2 cursor-pointer hover:underline"
+                          onClick={() => onPlatformClick(platform)}
+                        >
+                          {getPlatformLogo(platform)}
+                          <div className="flex flex-col">
+                            <p>
+                              <span className="text-gray-500">{platform.company}/</span>
+                              <span className="font-semibold">{platform.name}</span>
+                            </p>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <p className="font-medium">{platform.description}</p>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex items-center"
-                            onClick={() => handleExportClick(platform)}
-                            disabled={exportRunning}
-                          >
-                            <HardDriveDownload size={16} className="mr-2" />
-                            {exportRunning ? 'Exporting...' : 'Export'}
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {renderExportStatus(platform)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <p className="font-medium">{platform.description}</p>
+                    </TableCell>
+                    <TableCell>
+                      {renderResults(platform)}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
