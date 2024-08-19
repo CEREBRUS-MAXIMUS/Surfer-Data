@@ -5,6 +5,7 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
+[![](https://dcbadge.vercel.app/api/server/5KQkWApkYC)](https://discord.gg/5KQkWApkYC)
 
 <!-- TABLE OF CONTENTS -->
 <details>
