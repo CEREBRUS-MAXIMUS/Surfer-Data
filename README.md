@@ -44,7 +44,7 @@ We believe that personal data centralization is the key to enabling truly useful
 
 ## Getting Started
 
-To download the app, head over to [https://surfsup.web.app](https://surfsup.web.app). Or you can go to the releases page.
+To download the app, head over to [https://surfsup.ai](https://surfsup.ai). Or you can go to the releases page.
 
 For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md), [Helper Functions Documentation](docs/HELPER_FUNCTIONS.md), and [Guide to Adding New Platforms](docs/ADD_PLATFORMS.md).
 

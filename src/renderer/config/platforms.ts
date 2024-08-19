@@ -631,7 +631,7 @@ export const platforms: IPlatform[] = [
   {
     id: 'weather-001',
     name: 'Weather',
-    description: 'Exports current weather and forecast data.',
+    description: 'Exports your current weather and forecast data.',
     logo: {
       light: WeatherLight,
       dark: WeatherDark,
@@ -718,7 +718,7 @@ export const platforms: IPlatform[] = [
       },
       {
         id: 'step-004',
-        name: 'Extract current weather and forecast',
+        name: 'Extract  forecast',
         status: 'pending',
       },
       { id: 'step-005', name: 'Export Data', status: 'pending' },
