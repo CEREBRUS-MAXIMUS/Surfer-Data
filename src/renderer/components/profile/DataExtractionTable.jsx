@@ -343,8 +343,8 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   }, [runs]);
 
   return (
-    <div className="w-full h-full flex flex-col px-[50px] pt-6 pb-4 select-none">
-      <div className="flex items-center mb-4">
+    <div className="w-full h-full flex-col px-[50px] pt-6 pb-6 select-none">
+      <div className="flex-shrink-0 mb-4">
         <div className="relative w-full max-w-2xl">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <Input
@@ -368,7 +368,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
         </div>
       </div>
       {paginatedPlatforms.length > 0 ? (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col flex-grow overflow-hidden">
           <div className="overflow-auto flex-grow">
             <Table>
               <TableHeader>
@@ -414,7 +414,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
             </Table>
           </div>
           {filteredPlatforms.length > itemsPerPage && (
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex-shrink-0 flex justify-between items-center mt-4">
               <div>
                 Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredPlatforms.length)} of {filteredPlatforms.length} platforms
               </div>
