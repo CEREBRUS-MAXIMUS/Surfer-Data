@@ -106,9 +106,9 @@ export const stopRun = (runId: string) => ({
   payload: runId,
 });
 
-export const updateExportStatus = (company: string, name: string, runID: string, exportPath: string) => ({
+export const updateExportStatus = (company: string, name: string, runID: string, exportPath: string, exportSize: number) => ({
   type: 'UPDATE_EXPORT_STATUS',
-  payload: { company, name, runID, exportPath },
+  payload: { company, name, runID, exportPath, exportSize },
 });
 
 export const setExportRunning = (runId: string, isRunning: boolean) => ({
@@ -153,4 +153,9 @@ export const updateRunURL = (runId: string, newUrl: string) => ({
 export const setIsRunLayerVisible = (isVisible: boolean) => ({
   type: 'SET_IS_RUN_LAYER_VISIBLE',
   payload: isVisible,
+});
+
+export const updateExportSize = (runId: string, size: string) => ({
+  type: 'UPDATE_EXPORT_SIZE',
+  payload: { runId, size }
 });

@@ -137,6 +137,9 @@ const electronHandler = {
     sendConsoleCommand(command) {
       return ipcRenderer.invoke('execute-console-command', command);
     },
+    getExportSize(exportPath) {
+      return ipcRenderer.invoke('get-export-size', exportPath);
+    },
   },
 };
 

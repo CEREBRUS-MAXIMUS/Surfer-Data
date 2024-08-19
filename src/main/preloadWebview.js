@@ -23,12 +23,15 @@ const {
   exportChatgpt,
   continueExportChatgpt,
 } = require('./Scrapers/OpenAI/chatgpt');
-contextBridge.exposeInMainWorld('electron', electronHandler);
+contextBridge.exposeInMainWorld('electron', {
+  getExportSize: (exportPath) => ipcRenderer.invoke('get-export-size', exportPath),
+});
 
-ipcRenderer.on('export-website', async (event, company, name, runID) => {
+ipcRenderer.on('export-website', async (event, company, name, runID, exportPath) => {
   customConsoleLog('company: ', company);
   customConsoleLog('name: ', name);
   customConsoleLog('runID: ', runID);
+
   switch (name) {
     case 'Notion':
       await exportNotion(company, runID);
@@ -60,6 +63,13 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
     case 'News':
       await exportNews(company, name, runID);
       break;
+  }
+
+  if (exportPath) {
+    console.log('exportPath: ', exportPath);
+    const exportSize = await ipcRenderer.invoke('get-export-size', exportPath);
+    console.log('exportSize: ', exportSize);
+    ipcRenderer.send('export-complete', company, name, runID, exportPath, exportSize);
   }
 });
 

@@ -135,6 +135,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       status: 'running',
       tasks: [],
       url: platform.home_url,
+      exportSize: null,
     };
 
     dispatch(startRun(newRun));
@@ -306,7 +307,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Platform</TableHead>
-                  <TableHead>Description</TableHead>
+                  <TableHead></TableHead>
                   <TableHead>Actions</TableHead>
                   <TableHead>Export Status</TableHead>
                 </TableRow>

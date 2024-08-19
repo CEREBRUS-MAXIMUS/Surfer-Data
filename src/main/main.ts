@@ -493,6 +493,8 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
   fs.writeFileSync(filePath, JSON.stringify(exportData, null, 2));
 
   console.log(`Export saved to: ${filePath}`);
+  //get the size of the export
+  const exportSize = fs.statSync(filePath).size;
 
   mainWindow?.webContents.send(
     'export-complete',
@@ -500,6 +502,7 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
     name,
     runID,
     idPath,
+    exportSize,
   );
 });
 
@@ -760,3 +763,13 @@ ipcMain.on('get-artifact-files', (event, exportPath) => {
 // ipcMain.on('jobs-stopped', () => {
 //   app.exit(0); // Now we can safely exit the app
 // });
+
+ipcMain.handle('get-export-size', async (event, exportPath) => {
+  try {
+    const size = await getDirectorySize(exportPath);
+    return size;
+  } catch (error) {
+    console.error('Error getting export size:', error);
+    return null;
+  }
+});

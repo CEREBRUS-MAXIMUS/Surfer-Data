@@ -98,11 +98,8 @@ const Platform = ({ platform }) => {
         </CardContent>
       </Card> */}
 
-      <Card>
-        <CardHeader>
           <CardTitle>Extraction History</CardTitle>
-        </CardHeader>
-        <CardContent>
+
           <Table>
             <TableHeader>
               <TableRow>
@@ -175,8 +172,6 @@ const Platform = ({ platform }) => {
               })}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>

@@ -261,14 +261,15 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       name: string,
       runID: number,
       namePath: string,
+      exportSize: number
     ) => {
+      console.log('export complete: ', company, name, runID, namePath, exportSize);
       if (runID === 0) {
         console.log('stopping download run: ', runs);
         const downloadRun = runs.filter(
           (run) => run.platformId === `${name.toLowerCase()}-001`,
         )[0];
-        // change this to .filter or smth else later to account for multiple download runs
-        dispatch(updateExportStatus(company, name, downloadRun.id, namePath));
+        dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
       } else {
         console.log(
           'stopping run for platform id: ',
@@ -277,7 +278,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           ', and runID: ',
           runID,
         );
-        dispatch(updateExportStatus(company, name, runID.toString(), namePath));
+        dispatch(updateExportStatus(company, name, runID.toString(), namePath, exportSize));
       }
     };
 
@@ -358,7 +359,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
   const isActiveRunStoppable = () => {
     const activeRun = activeRuns[activeRunIndex];
-    console.log('this is active run: ', activeRun);
     return activeRun && activeRun.status === 'running';
   };
 

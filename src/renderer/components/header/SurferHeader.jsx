@@ -617,7 +617,7 @@ export const SurferHeader = () => {
     dispatch(toggleRunVisibility());
   };
 
-  const LOGO_SIZE = 22; // Set a consistent size for all logos
+  const LOGO_SIZE = 18; // Set a consistent size for all logos
 
   const getPlatformLogo = (platform) => {
     const Logo = theme === 'dark' ? platform.logo.dark : platform.logo.light;

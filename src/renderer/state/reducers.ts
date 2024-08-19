@@ -124,7 +124,7 @@ const appReducer = (state = initialAppState.app, action: any) => {
         ...state,
         runs: state.runs.map(run =>
           run.id === action.payload.runID
-            ? { ...run, status: 'success', exportPath: action.payload.exportPath }
+            ? { ...run, status: 'success', exportPath: action.payload.exportPath, exportSize: action.payload.exportSize}
             : run
         )
       };
@@ -162,6 +162,15 @@ const appReducer = (state = initialAppState.app, action: any) => {
         runs: state.runs.map(run =>
           run.id === action.payload.runId
             ? { ...run, url: action.payload.newUrl }
+            : run
+        )
+      };
+    case 'UPDATE_EXPORT_SIZE':
+      return {
+        ...state,
+        runs: state.runs.map(run =>
+          run.id === action.payload.runId
+            ? { ...run, exportSize: action.payload.size }
             : run
         )
       };

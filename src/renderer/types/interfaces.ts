@@ -89,7 +89,7 @@ export interface IRun {
   status: 'pending' | 'running' | 'success' | 'error' | 'stopped';
   tasks: ITask[];
   url: string;
-  exportSize?: string;
+  exportSize?: number;
   exportDate?: string;
   exportPath?: string;
 }
