@@ -3,7 +3,7 @@ dotenv.config();
 import {} from '../../';
 import path, { parse } from 'path';
 import MenuBuilder from './utils/menu';
-
+import { initialize } from '@aptabase/electron/main'
 import yauzl from 'yauzl';
 import { getFilesInFolder } from './utils/util';
 import {
@@ -35,6 +35,10 @@ autoUpdater.autoInstallOnAppQuit = false;
 autoUpdater.autoRunAppAfterInstall = true;
 
 let downloadingItems = new Map();
+
+import config from '../../config.json';
+
+initialize(config.aptabase);
 
 // Listen for user data sent from renderer
 ipcMain.on('send-user-data', (event, userID) => {

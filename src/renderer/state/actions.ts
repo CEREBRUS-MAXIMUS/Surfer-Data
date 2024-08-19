@@ -101,9 +101,9 @@ export const toggleRunVisibility = () => ({
   type: 'TOGGLE_RUN_VISIBILITY',
 });
 
-export const stopRun = (runId: string) => ({
+export const stopRun = (runID: string) => ({
   type: 'STOP_RUN',
-  payload: runId,
+  payload: { runID },
 });
 
 export const updateExportStatus = (company: string, name: string, runID: string, exportPath: string, exportSize: number) => ({
