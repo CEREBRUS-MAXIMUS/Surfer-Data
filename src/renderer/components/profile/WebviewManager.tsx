@@ -149,7 +149,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 }) => {
   const dispatch = useDispatch();
   const runs = useSelector((state: IAppState) => state.app.runs);
-  let activeRuns = runs.filter(
+  const activeRuns = runs.filter(
     (run) => run.status === 'pending' || run.status === 'running',
   );
   const activeRunIndex = useSelector(
@@ -349,13 +349,21 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
       // Remove the run from Redux state
       dispatch(closeRun(activeRun.id));
-
-      // Adjust active run index if necessary
-      if (activeRunIndex >= runs.length - 1) {
-        dispatch(setActiveRunIndex(Math.max(0, runs.length - 2)));
-      }
     }
   };
+
+  // Update active run index whenever runs change
+  useEffect(() => {
+    const newActiveRuns = runs.filter(
+      (run) => run.status === 'pending' || run.status === 'running',
+    );
+    if (newActiveRuns.length > 0) {
+      const newIndex = Math.min(activeRunIndex, newActiveRuns.length - 1);
+      dispatch(setActiveRunIndex(newIndex));
+    } else {
+      dispatch(setActiveRunIndex(-1)); // No active runs
+    }
+  }, [runs, dispatch]);
 
   const isActiveRunStoppable = () => {
     const activeRun = activeRuns[activeRunIndex];
@@ -455,16 +463,16 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
               <webview
                 key={run.id}
                 src={run.url}
-                ref={webviewRef}
+                ref={index === activeRunIndex ? webviewRef : null}
                 style={{
                   width: '100%',
                   height: '100%',
                   position: 'absolute',
                   top: 0,
                   left: 0,
-                  opacity: index === currentRunIndex ? 1 : 0,
+                  opacity: index === activeRunIndex ? 1 : 0,
                   pointerEvents:
-                    index === currentRunIndex && isRunLayerVisible
+                    index === activeRunIndex && isRunLayerVisible
                       ? 'auto'
                       : 'none',
                 }}
