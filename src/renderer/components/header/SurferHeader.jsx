@@ -631,7 +631,7 @@ export const SurferHeader = () => {
   const getIconForBreadcrumb = (item) => {
     console.log("BREADCRUMB TEXT", item);
     if(item.text === 'Home') {
-      return <Home size={16} className="mr-2" />;
+      return <Home size={16} className="mr-2" color={theme === 'dark' ? '#ffffff' : '#000000'} />;
     }
     if(item.link.startsWith('/platform/')) {
       const platformId = item.link.split('/')[2];

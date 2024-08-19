@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
-import { Download, ChevronRight, ChevronDown } from 'lucide-react';
+import { Download, ChevronRight, ChevronDown, Folder } from 'lucide-react';
 import { openDB } from 'idb';
 import RunDetailsPage from '../components/profile/RunDetailsPage';
 import SubRun from './SubRun';
@@ -75,6 +75,11 @@ const Platform = ({ platform }) => {
     ) : null;
   };
 
+  const handleOpenExportFolder = () => {
+    console.log('open-platform-export-folder', platform.company, platform.name);
+    window.electron.ipcRenderer.send('open-platform-export-folder', platform.company, platform.name);
+  };
+
   return (
     <div className="space-y-8 px-[50px] pt-6">
           {/* {getPlatformLogo()}
@@ -98,7 +103,18 @@ const Platform = ({ platform }) => {
         </CardContent>
       </Card> */}
 
-          <CardTitle>Extraction History</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>{platform.name} History</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenExportFolder}
+              className="flex items-center"
+            >
+              <Folder size={16} className="mr-2" />
+              Open Export Folder
+            </Button>
+          </div>
 
           <Table>
             <TableHeader>

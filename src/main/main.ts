@@ -753,6 +753,14 @@ ipcMain.on('get-artifact-files', (event, exportPath) => {
   }
 });
 
+ipcMain.on('open-platform-export-folder', (event, company, name) => {
+  console.log(event);
+  console.log('open-platform-export-folder', company, name);
+  const exportFolderPath = path.join(app.getPath('userData'), 'surfer_data', company, name);
+  console.log('exportFolderPath', exportFolderPath);
+  shell.openPath(exportFolderPath);
+});
+
 // app.on('before-quit', (event) => {
 //   event.preventDefault(); // Prevent the app from quitting immediately
 //   mainWindow?.webContents.send('stop-all-jobs');
