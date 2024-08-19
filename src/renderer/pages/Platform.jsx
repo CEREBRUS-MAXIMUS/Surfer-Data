@@ -12,6 +12,8 @@ import { useDispatch } from 'react-redux';
 import { deleteRunsForPlatform } from '../state/actions';
 import { deleteRunsForPlatformFromDB } from '../lib/databases';
 import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
+import RunResultEntry from '../components/profile/RunResultEntry';
+import { formatLastRunTime } from '../lib/formatting';
 
 const Platform = ({ platform }) => {
   const [runs, setRuns] = useState([]);
@@ -119,12 +121,8 @@ const Platform = ({ platform }) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead></TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Time</TableHead>
+                <TableHead>Result</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -134,55 +132,19 @@ const Platform = ({ platform }) => {
                   <React.Fragment key={run.id}>
                     <TableRow>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleRunExpansion(run.id)}
-                        >
-                          {expandedRuns[run.id] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                        </Button>
+                        {formatLastRunTime(run.startDate)}
                       </TableCell>
                       <TableCell className="font-medium">
-                        <div className="flex items-center">
-                          {subRun?.icon && <subRun.icon size={16} />}
-                          <span className="ml-2">{subRun?.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{run.status}</TableCell>
-                      <TableCell>{run.startDate}</TableCell>
-                      <TableCell>{run.endDate || '-'}</TableCell>
-                      <TableCell>
-                        <Button size="sm" variant="outline" onClick={() => handleViewDetails(run)}>
-                          View Details
-                        </Button>
+                      <RunResultEntry
+                      run={run}
+                      platform={platform}
+                      onViewDetails={handleViewDetails}
+                      onExport={() => {}}
+                      isHovered={false}
+                    />
                       </TableCell>
                     </TableRow>
-                    {expandedRuns[run.id] && (
-                      <TableRow>
-                        <TableCell colSpan={6}>
-                          <div className="pl-8">
-                            {run.tasks.map((task) => (
-                              <div key={task.id} className="mb-4">
-                                <h4 className="font-medium">{task.name}</h4>
-                                <div className="flex items-center space-x-2">
-                                  <div className={`px-2 py-1 rounded ${task.status === 'pending' ? 'bg-gray-200' : task.status === 'running' ? 'bg-blue-200 animate-pulse' : task.status === 'success' ? 'bg-green-200' : 'bg-red-200'}`}>
-                                    {task.status}
-                                  </div>
-                                  <ul className="list-disc list-inside">
-                                    {task.steps.map((step) => (
-                                      <li key={step.id} className={step.status === 'error' ? 'text-red-500' : ''}>
-                                        {step.name} - {step.status}
-                                        {step.errorMessage && <span className="text-red-500 ml-2">{step.errorMessage}</span>}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
+
                   </React.Fragment>
                 );
               })}
