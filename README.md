@@ -83,6 +83,10 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 Project Link: [https://github.com/CEREBRUS-MAXIMUS/Surfer-Data](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data)
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=CEREBRUS-MAXIMUS/Surfer-Data&type=Date)](https://star-history.com/#CEREBRUS-MAXIMUS/Surfer-Data&Date)
+
 ## Acknowledgements
 
 - [Electron React Boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate)
