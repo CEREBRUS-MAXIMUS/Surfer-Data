@@ -763,13 +763,3 @@ ipcMain.on('get-artifact-files', (event, exportPath) => {
 // ipcMain.on('jobs-stopped', () => {
 //   app.exit(0); // Now we can safely exit the app
 // });
-
-ipcMain.handle('get-export-size', async (event, exportPath) => {
-  try {
-    const size = await getDirectorySize(exportPath);
-    return size;
-  } catch (error) {
-    console.error('Error getting export size:', error);
-    return null;
-  }
-});

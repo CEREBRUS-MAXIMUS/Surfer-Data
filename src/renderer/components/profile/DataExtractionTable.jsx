@@ -176,6 +176,31 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     setSelectedRun(null);
   };
 
+  const formatExportSize = (sizeInBits) => {
+    if (!sizeInBits) return 'N/A';
+
+    const units = ['KB', 'MB', 'GB', 'TB'];
+    let size = sizeInBits / (8 * 1024); // Convert bits to KB
+    let unitIndex = 0;
+
+    while (size >= 1000 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
+    }
+
+    // Format to a maximum of 4 digits
+    let formattedSize;
+    if (size >= 100) {
+      formattedSize = Math.round(size).toString();
+    } else if (size >= 10) {
+      formattedSize = size.toFixed(1);
+    } else {
+      formattedSize = size.toFixed(2);
+    }
+
+    return `${formattedSize} ${units[unitIndex]}`;
+  };
+
   const renderExportStatus = (platform) => {
     const latestRun = getLatestRun(platform.id);
 
@@ -207,7 +232,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
         return (
           <div className="flex items-center space-x-2">
             <Check className="text-green-500" size={16} />
-            <span>{latestRun.exportSize}</span>
+            <span>{formatExportSize(latestRun.exportSize)}</span>
             <span>{formatLastRunTime(latestRun.exportDate)}</span>
             <div className="relative">
               {completedRuns[latestRun.id] && (

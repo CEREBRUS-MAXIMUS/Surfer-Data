@@ -66,10 +66,7 @@ ipcRenderer.on('export-website', async (event, company, name, runID, exportPath)
   }
 
   if (exportPath) {
-    console.log('exportPath: ', exportPath);
-    const exportSize = await ipcRenderer.invoke('get-export-size', exportPath);
-    console.log('exportSize: ', exportSize);
-    ipcRenderer.send('export-complete', company, name, runID, exportPath, exportSize);
+    ipcRenderer.send('export-complete', company, name, runID, exportPath);
   }
 });
 
