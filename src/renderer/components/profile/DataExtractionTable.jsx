@@ -29,6 +29,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const [selectedRun, setSelectedRun] = useState(null);
   const [completedRuns, setCompletedRuns] = useState({});
   const prevRunsRef = useRef({});
+  const [hoveredPlatformId, setHoveredPlatformId] = useState(null);
 
   const LOGO_SIZE = 24; // Set a consistent size for all logos
 
@@ -181,7 +182,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   };
 
   const formatExportSize = (sizeInBits) => {
-    if (!sizeInBits) return 'N/A';
+    if (!sizeInBits) return 'Unknown size';
 
     const units = ['KB', 'MB', 'GB', 'TB'];
     let size = sizeInBits / (8 * 1024); // Convert bits to KB
@@ -208,70 +209,13 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const renderResults = (platform) => {
     const latestRun = getLatestRun(platform.id);
     const exportRunning = isExportRunning(platform.id);
+    const isHovered = hoveredPlatformId === platform.id;
 
     if (!latestRun || latestRun.status === 'idle') {
       return (
-        <Button
-          size="sm"
-          variant="outline"
-          className="flex items-center"
-          onClick={() => handleExportClick(platform)}
-        >
-          <HardDriveDownload size={16} className="mr-2" />
-          Export
-        </Button>
-      );
-    }
-
-    switch (latestRun.status) {
-      case 'running':
-        return (
-          <div className="flex items-center space-x-2 group">
-            <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
-            <span className="group-hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>Running...</span>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="p-0 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-              onClick={() => onViewRunDetails(latestRun, platform)}
-            >
-              <Eye size={16} />
-            </Button>
-          </div>
-        );
-      case 'success':
-        return (
-          <div className="flex items-center space-x-2 group">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="p-0"
-              onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
-            >
-              <Folder size={16} />
-            </Button>
-            <span className="group-hover:underline cursor-pointer" onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}>
-              {formatExportSize(latestRun.exportSize)} - {formatLastRunTime(latestRun)}
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-              onClick={() => handleExportClick(platform)}
-            >
-              <HardDriveDownload size={16} className="mr-2" />
-              Export
-            </Button>
-          </div>
-        );
-      case 'error':
-      case 'stopped':
-        return (
-          <div className="flex items-center space-x-2">
-            <X className="text-red-500" size={16} />
-            <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
-              Export {latestRun.status === 'error' ? 'failed' : 'stopped'}
-            </span>
+        <div className="flex justify-between items-center w-full h-[36px]">
+          <div></div>
+          {isHovered ? (
             <Button
               size="sm"
               variant="outline"
@@ -279,12 +223,90 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               onClick={() => handleExportClick(platform)}
             >
               <HardDriveDownload size={16} className="mr-2" />
-              Retry Export
+              Export
             </Button>
+          ) : <div className="w-[100px]"></div>}
+        </div>
+      );
+    }
+
+    switch (latestRun.status) {
+      case 'running':
+        return (
+          <div className="flex items-center space-x-2 group h-[36px]">
+            <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
+            <span className="group-hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>Running...</span>
+            <span
+              className="cursor-pointer flex items-center hover:underline"
+              onClick={() => onViewRunDetails(latestRun, platform)}
+            >
+              <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
+            </span>
+          </div>
+        );
+      case 'success':
+        return (
+          <div className='flex justify-between items-center w-full h-[36px]'>
+            <div className="flex items-center space-x-2">
+              <div
+                onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
+                style={{ cursor: 'pointer' }}
+              >
+                <Folder size={17} color="#5a5a5a" />
+              </div>
+              <span
+                className="cursor-pointer hover:underline"
+                onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
+              >
+                {formatExportSize(latestRun.exportSize)}
+              </span>
+              <span className="text-gray-500">-</span>
+              <span
+                className="cursor-pointer flex items-center hover:underline"
+                onClick={() => onViewRunDetails(latestRun, platform)}
+              >
+                {formatLastRunTime(latestRun)}
+                <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
+              </span>
+            </div>
+            {isHovered ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex items-center ml-4"
+                onClick={() => handleExportClick(platform)}
+              >
+                <HardDriveDownload size={16} className="mr-2" />
+                Re-Export
+              </Button>
+            ) : <div className="w-[100px]"></div>}
+          </div>
+        );
+      case 'error':
+      case 'stopped':
+        return (
+          <div className="flex items-center justify-between w-full h-[36px]">
+            <div className="flex items-center space-x-2">
+              <X className="text-red-500" size={16} />
+              <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
+                Export {latestRun.status === 'error' ? 'failed' : 'stopped'}
+              </span>
+            </div>
+            {isHovered ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex items-center"
+                onClick={() => handleExportClick(platform)}
+              >
+                <HardDriveDownload size={16} className="mr-2" />
+                Retry Export
+              </Button>
+            ) : <div className="w-[100px]"></div>}
           </div>
         );
       default:
-        return <span>Unknown status</span>;
+        return <div className="h-[36px]"><span>Unknown status</span></div>;
     }
   };
 
@@ -342,13 +364,17 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Platform</TableHead>
-                  <TableHead>Description</TableHead>
+                  <TableHead></TableHead>
                   <TableHead>Results</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedPlatforms.map((platform) => (
-                  <TableRow key={platform.id}>
+                  <TableRow
+                    key={platform.id}
+                    onMouseEnter={() => setHoveredPlatformId(platform.id)}
+                    onMouseLeave={() => setHoveredPlatformId(null)}
+                  >
                     <TableCell className="font-medium">
                       <div className="flex items-center space-x-2">
                         {/* Wrap the logo and text in a clickable div */}
