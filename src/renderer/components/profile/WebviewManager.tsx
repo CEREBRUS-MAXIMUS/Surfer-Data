@@ -16,15 +16,7 @@ import { platforms } from '../../config/platforms';
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
-import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
-import config from '../../../../config.json';
-import { createClient } from '@supabase/supabase-js';
-
-// Create a single supabase client for interacting with your database
-const supabase = createClient(
-  config.supabase_url,
-  config.supabase_key,
-);
+import { trackRun } from '../../../../analytics'
 
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
@@ -279,22 +271,8 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           (run) => run.platformId === `${name.toLowerCase()}-001`,
         )[0];
 
-      const { data, error } = await supabase
-        .from('runs')
-        .insert([
-          {
-            timestamp: new Date().toISOString(),
-            runID: runID,
-            status: 'success',
-            company: company,
-            name: name,
-
-          },
-        ]);
-
-      if (error) {
-        console.error('Error writing to Supabase:', error);
-      }        
+        await trackRun('success', company, name) 
+     
         dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
       } else {
         console.log(
@@ -304,22 +282,8 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           ', and runID: ',
           runID,
         );
-      const { data, error } = await supabase
-        .from('runs')
-        .insert([
-          {
-            timestamp: new Date().toISOString(),
-            runID: runID,
-            status: 'success',
-            company: company,
-            name: name,
-
-          },
-        ]);
-
-      if (error) {
-        console.error('Error writing to Supabase:', error);
-      }          
+await trackRun('success', company, name) 
+     
         dispatch(updateExportStatus(company, name, runID.toString(), namePath, exportSize));
       }
     };
@@ -382,21 +346,9 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
       const platform = platforms.find((p) => p.id === platformId);
 
-      const { data, error } = await supabase
-        .from('runs')
-        .insert([
-          {
-            timestamp: new Date().toISOString(),
-            runID: activeRun.id,
-            status: 'stopped',
-            company: platform.company,
-            name: platform.name,
-          },
-        ]);
+await trackRun('stopped', platform.company, platform.name) 
 
-      if (error) {
-        console.error('Error writing to Supabase:', error);
-      }
+
       dispatch(stopRun(activeRun.id));
       console.log('Stopping run:', activeRun.id);
 

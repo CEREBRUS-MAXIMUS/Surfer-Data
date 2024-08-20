@@ -3,7 +3,6 @@ dotenv.config();
 import {} from '../../';
 import path, { parse } from 'path';
 import MenuBuilder from './utils/menu';
-import { initialize } from '@aptabase/electron/main'
 import yauzl from 'yauzl';
 import { getFilesInFolder } from './utils/util';
 import {
@@ -22,6 +21,10 @@ import {
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
+import config from '../../config.json'
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(config.supabase_url, config.supabase_key);
 
 let appIcon: Tray | null = null;
 
@@ -36,9 +39,6 @@ autoUpdater.autoRunAppAfterInstall = true;
 
 let downloadingItems = new Map();
 
-import config from '../../config.json';
-
-initialize(config.aptabase);
 
 // Listen for user data sent from renderer
 ipcMain.on('send-user-data', (event, userID) => {
@@ -95,6 +95,56 @@ if (isDebug) {
 
 let scrapingManager: ScrapingManager;
 
+const checkAndUpdateInstallation = async () => {
+  const userDataPath = app.getPath('userData');
+  const installedFilePath = path.join(userDataPath, 'installed.json');
+  const environment = process.env.NODE_ENV === 'production' ? 'production' : 'local';
+
+  if (!fs.existsSync(installedFilePath)) {
+    // First-time installation
+    fs.writeFileSync(installedFilePath, JSON.stringify({ installed: true, version: app.getVersion(), environment }));
+    
+    // Push installation data to Supabase
+    const { data: installationData, error: installationError } = await supabase.from('installations').insert({
+      version: app.getVersion(),
+      platform: process.platform,
+      arch: process.arch,
+      timestamp: new Date().toISOString(),
+      environment,
+    });
+
+    if (installationError) {
+      console.error('Error pushing installation data to Supabase:', installationError);
+    } else {
+      console.log('Installation data pushed to Supabase');
+    }
+  } else {
+    // Check if it's an update
+    const installedData = JSON.parse(fs.readFileSync(installedFilePath, 'utf-8'));
+    if (installedData.version !== app.getVersion() || installedData.environment !== environment) {
+      // Update the version and environment in the file
+      fs.writeFileSync(installedFilePath, JSON.stringify({ installed: true, version: app.getVersion(), environment }));
+      
+      // Push update data to Supabase
+      const { data: updateData, error: updateError } = await supabase.from('app_updates').insert({
+        old_version: installedData.version,
+        new_version: app.getVersion(),
+        platform: process.platform,
+        arch: process.arch,
+        timestamp: new Date().toISOString(),
+        old_environment: installedData.environment,
+        new_environment: environment,
+      });
+
+      if (updateError) {
+        console.error('Error pushing update data to Supabase:', updateError);
+      } else {
+        console.log('Update data pushed to Supabase');
+      }
+    }
+  }
+};
+
 export const createWindow = async (visible: boolean = true) => {
   if (mainWindow) {
     return;
@@ -109,7 +159,7 @@ export const createWindow = async (visible: boolean = true) => {
   };
 
   mainWindow = new BrowserWindow({
-    show: visible,
+    show: visible, 
     //set to max with on mac screen
     width: 1560,
     height: 1024,
@@ -559,6 +609,11 @@ autoUpdater.on('update-downloaded', (info) => {
     })
     .then((selection) => {
       if (selection.response === 0) {
+        // Update the installed.json file before quitting and installing
+        const userDataPath = app.getPath('userData');
+        const installedFilePath = path.join(userDataPath, 'installed.json');
+        fs.writeFileSync(installedFilePath, JSON.stringify({ installed: true, version: info.version }));
+        
         autoUpdater.quitAndInstall();
       }
     });
@@ -637,6 +692,8 @@ app
         path: app.getPath('exe'),
       });
     }
+
+    await checkAndUpdateInstallation();
 
     createWindow();
 
@@ -758,7 +815,6 @@ ipcMain.on('get-artifact-files', (event, exportPath) => {
 });
 
 ipcMain.on('open-platform-export-folder', (event, company, name) => {
-  console.log(event);
   console.log('open-platform-export-folder', company, name);
   const exportFolderPath = path.join(app.getPath('userData'), 'surfer_data', company, name);
   console.log('exportFolderPath', exportFolderPath);
