@@ -17,6 +17,15 @@ import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
+import config from '../../../../config.json';
+import { createClient } from '@supabase/supabase-js';
+
+// Create a single supabase client for interacting with your database
+const supabase = createClient(
+  config.supabase_url,
+  config.supabase_key,
+);
+
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
   position: fixed;
@@ -256,7 +265,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
   }, [runs.length]);
 
   useEffect(() => {
-    const handleExportComplete = (
+    const handleExportComplete = async (
       company: string,
       name: string,
       runID: number,
@@ -269,6 +278,23 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
         const downloadRun = runs.filter(
           (run) => run.platformId === `${name.toLowerCase()}-001`,
         )[0];
+
+      const { data, error } = await supabase
+        .from('runs')
+        .insert([
+          {
+            timestamp: new Date().toISOString(),
+            runID: runID,
+            status: 'success',
+            company: company,
+            name: name,
+
+          },
+        ]);
+
+      if (error) {
+        console.error('Error writing to Supabase:', error);
+      }        
         dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
       } else {
         console.log(
@@ -278,6 +304,22 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           ', and runID: ',
           runID,
         );
+      const { data, error } = await supabase
+        .from('runs')
+        .insert([
+          {
+            timestamp: new Date().toISOString(),
+            runID: runID,
+            status: 'success',
+            company: company,
+            name: name,
+
+          },
+        ]);
+
+      if (error) {
+        console.error('Error writing to Supabase:', error);
+      }          
         dispatch(updateExportStatus(company, name, runID.toString(), namePath, exportSize));
       }
     };
@@ -335,6 +377,26 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       activeRun &&
       (activeRun.status === 'pending' || activeRun.status === 'running')
     ) {
+
+      const platformId = activeRun.id.split('-').slice(0, 2).join('-');
+
+      const platform = platforms.find((p) => p.id === platformId);
+
+      const { data, error } = await supabase
+        .from('runs')
+        .insert([
+          {
+            timestamp: new Date().toISOString(),
+            runID: activeRun.id,
+            status: 'stopped',
+            company: platform.company,
+            name: platform.name,
+          },
+        ]);
+
+      if (error) {
+        console.error('Error writing to Supabase:', error);
+      }
       dispatch(stopRun(activeRun.id));
       console.log('Stopping run:', activeRun.id);
 

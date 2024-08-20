@@ -53,7 +53,7 @@ See the [open issues](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues) fo
 
 ## Analytics 
 
-We use Aptabase, an open-source Google Analytics alternative. We ONLY collect the success or failures of runs in Surfer to see which platforms the community cares about the most and to see why certain runs fail.
+We use Aptabase, an open-source Google Analytics alternative. We ONLY collect the success or failures of runs in Surfer to see which platforms the community cares about the most and to see why certain runs fail. All data is anonymized.
 
 ## Roadmap
 

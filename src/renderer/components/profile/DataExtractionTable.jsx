@@ -41,9 +41,9 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     });
     dbRef.current = db;
     const loadedRuns = await db.getAll('runs');
-    // loadedRuns.forEach(run => {
-    //   dispatch(addRun(run.platformId, run));
-    // });
+    loadedRuns.forEach(run => {
+      dispatch(addRun(run.platformId, run));
+    });
   }, [dispatch]);
 
   useEffect(() => {

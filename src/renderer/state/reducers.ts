@@ -6,7 +6,8 @@ import {
 } from '../types/interfaces';
 import { initialAppState } from '../config/initialStates';
 import { trackEvent } from '@aptabase/electron/renderer';
-import { platforms } from '../config/platforms'
+import { platforms } from '../config/platforms';
+
 
 const preferencesReducer = (
   state: IPreferences = initialAppState.preferences,
@@ -19,6 +20,8 @@ const preferencesReducer = (
       return state;
   }
 };
+
+
 
 
 const appReducer = (state = initialAppState.app, action: any) => {
@@ -118,13 +121,15 @@ const appReducer = (state = initialAppState.app, action: any) => {
       const platform = platforms.find(p => p.id === platformId);
       const company = platform ? platform.company : '';
       const name = platform ? platform.name : '';
-
+      // Track event
       trackEvent('run', { 
         runID: action.payload.runID, 
         status: 'stopped',
         company,
         name
       });
+
+
       return {
         ...state,
         runs: state.runs.map(run =>
