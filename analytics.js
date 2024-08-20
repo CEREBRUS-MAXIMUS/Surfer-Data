@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabase = createClient(config.supabase_url, config.supabase_key);
 
 export async function trackRun(status, company, name) {
+
   const { data, error } = await supabase
     .from('runs')
     .insert([
@@ -13,6 +14,7 @@ export async function trackRun(status, company, name) {
         status: status,
         company: company,
         name: name,
+        environment: process.env.NODE_ENV === 'production' ? 'production' : 'local'
       },
     ]);
 
