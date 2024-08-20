@@ -387,11 +387,12 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                           onClick={() => onPlatformClick(platform)}
                         >
                           {getPlatformLogo(platform)}
-                          <div className="flex flex-col">
-                            <p>
+                          <div className="flex items-center">
+                            <p className="flex items-center">
                               <span className="text-gray-500">{platform.company}/</span>
                               <span className="font-semibold">{platform.name}</span>
                             </p>
+                            <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
                           </div>
                         </div>
                       </div>
