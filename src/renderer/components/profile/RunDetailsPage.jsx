@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import MonacoEditor from '@monaco-editor/react';
 import { stopRun, closeRun } from '../../state/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import { trackRun } from '../../../../analytics.js'
 
 const StatusIndicator = ({ status }) => {
   switch (status) {
@@ -119,22 +120,7 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   const handleStopRun = async () => {
     const activeRun = run;
     if (activeRun && (activeRun.status === 'pending' || activeRun.status === 'running')) {
-      const { data, error } = await supabase
-        .from('runs')
-        .insert([
-          {
-                        timestamp: new Date().toISOString(),
-            runID: activeRun.id,
-            status: 'stopped',
-            company: activeRun.company,
-            name: activeRun.name,
-
-          },
-        ]);
-
-      if (error) {
-        console.error('Error writing to Supabase:', error);
-      }       
+      await trackRun('stopped', activeRun.company, activeRun.name)
       dispatch(stopRun(activeRun.id));
       console.log("Stopping run:", activeRun.id);
 

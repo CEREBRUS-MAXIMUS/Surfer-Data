@@ -8,6 +8,7 @@ import { ChevronRight, ChevronDown, ArrowLeft } from 'lucide-react';
 import { openDB } from 'idb';
 import RunDetailsPage from '../components/profile/RunDetailsPage';
 import { platforms } from '../config/platforms';
+import { trackRun } from '../../../analytics'
 
 const SubRun = ({ platform, subRun }) => {
   const dispatch = useDispatch();
@@ -77,22 +78,7 @@ const SubRun = ({ platform, subRun }) => {
       const platformId = runId.split('-')[0];
       const platform = platforms.find((p) => p.id === platformId);
 
-      const { data, error } = await supabase
-        .from('runs')
-        .insert([
-          {
-                        timestamp: new Date().toISOString(),
-            runID: runId,
-            status: 'stopped',
-            company: platform.company,
-            name: platform.name,
-
-          },
-        ]);
-
-      if (error) {
-        console.error('Error writing to Supabase:', error);
-      }
+    await trackRun('stopped', platform.company, platform.name)
 
     dispatch(stopRun(runId));
 
