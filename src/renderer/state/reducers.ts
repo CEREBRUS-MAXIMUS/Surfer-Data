@@ -5,6 +5,9 @@ import {
   IRun,
 } from '../types/interfaces';
 import { initialAppState } from '../config/initialStates';
+import { trackEvent } from '@aptabase/electron/renderer';
+import { platforms } from '../config/platforms';
+
 
 const preferencesReducer = (
   state: IPreferences = initialAppState.preferences,
@@ -17,6 +20,8 @@ const preferencesReducer = (
       return state;
   }
 };
+
+
 
 
 const appReducer = (state = initialAppState.app, action: any) => {
@@ -109,17 +114,38 @@ const appReducer = (state = initialAppState.app, action: any) => {
         )
       };
     case 'STOP_RUN':
+      console.log('tracking event!')
+      // filter part of run id to get company and name from platforms.ts
+      const runIdParts = action.payload.runID.split('-');
+      const platformId = runIdParts[0] + '-' + runIdParts[1];
+      const platform = platforms.find(p => p.id === platformId);
+      const company = platform ? platform.company : '';
+      const name = platform ? platform.name : '';
+      // Track event
+      trackEvent('run', { 
+        runID: action.payload.runID, 
+        status: 'stopped',
+        company,
+        name
+      });
+
+
       return {
         ...state,
         runs: state.runs.map(run =>
-          run.id === action.payload
+          run.id === action.payload.runID
             ? { ...run, status: 'stopped', endDate: new Date().toISOString() }
             : run
         ),
-        //make isRunLayerVisible true if there are any runs with status running
-        isRunLayerVisible: state.runs.some(run => run.status === 'running') && state.isRunLayerVisible
+        isRunLayerVisible: state.runs.some(run => run.status === 'running')
       };
     case 'UPDATE_EXPORT_STATUS':
+      trackEvent('run', {
+        runID: action.payload.runID,
+        status: 'success',
+        company: action.payload.company,
+        name: action.payload.name,
+      });
       return {
         ...state,
         runs: state.runs.map(run =>

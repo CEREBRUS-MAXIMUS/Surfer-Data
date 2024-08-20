@@ -73,7 +73,27 @@ const SubRun = ({ platform, subRun }) => {
     console.log('Starting new run for', subRun.name);
   };
 
-  const handleStopRun = (runId) => {
+  const handleStopRun = async (runId) => {
+      const platformId = runId.split('-')[0];
+      const platform = platforms.find((p) => p.id === platformId);
+
+      const { data, error } = await supabase
+        .from('runs')
+        .insert([
+          {
+                        timestamp: new Date().toISOString(),
+            runID: runId,
+            status: 'stopped',
+            company: platform.company,
+            name: platform.name,
+
+          },
+        ]);
+
+      if (error) {
+        console.error('Error writing to Supabase:', error);
+      }
+
     dispatch(stopRun(runId));
 
     const updateRunInDB = async () => {

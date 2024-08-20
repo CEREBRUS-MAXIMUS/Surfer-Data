@@ -119,6 +119,22 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   const handleStopRun = async () => {
     const activeRun = run;
     if (activeRun && (activeRun.status === 'pending' || activeRun.status === 'running')) {
+      const { data, error } = await supabase
+        .from('runs')
+        .insert([
+          {
+                        timestamp: new Date().toISOString(),
+            runID: activeRun.id,
+            status: 'stopped',
+            company: activeRun.company,
+            name: activeRun.name,
+
+          },
+        ]);
+
+      if (error) {
+        console.error('Error writing to Supabase:', error);
+      }       
       dispatch(stopRun(activeRun.id));
       console.log("Stopping run:", activeRun.id);
 

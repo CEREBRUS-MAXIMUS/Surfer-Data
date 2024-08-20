@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { startRun, toggleRunVisibility, setExportRunning, updateExportStatus } from '../../state/actions';
+import { startRun, toggleRunVisibility, setExportRunning, updateExportStatus, addRun } from '../../state/actions';
 import { useTheme } from '../ui/theme-provider';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Button } from "../ui/button";
@@ -41,9 +41,6 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     });
     dbRef.current = db;
     const loadedRuns = await db.getAll('runs');
-    loadedRuns.forEach(run => {
-      dispatch(updateExportStatus(run.platformId, run));
-    });
   }, [dispatch]);
 
   useEffect(() => {

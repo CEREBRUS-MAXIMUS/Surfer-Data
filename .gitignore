@@ -4,6 +4,7 @@ logs
 
 # chrome data
 
+config.json
 edge_data.json
 chrome_data.json
 inputNodes.json
