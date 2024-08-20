@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 import { ChevronLeft, ChevronRight, X, Square, Bug } from 'lucide-react';
@@ -11,6 +11,7 @@ import {
   adjustActiveRunIndex,
   updateRunURL,
   updateExportStatus,
+  bigStepper
 } from '../../state/actions';
 import { platforms } from '../../config/platforms';
 import { useTheme } from '../ui/theme-provider';
@@ -197,10 +198,29 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     }
   };
 
+  const handleBigStepper = useCallback((runId: string) => {
+    const runToStep = runs.find((run) => run.id === runId);
+    if (!runToStep) return;
+    console.log('go to next step for run id: ', runId);
+    dispatch(bigStepper(runToStep.id, runToStep.currentStep));
+  }, [runs]);
+
+  const handleChangeUrl = useCallback(async (url: string, id: string) => {
+    console.log('this runs: ', runs);
+    console.log('this url: ', url);
+    console.log('this id: ', id);
+    const run = runs.find((run) => run.id === id);
+    console.log('this run: ', run);
+    dispatch(updateRunURL(id, url));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    webviewRef.current?.send('change-url-success', url, id);
+  }, [runs]);
+
   useEffect(() => {
     const webview = webviewRef.current;
     const ipcMessageHandler = async (event) => {
-      const { channel, args } = event; // Assuming the event has channel and args properties
+      const { channel, args } = event;
+
       if (channel === 'get-run-id') {
         const runningRuns = runs.filter((run) => run.status === 'running');
         if (runningRuns.length > 0) {
@@ -218,22 +238,11 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       }
 
       if (channel === 'big-stepper') {
-        console.log('go to next step for run id: ', args[0]);
-
-        // UPDATE IN REDUX HERE!
+        handleBigStepper(args[0]);
       }
 
       if (channel === 'change-url') {
-        const url = args[0];
-        const id = args[1];
-        console.log('this runs: ', runs);
-        console.log('this url: ', url);
-        console.log('this id: ', id);
-        const run = runs.find((run) => run.id === id);
-        console.log('this run: ', run);
-        dispatch(updateRunURL(id, url));
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        webview.send('change-url-success', url, id);
+        await handleChangeUrl(args[0], args[1]);
       }
     };
 
@@ -247,7 +256,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     //     webview.removeEventListener('ipc-message', ipcMessageHandler);
     //   }
     // };
-  }, [runs.length]);
+  }, [runs]);
 
   useEffect(() => {
     if (runs.length > 0) {

@@ -134,7 +134,9 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       tasks: [],
       url: platform.home_url,
       exportSize: null,
+      currentStep: platform.steps[0]
     };
+
 
     dispatch(startRun(newRun));
     // dispatch(toggleRunVisibility());
@@ -314,6 +316,16 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     }
   };
 
+  const showSteps = (platform) => {
+    const activeRuns = runs.filter(
+      (run) => run.status === 'pending' || run.status === 'running',
+    );
+    const latestRun = activeRuns.find(run => run.platformId === platform.id);
+    if (!latestRun) return null;
+    return latestRun.currentStep?.name
+    // return latestRun.currentStep.id;
+  }
+
   useEffect(() => {
     runs.forEach(run => {
       const prevRun = prevRunsRef.current[run.id];
@@ -400,9 +412,15 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                     <TableCell>
                       <p className="font-medium">{platform.description}</p>
                     </TableCell>
+                      <TableCell>
+                      <div className="flex items-center space-x-2">
+                        {showSteps(platform)}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {renderResults(platform)}
                     </TableCell>
+
                   </TableRow>
                 ))}
               </TableBody>
