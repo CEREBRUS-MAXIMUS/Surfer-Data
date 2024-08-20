@@ -142,9 +142,6 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     dispatch(startRun(newRun));
     // dispatch(toggleRunVisibility());
     dispatch(setExportRunning(newRun.id, true));
-
-    // Trigger the export process
-    window.electron.ipcRenderer.send('export-website', platform.company, platform.name, newRun.id);
   };
 
   const formatLastRunTime = (run) => {
