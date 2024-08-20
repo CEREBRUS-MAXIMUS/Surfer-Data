@@ -106,6 +106,11 @@ export const stopRun = (runID: string) => ({
   payload: { runID },
 });
 
+export const bigStepper = (runId: string, step: Array<{ id: number; name: string; status: 'pending' | 'running' | 'success' | 'error' }>) => ({
+  type: 'BIG_STEPPER',
+  payload: { runId, step },
+});
+
 export const updateExportStatus = (company: string, name: string, runID: string, exportPath: string, exportSize: number) => ({
   type: 'UPDATE_EXPORT_STATUS',
   payload: { company, name, runID, exportPath, exportSize },

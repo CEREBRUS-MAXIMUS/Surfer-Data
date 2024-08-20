@@ -92,6 +92,7 @@ export interface IRun {
   exportSize?: number;
   exportDate?: string;
   exportPath?: string;
+  currentStep?: { id: number; name: string; status: 'pending' | 'running' | 'success' | 'error' };
 }
 
 export interface IPlatform {
@@ -106,4 +107,5 @@ export interface IPlatform {
   home_url: string;
   subRuns: ISubRun[];
   supportedOS: ('mac' | 'windows' | 'linux')[];
+  steps: Array<{ id: number; name: string; status: 'pending' | 'running' | 'success' | 'error' }>;
 }
