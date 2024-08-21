@@ -7,7 +7,7 @@ async function exportNotion(company, runID) {
     ipcRenderer.send('connect-website', company);
     return;
   }
-  const dropdown = await waitForElement('.notion-sidebar-switcher', 'Dropdown');
+  const dropdown = await waitForElement(runID, '.notion-sidebar-switcher', 'Dropdown');
 
   if (!dropdown) {
     ipcRenderer.send('connect-website', company);
@@ -20,7 +20,7 @@ async function exportNotion(company, runID) {
   await wait(5);
 
   // First Settings button
-  const settingsButton = await waitForElement('div[role="button"]', 'First settings button', true);
+  const settingsButton = await waitForElement(runID, 'div[role="button"]', 'First settings button', true);
   let foundSettings = false;
   if (settingsButton) {
     for (const btn of settingsButton) {
@@ -36,7 +36,7 @@ async function exportNotion(company, runID) {
   }
 
   // Second Settings button
-  const newButtons = await waitForElement('div[role="button"]', 'Second settings button', true);
+  const newButtons = await waitForElement(runID, 'div[role="button"]', 'Second settings button', true);
   foundSettings = false;
   if (newButtons) {
     for (const newBtn of newButtons) {
@@ -60,7 +60,7 @@ async function exportNotion(company, runID) {
   }
 
   // Export all workspace content button
-  const exportButton = await waitForElement('div[role="button"]', 'Export all workspace content button', true);
+  const exportButton = await waitForElement(runID, 'div[role="button"]', 'Export all workspace content button', true);
   let foundExport = false;
   if (exportButton) {
     for (const btn of exportButton) {
@@ -76,7 +76,7 @@ async function exportNotion(company, runID) {
   }
 
   // Final Export button
-  const finalExportButton = await waitForElement('div[role="button"]', 'Final Export button', true);
+  const finalExportButton = await waitForElement(runID, 'div[role="button"]', 'Final Export button', true);
   let foundFinalExport = false;
   if (finalExportButton) {
     for (const btn of finalExportButton) {

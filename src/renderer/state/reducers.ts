@@ -167,6 +167,15 @@ const appReducer = (state = initialAppState.app, action: any) => {
           return run;
         })
       };
+    case 'UPDATE_RUN_LOGS':
+      return {
+        ...state,
+        runs: state.runs.map(run =>
+          run.id === action.payload.runId
+            ? { ...run, logs: action.payload.logs != null ? run.logs + action.payload.logs.join('\n') + '\n' : '' }
+            : run
+        )
+      };
     case 'STOP_ALL_JOBS':
       return {
         ...state,

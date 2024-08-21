@@ -134,7 +134,8 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       tasks: [],
       url: platform.home_url,
       exportSize: null,
-      currentStep: platform.steps[0]
+      currentStep: platform.steps[0],
+      logs: ''
     };
 
 
@@ -325,6 +326,30 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     return latestRun.currentStep?.name
     // return latestRun.currentStep.id;
   }
+  const showLogs = (platform) => {
+    const activeRuns = runs.filter(
+      (run) => run.status === 'pending' || run.status === 'running',
+    );
+    const latestRun = activeRuns.find(run => run.platformId === platform.id);
+    if (!latestRun || !latestRun.logs) return null;
+    
+    const logLines = latestRun.logs.split('\n');
+    
+    return (
+      <div className="h-[200px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '100%' }}>
+        <pre className="font-mono text-sm whitespace-pre-wrap break-words">
+          {logLines.join('\n')}
+        </pre>
+      </div>
+    );
+  }
+
+  useEffect(() => {
+    const logContainer = document.querySelector('.overflow-y-auto');
+    if (logContainer) {
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+  }, [runs]);
 
   useEffect(() => {
     runs.forEach(run => {
@@ -420,7 +445,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <p className="font-medium">Logs here</p>
+                      {showLogs(platform)}
                     </TableCell>
                     <TableCell>
                       {renderResults(platform)}

@@ -11,10 +11,10 @@ async function exportLinkedin(company, name, runID) {
     return;
   }
 
-  const profileButton = await waitForElement('.ember-view.block', 'Profile Button');
+  const profileButton = await waitForElement(runID, '.ember-view.block', 'Profile Button');
   
   if (!profileButton) {
-    customConsoleLog('user not connected');
+    customConsoleLog(runID, 'user not connected');
     ipcRenderer.send('connect-website', company);
     return;
   }
@@ -23,10 +23,10 @@ async function exportLinkedin(company, name, runID) {
 
   await wait(2);
   
-  const contactBtn = await waitForElement('#top-card-text-details-contact-info', 'Contact Info Button');
+  const contactBtn = await waitForElement(runID, '#top-card-text-details-contact-info', 'Contact Info Button');
   
   if (!contactBtn) {
-    customConsoleLog('Contact button not found');
+    customConsoleLog(runID, 'Contact button not found');
     return;
   }
   bigStepper(runID);
@@ -34,18 +34,18 @@ async function exportLinkedin(company, name, runID) {
 
   await wait(2);
 
-  const contactInfoElement = await waitForElement('.pv-contact-info__contact-type', 'Contact Info Card');
+  const contactInfoElement = await waitForElement(runID, '.pv-contact-info__contact-type', 'Contact Info Card');
 
   if (!contactInfoElement) {
-    customConsoleLog('Contact info not found');
+    customConsoleLog(runID, 'Contact info not found');
     return;
   }
   
   return new Promise(async (resolve) => {
-    const sections = await waitForElement("section[data-view-name='profile-card']", 'Profile Card Sections', true);
-    const contactBtn = await waitForElement('#top-card-text-details-contact-info', 'Contact Button');
+    const sections = await waitForElement(runID, "section[data-view-name='profile-card']", 'Profile Card Sections', true);
+    const contactBtn = await waitForElement(runID, '#top-card-text-details-contact-info', 'Contact Button');
     if (sections && sections.length > 5 && contactBtn) {
-      const mainContent = await waitForElement('.scaffold-layout__main', 'Main Content');
+      const mainContent = await waitForElement(runID, '.scaffold-layout__main', 'Main Content');
       
       if (mainContent) {
         bigStepper(runID);
@@ -53,7 +53,7 @@ async function exportLinkedin(company, name, runID) {
 
         await wait(2);
 
-        const contactInfoElements = await waitForElement('.pv-contact-info__contact-type', 'Contact Info Elements', true);
+        const contactInfoElements = await waitForElement(runID, '.pv-contact-info__contact-type', 'Contact Info Elements', true);
 
         if (contactInfoElements) {
           let email = '';
@@ -65,29 +65,29 @@ async function exportLinkedin(company, name, runID) {
               Array.from(links).forEach((link) => {
                 if (link.href.includes('mailto:')) {
                   email = link.href.replace('mailto:', '');
-                  customConsoleLog('got email: ', email);
+                  customConsoleLog(runID, 'got email: ', email);
                 }
               });
             }
           });
 
           const profileData = {
-            name: (await waitForElement('h1', 'Name'))?.innerText || '',
-            subheading: (await waitForElement('.text-body-medium.break-words', 'Subheading'))?.innerText || '',
+            name: (await waitForElement(runID, 'h1', 'Name'))?.innerText || '',
+            subheading: (await waitForElement(runID, '.text-body-medium.break-words', 'Subheading'))?.innerText || '',
             about: (
-              (await waitForElement("section[data-view-name='profile-card'] div#about", 'About Section'))
+              (await waitForElement(runID, "section[data-view-name='profile-card'] div#about", 'About Section'))
                 ?.closest('section')?.innerText || ''
             ).replace(/^About\nAbout\n/, ''),
             profile_url: window.location.href,
             experience: (
-              (await waitForElement("section[data-view-name='profile-card'] div#experience", 'Experience Section'))
+              (await waitForElement(runID, "section[data-view-name='profile-card'] div#experience", 'Experience Section'))
                 ?.closest('section')?.innerText || ''
             ).replace(/^Experience\nExperience\n/, ''),
             email: email || '',
           };
 
-          customConsoleLog('sending back profile data!');
-          customConsoleLog('linkedin done!');
+          customConsoleLog(runID, 'sending back profile data!');
+          customConsoleLog(runID, 'linkedin done!');
           bigStepper(runID);
           // Send profile data directly to ipcRenderer
           ipcRenderer.send('handle-export', company, name, JSON.stringify(profileData, null, 2), runID);
@@ -95,7 +95,7 @@ async function exportLinkedin(company, name, runID) {
         }
       }
     } else {
-      customConsoleLog('Required elements not found');
+      customConsoleLog(runID, 'Required elements not found');
       resolve(); // Resolve the promise if elements are not found
     }
   });

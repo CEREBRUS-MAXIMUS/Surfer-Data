@@ -59,7 +59,8 @@ const SubRun = ({ platform, subRun }) => {
         steps: task.steps.map(step => ({ ...step, status: 'pending', startTime })),
         status: 'pending'
       })),
-      currentStep: platform.steps[0]
+      currentStep: platform.steps[0],
+      logs: ''
     };
 
     dispatch(addRun(newRun));

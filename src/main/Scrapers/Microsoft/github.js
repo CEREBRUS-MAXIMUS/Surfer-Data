@@ -7,7 +7,7 @@ async function exportGithub(company, name, runID) {
     ipcRenderer.send('connect-website', company);
     return;
   }
-  const tabButton = await waitForElement('button[aria-label="Open user navigation menu"]', 'User navigation menu');
+  const tabButton = await waitForElement(runID, 'button[aria-label="Open user navigation menu"]', 'User navigation menu');
 
   if (!tabButton) {
     ipcRenderer.send('connect-website', company);
@@ -19,6 +19,7 @@ async function exportGithub(company, name, runID) {
 
   await wait(2);
   const repoTab = await waitForElement(
+    runID,
     '#\\:rg\\:',
     'Repository link',
   );
@@ -35,13 +36,13 @@ async function continueExportGithub() {
       ipcRenderer.sendToHost('get-run-id');
       ipcRenderer.on('got-run-id', async (event, id) => {
         bigStepper(id);
-        customConsoleLog('got run id! ', id);
+        customConsoleLog(id, 'got run id! ', id);
         
         const repos = [];
 
         while (true) {
           await wait(2);
-          const repoLinks = await waitForElement('a[itemprop="name codeRepository"]', 'Repository links', true);
+          const repoLinks = await waitForElement(id, 'a[itemprop="name codeRepository"]', 'Repository links', true);
           for (const repoLink of repoLinks) {
             let desc = '';
 
@@ -59,7 +60,7 @@ async function continueExportGithub() {
 
           await wait(2);
 
-          const nextPageButton = await waitForElement('a.next_page', 'Next page button');
+          const nextPageButton = await waitForElement(id, 'a.next_page', 'Next page button');
           if (!nextPageButton) {
             break;
           }
@@ -74,6 +75,7 @@ async function continueExportGithub() {
 
 
     customConsoleLog(
+        id,
       'GitHub export completed. Total repositories:',
       repos.length,
     );

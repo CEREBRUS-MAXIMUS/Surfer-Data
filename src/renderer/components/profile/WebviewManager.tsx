@@ -11,7 +11,8 @@ import {
   adjustActiveRunIndex,
   updateRunURL,
   updateExportStatus,
-  bigStepper
+  bigStepper,
+  updateRunLogs
 } from '../../state/actions';
 import { platforms } from '../../config/platforms';
 import { useTheme } from '../ui/theme-provider';
@@ -174,7 +175,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     const newRun = runs[runs.length - 1];
     if (newRun && newRun.status === 'running') {
       console.log('Run started:', newRun.id);
-
+      dispatch(updateRunLogs(newRun.id, null));
       // Parse the run ID
       const parsedId = newRun.id.split('-').slice(0, 2).join('-');
 
@@ -203,7 +204,14 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     if (!runToStep) return;
     console.log('go to next step for run id: ', runId);
     dispatch(bigStepper(runToStep.id, runToStep.currentStep));
-  }, [runs]);
+  }, [dispatch, runs]);
+
+const handleLogs = useCallback((runId: string, ...logs: any[]) => {
+  console.log('Logs for run:', runId, logs);
+  const run = runs.find((run) => run.id === runId);
+  if (!run) return;
+  dispatch(updateRunLogs(runId, logs));
+}, [dispatch, runs]);
 
   const handleChangeUrl = useCallback(async (url: string, id: string) => {
     console.log('this runs: ', runs);
@@ -214,7 +222,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     dispatch(updateRunURL(id, url));
     await new Promise((resolve) => setTimeout(resolve, 2000));
     webviewRef.current?.send('change-url-success', url, id);
-  }, [runs]);
+  }, [dispatch, runs]);
 
   useEffect(() => {
     const webview = webviewRef.current;
@@ -229,9 +237,9 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
         }
       }
 
-      if (channel === 'console-log') {
-        console.log('logs from preloadWebview: ', args);
-      }
+if (channel === 'console-log') {
+  handleLogs(args[0], ...args.slice(1));
+}
 
       if (channel === 'toggle-visibility') {
         dispatch(toggleRunVisibility());

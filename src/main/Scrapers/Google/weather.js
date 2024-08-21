@@ -45,6 +45,7 @@ async function exportWeather(company, name, runID) {
   });
 
   customConsoleLog(
+    runID,
     'Weather data collected:',
     JSON.stringify(weatherData, null, 2),
   );
@@ -55,17 +56,17 @@ async function exportWeather(company, name, runID) {
   return;
 }
 
-async function navigateAndSearch() {
-  const searchInput = await waitForElement('input[name="q"]', 'Search input');
+async function navigateAndSearch(runID) {
+  const searchInput = await waitForElement(runID, 'input[name="q"]', 'Search input');
   searchInput.value = 'my current weather';
   searchInput.form.submit();
   await wait(2);
 }
 
-async function extractWeatherData(weatherData) {
-  const temperatureElement = await waitForElement('#wob_tm', 'Temperature');
-  const locationElement = await waitForElement('#wob_loc', 'Location');
-  const conditionElement = await waitForElement('#wob_dc', 'Condition');
+async function extractWeatherData(runID, weatherData) {
+  const temperatureElement = await waitForElement(runID, '#wob_tm', 'Temperature');
+  const locationElement = await waitForElement(runID, '#wob_loc', 'Location');
+  const conditionElement = await waitForElement(runID, '#wob_dc', 'Condition');
 
   weatherData.temperature = temperatureElement
     ? temperatureElement.textContent + '°C'
@@ -77,6 +78,7 @@ async function extractWeatherData(weatherData) {
 
   // Extract forecast
   const forecastElements = await waitForElement(
+    runID,
     '.wob_df',
     'Forecast days',
     true,

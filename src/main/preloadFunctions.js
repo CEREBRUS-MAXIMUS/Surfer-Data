@@ -1,20 +1,20 @@
 const { ipcRenderer } = require('electron')
-
-function customConsoleLog(...args) {
+function customConsoleLog(id, ...args) {
   // Convert arguments to strings to avoid cloning issues
   const stringArgs = args.map((arg) =>
     typeof arg === 'object' ? JSON.stringify(arg) : arg,
   );
-  ipcRenderer.sendToHost('console-log', ...stringArgs);
+  ipcRenderer.sendToHost('console-log', id, ...stringArgs);
 };
 
 function waitForElement(
+  id,
   selector,
   elementName,
   multipleElements = false,
   timeout = 10000,
 ) {
-  customConsoleLog(`Waiting for element: ${elementName}`);
+  customConsoleLog(id, `Waiting for element: ${elementName}`);
 
   return new Promise((resolve) => {
     const startTime = Date.now();
@@ -24,10 +24,10 @@ function waitForElement(
         ? document.querySelectorAll(selector)
         : document.querySelector(selector);
       if (element) {
-        customConsoleLog(`Found element: ${elementName}`);
+        customConsoleLog(id, `Found element: ${elementName}`);
         resolve(element);
       } else if (Date.now() - startTime >= timeout) {
-        customConsoleLog(`Timeout waiting for element: ${elementName}`);
+        customConsoleLog(id, `Timeout waiting for element: ${elementName}`);
         resolve(null);
       } else {
         setTimeout(checkElement, 100);

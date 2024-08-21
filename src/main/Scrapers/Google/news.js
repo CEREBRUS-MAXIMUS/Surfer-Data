@@ -9,23 +9,23 @@ const { ipcRenderer } = require('electron');
 async function exportNews(company, name, runID) {
   await wait(2);
 
-  customConsoleLog('Querying for news container');
-  const newsContainer = await waitForElement('.aUSklf', 'News container');
+  customConsoleLog(runID, 'Querying for news container');
+  const newsContainer = await waitForElement(runID, '.aUSKl', 'News container');
 
   if (!newsContainer) {
-    customConsoleLog('News container not found');
+    customConsoleLog(runID, 'News container not found');
     ipcRenderer.send('connect-website', company);
     return;
   }
 
   bigStepper(runID);
-  customConsoleLog('News container found, extracting news items');
+  customConsoleLog(runID, 'News container found, extracting news items');
 
   const newsItems = document.querySelectorAll('.MkXWrd');
   const extractedData = [];
 
   bigStepper(runID);
-  customConsoleLog('Starting news extraction');
+  customConsoleLog(runID, 'Starting news extraction');
 
   for (const item of newsItems) {
     await wait(0.5);
@@ -47,11 +47,11 @@ async function exportNews(company, name, runID) {
   }
 
   if (extractedData.length === 0) {
-    customConsoleLog('No news items were collected');
+    customConsoleLog(runID, 'No news items were collected');
     return;
   }
 
-  customConsoleLog(`Extracted ${extractedData.length} news items`);
+  customConsoleLog(runID, `Extracted ${extractedData.length} news items`);
   bigStepper(runID);
   ipcRenderer.send('handle-export', company, name, extractedData, runID);
 }

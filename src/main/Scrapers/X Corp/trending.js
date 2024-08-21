@@ -53,7 +53,7 @@ async function exportXTrending(company, name, runID) {
     trendingItems.push(item);
   });
 
-  customConsoleLog('Trending items collected:', trendingItems.length);
+  customConsoleLog(runID, 'Trending items collected:', trendingItems.length);
 
   bigStepper(runID);
   ipcRenderer.send('handle-export', company, name, trendingItems, runID);
