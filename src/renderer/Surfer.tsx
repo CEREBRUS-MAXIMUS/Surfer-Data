@@ -11,6 +11,7 @@ import RunDetailsPage from './components/profile/RunDetailsPage';
 import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs } from './state/actions';
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
+import { Progress } from './components/ui/progress';
 import { platforms } from './config/platforms';
 
 function Surfer() {
@@ -21,6 +22,20 @@ function Surfer() {
   const webviewRef = useRef(null);
   const [showNotConnectedAlert, setShowNotConnectedAlert] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
+  const [updateProgress, setUpdateProgress] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleUpdateDownloadProgress = (progress: number) => {
+      console.log('Update download progress:', progress);
+      setUpdateProgress(progress);
+    };
+
+    window.electron.ipcRenderer.on('update-download-progress', handleUpdateDownloadProgress);
+
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('update-download-progress');
+    };
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -161,6 +176,12 @@ function Surfer() {
                 Please sign into your account then hit the "I've signed in" button!
               </AlertDescription>
             </Alert>
+          )}
+          {updateProgress !== null && (
+            <div className="fixed bottom-4 left-4 right-4 bg-background p-4 rounded-lg shadow-lg">
+              <h3 className="text-sm font-semibold mb-2">Downloading Update: {updateProgress.toFixed(0)}%</h3>
+              <Progress value={updateProgress} className="w-full" />
+            </div>
           )}
         </div>
       </div>

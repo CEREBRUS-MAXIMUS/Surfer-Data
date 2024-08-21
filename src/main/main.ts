@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 import {} from '../../';
-import path, { parse } from 'path';
+import path from 'path';
 import MenuBuilder from './utils/menu';
 import yauzl from 'yauzl';
 import { getFilesInFolder } from './utils/util';
@@ -33,7 +33,7 @@ const { download } = require('electron-dl');
 
 const fs = require('fs');
 
-autoUpdater.autoDownload = false;
+autoUpdater.autoDownload = false; // Prevent auto-download
 autoUpdater.autoInstallOnAppQuit = false;
 autoUpdater.autoRunAppAfterInstall = true;
 
@@ -100,48 +100,58 @@ const checkAndUpdateInstallation = async () => {
   const installedFilePath = path.join(userDataPath, 'installed.json');
   const environment = process.env.NODE_ENV === 'production' ? 'production' : 'local';
 
-  if (!fs.existsSync(installedFilePath)) {
-    // First-time installation
-    fs.writeFileSync(installedFilePath, JSON.stringify({ installed: true, version: app.getVersion(), environment }));
-    
-    // Push installation data to Supabase
-    const { data: installationData, error: installationError } = await supabase.from('installations').insert({
-      version: app.getVersion(),
-      platform: process.platform,
-      arch: process.arch,
-      timestamp: new Date().toISOString(),
-      environment,
-    });
+  // Break the function if environment isn't production
+  if (environment !== 'production') {
+    console.log('Skipping installation check and update in non-production environment');
+    return;
+  }
 
-    if (installationError) {
-      console.error('Error pushing installation data to Supabase:', installationError);
-    } else {
-      console.log('Installation data pushed to Supabase');
-    }
-  } else {
-    // Check if it's an update
-    const installedData = JSON.parse(fs.readFileSync(installedFilePath, 'utf-8'));
-    if (installedData.version !== app.getVersion() || installedData.environment !== environment) {
-      // Update the version and environment in the file
+  try {
+    if (!fs.existsSync(installedFilePath)) {
+      // First-time installation
       fs.writeFileSync(installedFilePath, JSON.stringify({ installed: true, version: app.getVersion(), environment }));
       
-      // Push update data to Supabase
-      const { data: updateData, error: updateError } = await supabase.from('app_updates').insert({
-        old_version: installedData.version,
-        new_version: app.getVersion(),
+      // Push installation data to Supabase
+      const { data: installationData, error: installationError } = await supabase.from('installations').insert({
+        version: app.getVersion(),
         platform: process.platform,
         arch: process.arch,
         timestamp: new Date().toISOString(),
-        old_environment: installedData.environment,
-        new_environment: environment,
       });
 
-      if (updateError) {
-        console.error('Error pushing update data to Supabase:', updateError);
+      if (installationError) {
+        console.error('Error pushing installation data to Supabase:', installationError);
       } else {
-        console.log('Update data pushed to Supabase');
+        console.log('Installation data pushed to Supabase');
+      }
+    } else {
+      // Check if it's an update
+      const installedData = JSON.parse(fs.readFileSync(installedFilePath, 'utf-8'));
+      console.log('IN THE ELSE STATEMENT!')
+      console.log('INSTALLED DATA: ', installedData);
+      console.log('APP VERSION: ', app.getVersion());
+      if (installedData.version !== app.getVersion()) {
+        // Update the version and environment in the file
+        fs.writeFileSync(installedFilePath, JSON.stringify({ installed: true, version: app.getVersion(), environment }));
+        console.log('TRYNA PUSH TO SUPABASE!')
+        // Push update data to Supabase
+        const { data: updateData, error: updateError } = await supabase.from('app_updates').insert({
+          old_version: installedData.version,
+          new_version: app.getVersion(),
+          platform: process.platform,
+          arch: process.arch,
+          timestamp: new Date().toISOString(),
+        });
+
+        if (updateError) {
+          console.error('Error pushing update data to Supabase:', updateError);
+        } else {
+          console.log('Update data pushed to Supabase');
+        }
       }
     }
+  } catch (error) {
+    console.error('Error in checkAndUpdateInstallation:', error);
   }
 };
 
@@ -289,9 +299,6 @@ export const createWindow = async (visible: boolean = true) => {
     shell.openExternal(url);
     return { action: 'deny' };
   });
-  // Remove this if your app does not use auto updates
-  // eslint-disable-next-line
-  console.log('Creating new App Updater');
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
@@ -508,7 +515,28 @@ ipcMain.on('close-url', (event) => {
 });
 
 ipcMain.on('check-for-updates', () => {
-  autoUpdater.checkForUpdates();
+              autoUpdater
+                .checkForUpdates()
+                .then((updateCheckResult) => {
+                  if (
+                    updateCheckResult.updateInfo &&
+                    updateCheckResult.updateInfo.version &&
+                    updateCheckResult.updateInfo.version === app.getVersion()
+                  ) {
+                    dialog.showMessageBox(mainWindow, {
+                      type: 'info',
+                      title: 'No Updates',
+                      buttons: ['OK'],
+                      message: 'You are already on the latest version.',
+                    });
+                  }
+                })
+                .catch((err) => {
+                  dialog.showErrorBox(
+                    'Update Error',
+                    'Failed to check for updates: ' + err.toString(),
+                  );
+                });
 });
 
 ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
@@ -569,56 +597,50 @@ ipcMain.on('connect-website', (event, company) => {
 });
 
 autoUpdater.on('update-available', (info) => {
-  console.log('AUTOUPDATER');
-  console.log(info);
-  /*dialog
-          .showMessageBox({
-            type: 'info', // Can be "none", "info", "error", "question" or "warning"
-            title: 'Surfer', // Title of the alert window
-            message: "Update available", // The content of the alert
-            buttons: ['OK'], // Defines a single OK button
-          })*/
-  // curWindow.showMessage(`Update available. Current version ${app.getVersion()}`);
-  let pth = autoUpdater.downloadUpdate();
-  console.log('THIS IS THE DOWNLOAD PATH!!!: ', pth);
-  // curWindow.showMessage(pth);
-});
-
-autoUpdater.on('update-not-available', (info) => {
-  console.log('AUTOUPDATER');
-  console.log(info);
-  /*dialog
-          .showMessageBox({
-            type: 'info', // Can be "none", "info", "error", "question" or "warning"
-            title: 'Surfer', // Title of the alert window
-            message: "Update not available", // The content of the alert
-            buttons: ['OK'], // Defines a single OK button
-          })*/
-  // curWindow.showMessage(`No update available. Current version ${app.getVersion()}`);
-});
-
-/*Download Completion Message*/
-autoUpdater.on('update-downloaded', (info) => {
-  console.log('AUTOUPDATER');
-  console.log(info);
   dialog
     .showMessageBox({
       type: 'info',
-      title: 'Surfer',
-      buttons: ['Install and Restart', 'Later'],
+      title: 'Update Available',
+      message: `Version ${info.version} is available. Would you like to download it now?`,
+      buttons: ['Yes', 'No'],
       defaultId: 0,
       cancelId: 1,
-      message:
-        'A new update is available. Would you like to install and restart the app now?',
     })
-    .then((selection) => {
-      if (selection.response === 0) {
-        // Update the installed.json file before quitting and installing
-        const userDataPath = app.getPath('userData');
-        const installedFilePath = path.join(userDataPath, 'installed.json');
-        fs.writeFileSync(installedFilePath, JSON.stringify({ installed: true, version: info.version }));
-        
+    .then((result) => {
+      if (result.response === 0) {
+        // User clicked 'Yes'
+        mainWindow?.webContents.send('update-download-progress', 0);        
+        autoUpdater.downloadUpdate();
+      }
+    });
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  let message = `Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`;
+  console.log(message);
+  // Optionally, send this to the renderer to show a progress bar
+  mainWindow?.webContents.send('update-download-progress', progressObj.percent);
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  dialog
+    .showMessageBox({
+      type: 'info',
+      title: 'Update Ready',
+      message:
+        'Update downloaded. The application will restart to install the update.',
+      buttons: ['Restart Now', 'Later'],
+      defaultId: 0,
+      cancelId: 1,
+    })
+    .then((result) => {
+      if (result.response === 0) {
+        mainWindow?.webContents.send('update-download-progress', 100);      
         autoUpdater.quitAndInstall();
+      }
+
+      else {
+        mainWindow?.webContents.send('update-download-progress', null);
       }
     });
 });
@@ -704,6 +726,8 @@ app
     createRequiredFolders();
 
     autoUpdater.checkForUpdates();
+
+
 
     app.on('activate', () => {
       if (mainWindow === null) createWindow();
