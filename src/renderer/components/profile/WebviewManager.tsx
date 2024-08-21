@@ -251,11 +251,11 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       webview.addEventListener('ipc-message', ipcMessageHandler);
     }
 
-    // return () => {
-    //   if (webview) {
-    //     webview.removeEventListener('ipc-message', ipcMessageHandler);
-    //   }
-    // };
+    return () => {
+      if (webview) {
+        webview.removeEventListener('ipc-message', ipcMessageHandler);
+      }
+    };
   }, [runs]);
 
   useEffect(() => {
@@ -274,16 +274,31 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       exportSize: number
     ) => {
       console.log('export complete: ', company, name, runID, namePath, exportSize);
-      if (runID === 0) {
-        console.log('stopping download run: ', runs);
-        const downloadRun = runs.filter(
+      // if (runID === 0) {
+      //   console.log('stopping download run: ', runs);
+      //   const downloadRun = runs.filter(
+      //     (run) => run.platformId === `${name.toLowerCase()}-001`,
+      //   )[0];
+
+      //   await trackRun('success', company, name) 
+     
+      //   dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
+      // } else {
+
+       if (name === 'Notion' || name === 'ChatGPT'){
+        
+        const downloadRun = activeRuns.filter(
           (run) => run.platformId === `${name.toLowerCase()}-001`,
         )[0];
+
+        console.log('stopping download run: ', downloadRun);
 
         await trackRun('success', company, name) 
      
         dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
-      } else {
+       }
+
+       else {
         console.log(
           'stopping run for platform id: ',
           company,
@@ -291,10 +306,13 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           ', and runID: ',
           runID,
         );
-await trackRun('success', company, name) 
+        await trackRun('success', company, name) 
      
         dispatch(updateExportStatus(company, name, runID.toString(), namePath, exportSize));
-      }
+       }
+
+
+      // }
     };
 
     window.electron.ipcRenderer.on('export-complete', handleExportComplete);
@@ -302,7 +320,7 @@ await trackRun('success', company, name)
     return () => {
       window.electron.ipcRenderer.removeAllListeners('export-complete');
     };
-  }, [dispatch, runs]);
+  }, [runs]);
 
   useEffect(() => {
     dispatch(adjustActiveRunIndex());

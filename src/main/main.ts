@@ -373,16 +373,20 @@ export const createWindow = async (visible: boolean = true) => {
       let platformPath: string;
       let idPath: string;
 
+      let platformId;
+
       if (url.includes('file.notion.so')) {
         companyPath = path.join(surferDataPath, 'Notion');
         platformPath = path.join(companyPath, 'Notion');
-        idPath = path.join(platformPath, `notion-001-${Date.now()}`);
+        platformId = `notion-001-${Date.now()}`;
+        idPath = path.join(platformPath, platformId);
       } else if (
         url.includes('proddatamgmtqueue.blob.core.windows.net/exportcontainer/')
       ) {
         companyPath = path.join(surferDataPath, 'OpenAI');
         platformPath = path.join(companyPath, 'ChatGPT');
-        idPath = path.join(platformPath, `chatgpt-001-${Date.now()}`);
+        platformId = `chatgpt-001-${Date.now()}`;
+        idPath = path.join(platformPath, platformId);
       } else {
         console.error('Unknown download URL, needs to be handled:', url);
         return;
@@ -449,7 +453,7 @@ export const createWindow = async (visible: boolean = true) => {
                   'export-complete',
                   path.basename(companyPath),
                   path.basename(platformPath),
-                  0,
+                  platformId,
                   idPath,
                 );
               })
@@ -466,7 +470,7 @@ export const createWindow = async (visible: boolean = true) => {
               'export-complete',
               path.basename(companyPath),
               path.basename(platformPath),
-              0,
+              platformId,
               idPath,
             );
           }

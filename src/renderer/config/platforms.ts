@@ -483,7 +483,7 @@ export const platforms: IPlatform[] = [
         status: 'pending',
       },
       { id: 'step-005', name: 'Click on export email', status: 'pending' },
-      { id: 'step-007', name: 'Download export', status: 'pending' },
+      { id: 'step-006', name: 'Download export', status: 'pending' },
     ],
   },
   {

@@ -161,7 +161,7 @@ const appReducer = (state = initialAppState.app, action: any) => {
               const nextStep = platform.steps[currentStepIndex + 1] || null;
               console.log('current step: ', action.payload.step);
               console.log('next step: ', nextStep);
-              return { ...run, currentStep: nextStep };
+              return { ...run, currentStep: nextStep || action.payload.step };
             }
           }
           return run;

@@ -380,8 +380,11 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Platform</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead>Description</TableHead>
                   <TableHead>Results</TableHead>
+                  <TableHead></TableHead>
+                  <TableHead></TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -415,6 +418,9 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                       <div className="flex items-center space-x-2">
                         {showSteps(platform)}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <p className="font-medium">Logs here</p>
                     </TableCell>
                     <TableCell>
                       {renderResults(platform)}
