@@ -10,6 +10,7 @@ async function exportChatgpt(company, runID) {
   await wait(3);
 
     if (document.querySelector('button[data-testid="login-button"]')) {
+      customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
         ipcRenderer.send('connect-website', company);
         return;
     }
@@ -17,6 +18,7 @@ async function exportChatgpt(company, runID) {
   const dialogBox = await waitForElement(runID, 'div[role="tablist"]', 'Dialog Box', true);
 
   if (!dialogBox) {
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
@@ -44,6 +46,7 @@ async function exportChatgpt(company, runID) {
 async function continueExportChatgpt(id){
     // Check for the email every second
   if (document.querySelector('h1')) {
+    customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }

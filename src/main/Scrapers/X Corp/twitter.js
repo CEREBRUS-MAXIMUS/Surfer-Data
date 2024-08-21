@@ -4,6 +4,7 @@ const { ipcRenderer } = require('electron');
 async function exportTwitter(company, name, runID) {
   await wait(5);
   if (document.querySelector('h1').innerText === 'Sign in to X') {
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
@@ -18,7 +19,7 @@ async function exportTwitter(company, name, runID) {
   customConsoleLog(runID, 'this pfp\'s', profilePics);
 
   if (!profilePics) {
-    customConsoleLog(runID, 'User not connected: Less than 2 profile pictures found');
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }

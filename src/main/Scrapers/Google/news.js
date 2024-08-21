@@ -13,7 +13,7 @@ async function exportNews(company, name, runID) {
   const newsContainer = await waitForElement(runID, '.aUSKl', 'News container');
 
   if (!newsContainer) {
-    customConsoleLog(runID, 'News container not found');
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }

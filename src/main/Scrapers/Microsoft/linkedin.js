@@ -7,6 +7,7 @@ async function exportLinkedin(company, name, runID) {
   await wait(2);
 
   if (document.querySelector('input[aria-label="Email or phone"]')) {
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
@@ -14,7 +15,7 @@ async function exportLinkedin(company, name, runID) {
   const profileButton = await waitForElement(runID, '.ember-view.block', 'Profile Button');
   
   if (!profileButton) {
-    customConsoleLog(runID, 'user not connected');
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }

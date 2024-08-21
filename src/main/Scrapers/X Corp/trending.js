@@ -9,6 +9,7 @@ const { ipcRenderer } = require('electron');
 async function exportXTrending(company, name, runID) {
   await wait(2);
   if (document.querySelector('h1').innerText === 'Sign in to X') {
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }

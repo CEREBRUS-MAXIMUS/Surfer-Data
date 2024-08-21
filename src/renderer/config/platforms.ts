@@ -704,25 +704,25 @@ export const platforms: IPlatform[] = [
       },
     ],
     supportedOS: ['mac', 'windows', 'linux'],
-    steps: [
-      { id: 'step-001', name: 'Go to Google', status: 'pending' },
-      {
-        id: 'step-002',
-        name: 'Search for "my current weather"',
-        status: 'pending',
-      },
-      {
-        id: 'step-003',
-        name: 'Wait for weather data to load',
-        status: 'pending',
-      },
-      {
-        id: 'step-004',
-        name: 'Extract  forecast',
-        status: 'pending',
-      },
-      { id: 'step-005', name: 'Export Data', status: 'pending' },
-    ],
+    // steps: [
+    //   { id: 'step-001', name: 'Go to Google', status: 'pending' },
+    //   {
+    //     id: 'step-002',
+    //     name: 'Search for "my current weather"',
+    //     status: 'pending',
+    //   },
+    //   {
+    //     id: 'step-003',
+    //     name: 'Wait for weather data to load',
+    //     status: 'pending',
+    //   },
+    //   {
+    //     id: 'step-004',
+    //     name: 'Extract  forecast',
+    //     status: 'pending',
+    //   },
+    //   { id: 'step-005', name: 'Export Data', status: 'pending' },
+    // ],
   },
   {
     id: 'xTrending-001',
@@ -768,25 +768,25 @@ export const platforms: IPlatform[] = [
       },
     ],
     supportedOS: ['mac', 'windows', 'linux'],
-    steps: [
-      { id: 'step-001', name: 'Go to X', status: 'pending' },
-      {
-        id: 'step-002',
-        name: 'Navigate to Explore',
-        status: 'pending',
-      },
-      {
-        id: 'step-003',
-        name: 'Wait for trending topics',
-        status: 'pending',
-      },
-      {
-        id: 'step-004',
-        name: 'Extract trending data',
-        status: 'pending',
-      },
-      { id: 'step-005', name: 'Export Data', status: 'pending' },
-    ],
+    // steps: [
+    //   { id: 'step-001', name: 'Go to X', status: 'pending' },
+    //   {
+    //     id: 'step-002',
+    //     name: 'Navigate to Explore',
+    //     status: 'pending',
+    //   },
+    //   {
+    //     id: 'step-003',
+    //     name: 'Wait for trending topics',
+    //     status: 'pending',
+    //   },
+    //   {
+    //     id: 'step-004',
+    //     name: 'Extract trending data',
+    //     status: 'pending',
+    //   },
+    //   { id: 'step-005', name: 'Export Data', status: 'pending' },
+    // ],
   },
   {
     id: 'news-001',
@@ -864,17 +864,17 @@ export const platforms: IPlatform[] = [
       },
     ],
     supportedOS: ['mac', 'windows', 'linux'],
-    steps: [
-      { id: 'step-001', name: 'Go to Google News', status: 'pending' },
-      { id: 'step-002', name: 'Wait for page to load', status: 'pending' },
-      { id: 'step-003', name: 'Extract top headlines', status: 'pending' },
-      {
-        id: 'step-004',
-        name: 'Navigate through categories',
-        status: 'pending',
-      },
-      { id: 'step-005', name: 'Extract category news', status: 'pending' },
-      { id: 'step-006', name: 'Export Data', status: 'pending' },
-    ],
+    // steps: [
+    //   { id: 'step-001', name: 'Go to Google News', status: 'pending' },
+    //   { id: 'step-002', name: 'Wait for page to load', status: 'pending' },
+    //   { id: 'step-003', name: 'Extract top headlines', status: 'pending' },
+    //   {
+    //     id: 'step-004',
+    //     name: 'Navigate through categories',
+    //     status: 'pending',
+    //   },
+    //   { id: 'step-005', name: 'Extract category news', status: 'pending' },
+    //   { id: 'step-006', name: 'Export Data', status: 'pending' },
+    // ],
   },
 ];

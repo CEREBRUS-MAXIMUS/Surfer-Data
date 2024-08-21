@@ -9,6 +9,7 @@ const { ipcRenderer } = require('electron');
 async function exportYouTube(company, name, runID) {
   await wait(5);
   if (document.querySelector('a[aria-label="Sign in"]')) {
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }

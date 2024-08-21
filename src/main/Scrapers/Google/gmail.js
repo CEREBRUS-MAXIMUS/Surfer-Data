@@ -9,6 +9,7 @@ const { ipcRenderer } = require('electron');
 async function exportGmail(company, name, runID) {
   await wait(2);
   if (document.querySelector('h1')) {
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
@@ -16,6 +17,7 @@ async function exportGmail(company, name, runID) {
 
   const mailLink = await waitForElement(runID, "div.xS[role='link']", 'Mail link');
   if (!mailLink) {
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }

@@ -10,6 +10,7 @@ async function exportNotion(company, runID) {
   const dropdown = await waitForElement(runID, '.notion-sidebar-switcher', 'Dropdown');
 
   if (!dropdown) {
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
