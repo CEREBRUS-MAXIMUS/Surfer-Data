@@ -9,6 +9,7 @@ const { ipcRenderer } = require('electron');
 async function exportYouTube(company, name, runID) {
   await wait(5);
   if (document.querySelector('a[aria-label="Sign in"]')) {
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
@@ -18,6 +19,7 @@ async function exportYouTube(company, name, runID) {
 
   // Extract video information
   const videoElements = await waitForElement(
+    runID,  
     'ytd-rich-grid-media',
     'Video elements',
     true,
@@ -44,10 +46,10 @@ async function exportYouTube(company, name, runID) {
       }
     }
   } else {
-    customConsoleLog('No video elements found');
+    customConsoleLog(runID, 'No video elements found');
   }
 
-  customConsoleLog('Video data collected:', videoData.length);
+  customConsoleLog(runID, 'Video data collected:', videoData.length);
 
   bigStepper(runID);
   ipcRenderer.send('handle-export', company, name, videoData, runID);

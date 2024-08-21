@@ -20,6 +20,9 @@ import ConfettiExplosion from 'react-confetti-explosion';
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
   const runs = useSelector(state => state.app.runs);
+    const activeRuns = runs.filter(
+      (run) => run.status === 'pending' || run.status === 'running',
+    );
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
@@ -134,7 +137,8 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       tasks: [],
       url: platform.home_url,
       exportSize: null,
-      currentStep: platform.steps[0]
+      currentStep: platform.steps[0],
+      logs: ''
     };
 
 
@@ -317,14 +321,40 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   };
 
   const showSteps = (platform) => {
-    const activeRuns = runs.filter(
-      (run) => run.status === 'pending' || run.status === 'running',
-    );
+
     const latestRun = activeRuns.find(run => run.platformId === platform.id);
     if (!latestRun) return null;
     return latestRun.currentStep?.name
     // return latestRun.currentStep.id;
   }
+  const showLogs = (platform) => {
+
+    const latestRun = activeRuns.find(run => run.platformId === platform.id);
+    if (!latestRun || !latestRun.logs) return null;
+    
+    const logLines = latestRun.logs.split('\n');
+    console.log('this log lines', logLines);
+    
+    return (
+      <div className="h-[200px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '100%' }}>
+        <pre className="font-mono text-sm whitespace-pre-wrap break-words">
+          {logLines.map((line, index) => (
+            <span key={index} className={line === 'YOU NEED TO SIGN IN!' ? 'text-red-500' : ''}>
+              {line}
+              {index < logLines.length - 1 && '\n'}
+            </span>
+          ))}
+        </pre>
+      </div>
+    );
+  }
+
+  useEffect(() => {
+    const logContainer = document.querySelector('.overflow-y-auto');
+    if (logContainer) {
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+  }, [runs]);
 
   useEffect(() => {
     runs.forEach(run => {
@@ -380,8 +410,11 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Platform</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>{activeRuns.length > 0 ? 'Current Step' : ''}</TableHead>
+                  <TableHead>{activeRuns.length > 0 ? 'Logs' : ''}</TableHead>
                   <TableHead>Results</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -416,6 +449,9 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                       <div className="flex items-center space-x-2">
                         {showSteps(platform)}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {showLogs(platform)}
                     </TableCell>
                     <TableCell>
                       {renderResults(platform)}

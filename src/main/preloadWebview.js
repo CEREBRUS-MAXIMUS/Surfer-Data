@@ -28,9 +28,9 @@ contextBridge.exposeInMainWorld('electron', {
 });
 
 ipcRenderer.on('export-website', async (event, company, name, runID, exportPath) => {
-  customConsoleLog('company: ', company);
-  customConsoleLog('name: ', name);
-  customConsoleLog('runID: ', runID);
+  customConsoleLog(runID, 'company: ', company);
+  customConsoleLog(runID, 'name: ', name);
+  customConsoleLog(runID, 'runID: ', runID);
 
   switch (name) {
     case 'Notion':

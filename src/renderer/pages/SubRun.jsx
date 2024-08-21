@@ -59,7 +59,8 @@ const SubRun = ({ platform, subRun }) => {
         steps: task.steps.map(step => ({ ...step, status: 'pending', startTime })),
         status: 'pending'
       })),
-      currentStep: platform.steps[0]
+      currentStep: platform.steps[0],
+      logs: ''
     };
 
     dispatch(addRun(newRun));
@@ -79,7 +80,7 @@ const SubRun = ({ platform, subRun }) => {
       const platformId = runId.split('-')[0];
       const platform = platforms.find((p) => p.id === platformId);
 
-    await trackRun('stopped', platform.company, platform.name)
+    await trackRun('stopped', platform.company, platform.name, activeRun.currentStep)
 
     dispatch(stopRun(runId));
 

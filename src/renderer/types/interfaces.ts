@@ -93,6 +93,7 @@ export interface IRun {
   exportDate?: string;
   exportPath?: string;
   currentStep?: { id: number; name: string; status: 'pending' | 'running' | 'success' | 'error' };
+  logs?: string;
 }
 
 export interface IPlatform {

@@ -9,13 +9,15 @@ const { ipcRenderer } = require('electron');
 async function exportGmail(company, name, runID) {
   await wait(2);
   if (document.querySelector('h1')) {
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
   const emails = []; // will add JSON structure later + handle multiple emails in same thread!
 
-  const mailLink = await waitForElement("div.xS[role='link']", 'Mail link');
+  const mailLink = await waitForElement(runID, "div.xS[role='link']", 'Mail link');
   if (!mailLink) {
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
@@ -26,14 +28,14 @@ async function exportGmail(company, name, runID) {
 
   bigStepper(runID);
   while (true) {
-    const email = await waitForElement('#\\:3', 'Current email content');
+    const email = await waitForElement(runID, '#\\:3', 'Current email content');
     if (email) {
       emails.push(email.innerText || '');
     }
 
-    const nextParent = await waitForElement('.h0', 'Next email button');
+    const nextParent = await waitForElement(runID, '.h0', 'Next email button');
     if (!nextParent) {
-      customConsoleLog('Navigation buttons not found');
+      customConsoleLog(runID, 'Navigation buttons not found');
       break;
     }
 
@@ -44,7 +46,7 @@ async function exportGmail(company, name, runID) {
     );
 
     if (!olderButton || olderButton.getAttribute('aria-disabled') === 'true') {
-      customConsoleLog('Reached the end of emails');
+      customConsoleLog(runID, 'Reached the end of emails');
       break;
     }
 
@@ -52,7 +54,7 @@ async function exportGmail(company, name, runID) {
     await wait(2);
   }
   const uniqueEmails = [...new Set(emails)];
-  customConsoleLog('Unique emails collected:', uniqueEmails.length);
+  customConsoleLog(runID, 'Unique emails collected:', uniqueEmails.length);
 
   bigStepper(runID);
   ipcRenderer.send('handle-export', company, name, uniqueEmails, runID);

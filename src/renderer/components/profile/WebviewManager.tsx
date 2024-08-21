@@ -11,7 +11,8 @@ import {
   adjustActiveRunIndex,
   updateRunURL,
   updateExportStatus,
-  bigStepper
+  bigStepper,
+  updateRunLogs
 } from '../../state/actions';
 import { platforms } from '../../config/platforms';
 import { useTheme } from '../ui/theme-provider';
@@ -174,7 +175,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     const newRun = runs[runs.length - 1];
     if (newRun && newRun.status === 'running') {
       console.log('Run started:', newRun.id);
-
+      dispatch(updateRunLogs(newRun.id, null));
       // Parse the run ID
       const parsedId = newRun.id.split('-').slice(0, 2).join('-');
 
@@ -203,7 +204,14 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     if (!runToStep) return;
     console.log('go to next step for run id: ', runId);
     dispatch(bigStepper(runToStep.id, runToStep.currentStep));
-  }, [runs]);
+  }, [dispatch, runs]);
+
+const handleLogs = useCallback((runId: string, ...logs: any[]) => {
+  console.log('Logs for run:', runId, logs);
+  const run = runs.find((run) => run.id === runId);
+  if (!run) return;
+  dispatch(updateRunLogs(runId, logs));
+}, [dispatch, runs]);
 
   const handleChangeUrl = useCallback(async (url: string, id: string) => {
     console.log('this runs: ', runs);
@@ -214,7 +222,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     dispatch(updateRunURL(id, url));
     await new Promise((resolve) => setTimeout(resolve, 2000));
     webviewRef.current?.send('change-url-success', url, id);
-  }, [runs]);
+  }, [dispatch, runs]);
 
   useEffect(() => {
     const webview = webviewRef.current;
@@ -229,9 +237,9 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
         }
       }
 
-      if (channel === 'console-log') {
-        console.log('logs from preloadWebview: ', args);
-      }
+if (channel === 'console-log') {
+  handleLogs(args[0], ...args.slice(1));
+}
 
       if (channel === 'toggle-visibility') {
         dispatch(toggleRunVisibility());
@@ -251,11 +259,11 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       webview.addEventListener('ipc-message', ipcMessageHandler);
     }
 
-    // return () => {
-    //   if (webview) {
-    //     webview.removeEventListener('ipc-message', ipcMessageHandler);
-    //   }
-    // };
+    return () => {
+      if (webview) {
+        webview.removeEventListener('ipc-message', ipcMessageHandler);
+      }
+    };
   }, [runs]);
 
   useEffect(() => {
@@ -274,16 +282,31 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       exportSize: number
     ) => {
       console.log('export complete: ', company, name, runID, namePath, exportSize);
-      if (runID === 0) {
-        console.log('stopping download run: ', runs);
-        const downloadRun = runs.filter(
+      // if (runID === 0) {
+      //   console.log('stopping download run: ', runs);
+      //   const downloadRun = runs.filter(
+      //     (run) => run.platformId === `${name.toLowerCase()}-001`,
+      //   )[0];
+
+      //   await trackRun('success', company, name) 
+     
+      //   dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
+      // } else {
+
+       if (name === 'Notion' || name === 'ChatGPT'){
+        
+        const downloadRun = activeRuns.filter(
           (run) => run.platformId === `${name.toLowerCase()}-001`,
         )[0];
+
+        console.log('stopping download run: ', downloadRun);
 
         await trackRun('success', company, name) 
      
         dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
-      } else {
+       }
+
+       else {
         console.log(
           'stopping run for platform id: ',
           company,
@@ -291,10 +314,13 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           ', and runID: ',
           runID,
         );
-await trackRun('success', company, name) 
+        await trackRun('success', company, name) 
      
         dispatch(updateExportStatus(company, name, runID.toString(), namePath, exportSize));
-      }
+       }
+
+
+      // }
     };
 
     window.electron.ipcRenderer.on('export-complete', handleExportComplete);
@@ -302,7 +328,7 @@ await trackRun('success', company, name)
     return () => {
       window.electron.ipcRenderer.removeAllListeners('export-complete');
     };
-  }, [dispatch, runs]);
+  }, [runs]);
 
   useEffect(() => {
     dispatch(adjustActiveRunIndex());
@@ -355,7 +381,7 @@ await trackRun('success', company, name)
 
       const platform = platforms.find((p) => p.id === platformId);
 
-await trackRun('stopped', platform.company, platform.name) 
+await trackRun('stopped', platform.company, platform.name, activeRun.currentStep) 
 
 
       dispatch(stopRun(activeRun.id));

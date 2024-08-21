@@ -71,35 +71,20 @@ export default class MenuBuilder {
                 if (
                   updateCheckResult.updateInfo &&
                   updateCheckResult.updateInfo.version &&
-                  updateCheckResult.updateInfo.version !== app.getVersion()
+                  updateCheckResult.updateInfo.version === app.getVersion()
                 ) {
-                  dialog
-                    .showMessageBox(this.mainWindow, {
-                      type: 'info',
-                      title: 'Update Available',
-                      buttons: ['Install and Restart', 'Later'],
-                      defaultId: 0,
-                      cancelId: 1,
-                      message:
-                        'A new update is available. Would you like to install and restart the app now?',
-                    })
-                    .then((selection) => {
-                      if (selection.response === 0) {
-                        autoUpdater.quitAndInstall();
-                      }
-                    });
-                } else {
+
                   dialog.showMessageBox(this.mainWindow, {
                     type: 'info',
                     title: 'No Updates',
-                    buttons: ['OK'],
-                    message: 'You are already on the latest version.',
-                  });
-                }
-              })
-              .catch((err) => {
-                dialog.showErrorBox(
-                  'Update Error',
+                  buttons: ['OK'],
+                  message: 'You are already on the latest version.',
+                });
+              }
+            })
+            .catch((err) => {
+              dialog.showErrorBox(
+                'Update Error',
                   'Failed to check for updates: ' + err.toString(),
                 );
               });
@@ -244,7 +229,7 @@ export default class MenuBuilder {
           label: 'Releases',
           click() {
             shell.openExternal(
-              'https://github.com/CEREBRUS-MAXIMUS/Surfer-Data',
+              'https://github.com/CEREBRUS-MAXIMUS/Surfer-Test-Autoupdate',
             );
           },
         },
@@ -331,24 +316,8 @@ export default class MenuBuilder {
                   if (
                     updateCheckResult.updateInfo &&
                     updateCheckResult.updateInfo.version &&
-                    updateCheckResult.updateInfo.version !== app.getVersion()
+                    updateCheckResult.updateInfo.version === app.getVersion()
                   ) {
-                    dialog
-                      .showMessageBox(this.mainWindow, {
-                        type: 'info',
-                        title: 'Update Available',
-                        buttons: ['Install and Restart', 'Later'],
-                        defaultId: 0,
-                        cancelId: 1,
-                        message:
-                          'A new update is available. Would you like to install and restart the app now?',
-                      })
-                      .then((selection) => {
-                        if (selection.response === 0) {
-                          autoUpdater.quitAndInstall();
-                        }
-                      });
-                  } else {
                     dialog.showMessageBox(this.mainWindow, {
                       type: 'info',
                       title: 'No Updates',
@@ -381,7 +350,7 @@ export default class MenuBuilder {
             label: 'Releases',
             click() {
               shell.openExternal(
-                'https://github.com/CEREBRUS-MAXIMUS/Surfer-Data',
+                'https://github.com/CEREBRUS-MAXIMUS/Surfer-Test-Autoupdate',
               );
             },
           },

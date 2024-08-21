@@ -161,11 +161,20 @@ const appReducer = (state = initialAppState.app, action: any) => {
               const nextStep = platform.steps[currentStepIndex + 1] || null;
               console.log('current step: ', action.payload.step);
               console.log('next step: ', nextStep);
-              return { ...run, currentStep: nextStep };
+              return { ...run, currentStep: nextStep || action.payload.step };
             }
           }
           return run;
         })
+      };
+    case 'UPDATE_RUN_LOGS':
+      return {
+        ...state,
+        runs: state.runs.map(run =>
+          run.id === action.payload.runId
+            ? { ...run, logs: action.payload.logs != null ? run.logs + action.payload.logs.join('\n') + '\n' : '' }
+            : run
+        )
       };
     case 'STOP_ALL_JOBS':
       return {

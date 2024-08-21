@@ -10,13 +10,15 @@ async function exportChatgpt(company, runID) {
   await wait(3);
 
     if (document.querySelector('button[data-testid="login-button"]')) {
+      customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
         ipcRenderer.send('connect-website', company);
         return;
     }
 
-  const dialogBox = await waitForElement('div[role="tablist"]', 'Dialog Box', true);
+  const dialogBox = await waitForElement(runID, 'div[role="tablist"]', 'Dialog Box', true);
 
   if (!dialogBox) {
+    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
@@ -30,7 +32,7 @@ async function exportChatgpt(company, runID) {
   bigStepper(runID)
   exportBtn.click();
 
-  const confirmExport = await waitForElement('.btn.relative.btn-primary', 'Confirm Export');
+  const confirmExport = await waitForElement(runID, '.btn.relative.btn-primary', 'Confirm Export');
 
   bigStepper(runID)
   confirmExport.click();
@@ -44,13 +46,14 @@ async function exportChatgpt(company, runID) {
 async function continueExportChatgpt(id){
     // Check for the email every second
   if (document.querySelector('h1')) {
+    customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
   
       let emailFound = false;
       const checkEmails = async () => {
-        const emails = await waitForElement("div.xS[role='link']", 'Download Email', true);
+        const emails = await waitForElement(id, "div.xS[role='link']", 'Download Email', true);
         for (const email of emails) {
           if (email.innerText.includes('ChatGPT - Your data export is ready')) {
             bigStepper(id)
@@ -74,6 +77,7 @@ async function continueExportChatgpt(id){
       let downloadBtns = [];
       while (downloadBtns.length === 0) {
         downloadBtns = await waitForElement(
+          id,
           'a[href*="https://proddatamgmtqueue.blob.core.windows.net/exportcontainer/"]',
           'Download button',
           true
@@ -82,7 +86,7 @@ async function continueExportChatgpt(id){
           await wait(1); // Wait for 1 second before checking again
         }
       }
-      customConsoleLog('downloadBtns: ', downloadBtns);
+      customConsoleLog(id, 'downloadBtns: ', downloadBtns);
       bigStepper(id)
       downloadBtns[downloadBtns.length - 1].click();
   
