@@ -80,7 +80,7 @@ const SubRun = ({ platform, subRun }) => {
       const platformId = runId.split('-')[0];
       const platform = platforms.find((p) => p.id === platformId);
 
-    await trackRun('stopped', platform.company, platform.name)
+    await trackRun('stopped', platform.company, platform.name, activeRun.currentStep)
 
     dispatch(stopRun(runId));
 

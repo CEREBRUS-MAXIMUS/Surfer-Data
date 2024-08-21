@@ -381,7 +381,7 @@ if (channel === 'console-log') {
 
       const platform = platforms.find((p) => p.id === platformId);
 
-await trackRun('stopped', platform.company, platform.name) 
+await trackRun('stopped', platform.company, platform.name, activeRun.currentStep) 
 
 
       dispatch(stopRun(activeRun.id));

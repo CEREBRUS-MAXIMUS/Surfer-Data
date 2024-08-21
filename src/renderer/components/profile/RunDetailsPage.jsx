@@ -120,7 +120,7 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   const handleStopRun = async () => {
     const activeRun = run;
     if (activeRun && (activeRun.status === 'pending' || activeRun.status === 'running')) {
-      await trackRun('stopped', activeRun.company, activeRun.name)
+      await trackRun('stopped', activeRun.company, activeRun.name, activeRun.currentStep)
       dispatch(stopRun(activeRun.id));
       console.log("Stopping run:", activeRun.id);
 
