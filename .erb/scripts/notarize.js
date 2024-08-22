@@ -28,6 +28,7 @@ exports.default = async function notarizeMacos(context) {
   console.log(`  appBundleId: ${build.appId}`);
   console.log(`  appPath: ${appOutDir}/${appName}.app`);
   console.log(`  appleId: ${process.env.APPLE_ID}`);
+  console.log(`  teamId: ${process.env.APPLE_TEAM_ID}`);
   console.log(` appleIdPassword: ${process.env.APPLE_APP_SPECIFIC_PASSWORD}`);
   console.log();
 
@@ -35,11 +36,11 @@ exports.default = async function notarizeMacos(context) {
     await notarize({
       appBundleId: build.appId,
       appPath: `${appOutDir}/${appName}.app`,
-      // appleId: process.env.APPLE_ID,
-      // appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD,
+      appleId: process.env.APPLE_ID,
+      appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD,
       teamId: process.env.APPLE_TEAM_ID,
-      keychainProfile: "jackblair",
-      tool: 'notarytool'
+      // keychainProfile: "jackblair",
+      // tool: 'notarytool'
     });
   } catch (error) {
     console.log(`Failed to notarize ${appName}`);
