@@ -21,17 +21,16 @@ import {
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
-import config from '../../config.json'
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(config.supabase_url, config.supabase_key);
+
 
 let appIcon: Tray | null = null;
 
 require('dotenv').config();
 const { download } = require('electron-dl');
 
-const fs = require('fs');
+import fs from 'fs';
 
 autoUpdater.autoDownload = false; // Prevent auto-download
 autoUpdater.autoInstallOnAppQuit = false;
@@ -39,7 +38,21 @@ autoUpdater.autoRunAppAfterInstall = true;
 
 let downloadingItems = new Map();
 
+let config;
+let supabase;
 
+try {
+  const configPath = path.join(__dirname, '../../config.json');
+  if (fs.existsSync(configPath)) {
+    config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    supabase = createClient(config.supabase_url, config.supabase_key);
+  } else if (process.env.NODE_ENV === 'production') {
+    config = require('../../config.json');
+    supabase = createClient(config.supabase_url, config.supabase_key);
+  }
+} catch (error) {
+  console.error('Error loading config:', error);
+}
 // Listen for user data sent from renderer
 ipcMain.on('send-user-data', (event, userID) => {
   console.log('user id from renderer: ', userID);

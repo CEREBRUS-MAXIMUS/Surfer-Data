@@ -24,6 +24,12 @@ Before you can start contributing, please follow these steps to set up the devel
 
 This will run the application in development mode, allowing you to test your changes and see the results in real-time.
 
+## NOTE: 
+
+Do not worry about the following error, just "x" out of it and you will be fine.
+
+![Error](assets/error.png)
+
 ## Contribution Guidelines
 
 1. **Reporting Bugs**: If you encounter any bugs or issues, please open a new issue in the [GitHub repository](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues/new?labels=bug&template=bug-report---.md). Provide a clear and detailed description of the problem, along with any relevant steps to reproduce the issue.
