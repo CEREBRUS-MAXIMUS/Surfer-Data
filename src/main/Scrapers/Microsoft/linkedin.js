@@ -11,10 +11,9 @@ async function exportLinkedin(company, name, runID) {
     ipcRenderer.send('connect-website', company);
     return;
   }
-
   const profileButton = await waitForElement(
     runID,
-    '.profile-card-profile-picture.evi-image.lazy-image.ember-view',
+    'img[alt*="Photo of"]',
     'Profile Button',
   );
   
