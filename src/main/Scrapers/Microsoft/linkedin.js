@@ -12,7 +12,11 @@ async function exportLinkedin(company, name, runID) {
     return;
   }
 
-  const profileButton = await waitForElement(runID, '.ember-view.block', 'Profile Button');
+  const profileButton = await waitForElement(
+    runID,
+    '.profile-card-profile-picture.evi-image.lazy-image.ember-view',
+    'Profile Button',
+  );
   
   if (!profileButton) {
     customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
