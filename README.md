@@ -1,4 +1,4 @@
-# Surfer: The World's First Digital Footprint Exporter
+# Surfer: Export your personal data in one click
 
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
@@ -24,11 +24,25 @@
 
 [![YouTube](http://i.ytimg.com/vi/2P25iOd14qw/hqdefault.jpg)](https://www.youtube.com/watch?v=2P25iOd14qw)
 
-Surfer is the world's first digital footprint exporter, designed to centralize all your personal data from various online platforms into a single folder.
+Surfer is a digital footprint exporter, designed to aggregate all your personal data from various online platforms into a single folder.
 
 Currently, your personal data is scattered across hundreds of platforms and the companies operating these platforms have no incentive to give this data back to you. Surfer solves this problem by navigating to websites and scraping data from these websites.
 
-We believe that personal data centralization is the key to enabling truly useful, universal personal assistants.
+We believe that personal data aggregation is the key to enabling truly useful, universal personal assistants.
+
+## Currently Supported Platforms
+
+[x] Twitter
+[x] LinkedIn
+[x] GitHub
+[x] YouTube
+[x] Spotify
+[x] Notion
+[x] ChatGPT
+[x] Gmail
+[ ] iMessages (coming soon!)
+[ ] Twitter Bookmarks (coming soon!)
+[ ] Reddit (coming soon!)
 
 ## How it works
 
