@@ -145,7 +145,7 @@ const SupportButton = () => {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() =>
-                  handleOpenLink(`https://surfer.framer.website/whatsnew`)
+                  handleOpenLink(`https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/releases`)
                 }
                 style={{ cursor: 'pointer' }}
               >

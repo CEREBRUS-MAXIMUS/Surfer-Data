@@ -224,7 +224,7 @@
   },
   "build": {
     "productName": "Surfer",
-    "appId": "StraightOuttaHarbour.CEREBRUS-MAXIMUS.otherwise",
+    "appId": "StraightOuttaHarbour.CEREBRUS-MAXIMUS.surfer",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "copyright": "2024 Thomas Stahura, Sahil Lalani, Jack Blair",

@@ -16,6 +16,7 @@ import RunDetailsPage from './RunDetailsPage';
 import { platform } from 'os';
 import { MoonLoader } from 'react-spinners';
 import ConfettiExplosion from 'react-confetti-explosion';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -211,11 +212,19 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     const exportRunning = isExportRunning(platform.id);
     const isHovered = hoveredPlatformId === platform.id;
 
-    if (!latestRun || latestRun.status === 'idle') {
-      return (
-        <div className="flex justify-between items-center w-full h-[36px]">
-          <div></div>
-          {isHovered ? (
+    return (
+      <div className="relative w-full h-[36px] flex items-center">
+        <div className="flex-grow">
+          {!latestRun || latestRun.status === 'idle' ? (
+            <div className="flex justify-between items-center w-full h-full">
+              <div></div>
+            </div>
+          ) : (
+            renderRunStatus(latestRun, platform)
+          )}
+        </div>
+        {isHovered && (
+          <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
             <Button
               size="sm"
               variant="outline"
@@ -223,19 +232,30 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               onClick={() => handleExportClick(platform)}
             >
               <HardDriveDownload size={16} className="mr-2" />
-              Export
+              {latestRun && latestRun.status === 'success' ? 'Re-Export' : 'Export'}
             </Button>
-          ) : <div className="w-[100px]"></div>}
-        </div>
-      );
-    }
+          </div>
+        )}
+      </div>
+    );
+  };
 
+  const renderRunStatus = (latestRun, platform) => {
     switch (latestRun.status) {
       case 'running':
         return (
-          <div className="flex items-center space-x-2 group h-[36px]">
+          <div className="flex items-center space-x-2 group">
             <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
-            <span className="group-hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>Running...</span>
+            <Tooltip delayDuration={300}>
+              <TooltipTrigger asChild>
+                <span className="group-hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
+                  {latestRun.currentStep?.name || 'Running...'}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {showLogs(platform)}
+              </TooltipContent>
+            </Tooltip>
             <span
               className="cursor-pointer flex items-center hover:underline"
               onClick={() => onViewRunDetails(latestRun, platform)}
@@ -246,98 +266,61 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
         );
       case 'success':
         return (
-          <div className='flex justify-between items-center w-full h-[36px]'>
-            <div className="flex items-center space-x-2">
-              {completedRuns[latestRun.id] && (
-                    <ConfettiExplosion
-                      particleCount={50}
-                      width={200}
-                      duration={2200}
-                      force={0.4}
-                    />
-                )}
-              <div
-                onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
-                style={{ cursor: 'pointer' }}
-              >
-                <Folder size={17} color="#5a5a5a" />
-              </div>
-
-              <span
-                className="cursor-pointer hover:underline"
-                onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
-              >
-                {formatExportSize(latestRun.exportSize)}
-              </span>
-              <span className="text-gray-500">-</span>
-              <span
-                className="cursor-pointer flex items-center hover:underline"
-                onClick={() => onViewRunDetails(latestRun, platform)}
-              >
-                {formatLastRunTime(latestRun)}
-
-                <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
-              </span>
+          <div className="flex items-center space-x-2">
+            {completedRuns[latestRun.id] && (
+              <ConfettiExplosion
+                particleCount={50}
+                width={200}
+                duration={2200}
+                force={0.4}
+              />
+            )}
+            <div
+              onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
+              style={{ cursor: 'pointer' }}
+            >
+              <Folder size={17} color="#5a5a5a" />
             </div>
-            {isHovered ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex items-center ml-4"
-                onClick={() => handleExportClick(platform)}
-              >
-                <HardDriveDownload size={16} className="mr-2" />
-                Re-Export
-              </Button>
-            ) : <div className="w-[100px]"></div>}
+            <span
+              className="cursor-pointer hover:underline"
+              onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
+            >
+              {formatExportSize(latestRun.exportSize)}
+            </span>
+            <span className="text-gray-500">-</span>
+            <span
+              className="cursor-pointer flex items-center hover:underline"
+              onClick={() => onViewRunDetails(latestRun, platform)}
+            >
+              {formatLastRunTime(latestRun)}
+              <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
+            </span>
           </div>
         );
       case 'error':
       case 'stopped':
         return (
-          <div className="flex items-center justify-between w-full h-[36px]">
-            <div className="flex items-center space-x-2">
-              <X className="text-red-500" size={16} />
-              <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
-                Export {latestRun.status === 'error' ? 'failed' : 'stopped'}
-              </span>
-            </div>
-            {isHovered ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex items-center"
-                onClick={() => handleExportClick(platform)}
-              >
-                <HardDriveDownload size={16} className="mr-2" />
-                Retry Export
-              </Button>
-            ) : <div className="w-[100px]"></div>}
+          <div className="flex items-center space-x-2">
+            <X className="text-red-500" size={16} />
+            <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
+              Export {latestRun.status === 'error' ? 'failed' : 'stopped'}
+            </span>
           </div>
         );
       default:
-        return <div className="h-[36px]"><span>Unknown status</span></div>;
+        return <span>Unknown status</span>;
     }
   };
 
-  const showSteps = (platform) => {
-
-    const latestRun = activeRuns.find(run => run.platformId === platform.id);
-    if (!latestRun) return null;
-    return latestRun.currentStep?.name
-    // return latestRun.currentStep.id;
-  }
   const showLogs = (platform) => {
-
     const latestRun = activeRuns.find(run => run.platformId === platform.id);
     if (!latestRun || !latestRun.logs) return null;
-    
+
     const logLines = latestRun.logs.split('\n');
-    console.log('this log lines', logLines);
-    
+
     return (
-      <div className="h-[200px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '100%' }}>
-        <pre className="font-mono text-sm whitespace-pre-wrap break-words">
+      <div className="max-h-[200px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '300px' }}>
+        <pre className="font-mono text-xs whitespace-pre-wrap break-words">
           {logLines.map((line, index) => (
             <span key={index} className={line === 'YOU NEED TO SIGN IN!' ? 'text-red-500' : ''}>
               {line}
@@ -406,60 +389,51 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       {paginatedPlatforms.length > 0 ? (
         <div className="flex flex-col flex-grow overflow-hidden">
           <div className="overflow-auto flex-grow">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Platform</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>{activeRuns.length > 0 ? 'Current Step' : ''}</TableHead>
-                  <TableHead>{activeRuns.length > 0 ? 'Logs' : ''}</TableHead>
-                  <TableHead>Results</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedPlatforms.map((platform) => (
-                  <TableRow
-                    key={platform.id}
-                    onMouseEnter={() => setHoveredPlatformId(platform.id)}
-                    onMouseLeave={() => setHoveredPlatformId(null)}
-                  >
-                    <TableCell className="font-medium">
-                      <div className="flex items-center space-x-2">
-                        {/* Wrap the logo and text in a clickable div */}
-                        <div
-                          className="flex items-center space-x-2 cursor-pointer hover:underline"
-                          onClick={() => onPlatformClick(platform)}
-                        >
-                          {getPlatformLogo(platform)}
-                          <div className="flex flex-col">
-                            <p>
-                              <span className="text-gray-500">{platform.company}/</span>
-                              <span className="font-semibold">{platform.name}</span>
-                            </p>
+            <TooltipProvider>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Platform</TableHead>
+                    <TableHead></TableHead>
+                    <TableHead>Results</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedPlatforms.map((platform) => (
+                    <TableRow
+                      key={platform.id}
+                      onMouseEnter={() => setHoveredPlatformId(platform.id)}
+                      onMouseLeave={() => setHoveredPlatformId(null)}
+                    >
+                      <TableCell className="font-medium">
+                        <div className="flex items-center space-x-2">
+                          {/* Wrap the logo and text in a clickable div */}
+                          <div
+                            className="flex items-center space-x-2 cursor-pointer hover:underline"
+                            onClick={() => onPlatformClick(platform)}
+                          >
+                            {getPlatformLogo(platform)}
+                            <div className="flex items-center">
+                              <p className="flex items-center">
+                                <span className="text-gray-500">{platform.company}/</span>
+                                <span className="font-semibold">{platform.name}</span>
+                              </p>
+                              <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <p className="font-medium">{platform.description}</p>
-                    </TableCell>
+                      </TableCell>
                       <TableCell>
-                      <div className="flex items-center space-x-2">
-                        {showSteps(platform)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {showLogs(platform)}
-                    </TableCell>
-                    <TableCell>
-                      {renderResults(platform)}
-                    </TableCell>
-
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        <p className="font-medium">{platform.description}</p>
+                      </TableCell>
+                      <TableCell className="w-[500px]">
+                        {renderResults(platform)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TooltipProvider>
           </div>
           {filteredPlatforms.length > itemsPerPage && (
             <div className="flex-shrink-0 flex justify-between items-center mt-4">
