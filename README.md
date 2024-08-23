@@ -32,17 +32,17 @@ We believe that personal data aggregation is the key to enabling truly useful, u
 
 ## Currently Supported Platforms
 
-[x] Twitter
-[x] LinkedIn
-[x] GitHub
-[x] YouTube
-[x] Spotify
-[x] Notion
-[x] ChatGPT
-[x] Gmail
-[ ] iMessages (coming soon!)
-[ ] Twitter Bookmarks (coming soon!)
-[ ] Reddit (coming soon!)
+- Twitter
+- LinkedIn
+- GitHub
+- YouTube
+- Spotify
+- Notion
+- ChatGPT
+- Gmail
+- iMessages (coming soon!)
+- Twitter Bookmarks (coming soon!)
+- Reddit (coming soon!)
 
 ## How it works
 
