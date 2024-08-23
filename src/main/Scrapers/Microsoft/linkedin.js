@@ -11,8 +11,11 @@ async function exportLinkedin(company, name, runID) {
     ipcRenderer.send('connect-website', company);
     return;
   }
-
-  const profileButton = await waitForElement(runID, '.ember-view.block', 'Profile Button');
+  const profileButton = await waitForElement(
+    runID,
+    'img[alt*="Photo of"]',
+    'Profile Button',
+  );
   
   if (!profileButton) {
     customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
