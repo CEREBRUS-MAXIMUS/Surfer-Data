@@ -212,11 +212,19 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     const exportRunning = isExportRunning(platform.id);
     const isHovered = hoveredPlatformId === platform.id;
 
-    if (!latestRun || latestRun.status === 'idle') {
-      return (
-        <div className="flex justify-between items-center w-full h-[36px]">
-          <div></div>
-          {isHovered ? (
+    return (
+      <div className="relative w-full h-[36px] flex items-center">
+        <div className="flex-grow">
+          {!latestRun || latestRun.status === 'idle' ? (
+            <div className="flex justify-between items-center w-full h-full">
+              <div></div>
+            </div>
+          ) : (
+            renderRunStatus(latestRun, platform)
+          )}
+        </div>
+        {isHovered && (
+          <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
             <Button
               size="sm"
               variant="outline"
@@ -224,17 +232,19 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
               onClick={() => handleExportClick(platform)}
             >
               <HardDriveDownload size={16} className="mr-2" />
-              Export
+              {latestRun && latestRun.status === 'success' ? 'Re-Export' : 'Export'}
             </Button>
-          ) : <div className="w-[100px]"></div>}
-        </div>
-      );
-    }
+          </div>
+        )}
+      </div>
+    );
+  };
 
+  const renderRunStatus = (latestRun, platform) => {
     switch (latestRun.status) {
       case 'running':
         return (
-          <div className="flex items-center space-x-2 group h-[36px]">
+          <div className="flex items-center space-x-2 group">
             <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
             <Tooltip delayDuration={300}>
               <TooltipTrigger asChild>
@@ -256,77 +266,49 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
         );
       case 'success':
         return (
-          <div className='flex justify-between items-center w-full h-[36px]'>
-            <div className="flex items-center space-x-2">
-              {completedRuns[latestRun.id] && (
-                    <ConfettiExplosion
-                      particleCount={50}
-                      width={200}
-                      duration={2200}
-                      force={0.4}
-                    />
-                )}
-              <div
-                onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
-                style={{ cursor: 'pointer' }}
-              >
-                <Folder size={17} color="#5a5a5a" />
-              </div>
-
-              <span
-                className="cursor-pointer hover:underline"
-                onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
-              >
-                {formatExportSize(latestRun.exportSize)}
-              </span>
-              <span className="text-gray-500">-</span>
-              <span
-                className="cursor-pointer flex items-center hover:underline"
-                onClick={() => onViewRunDetails(latestRun, platform)}
-              >
-                {formatLastRunTime(latestRun)}
-
-                <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
-              </span>
+          <div className="flex items-center space-x-2">
+            {completedRuns[latestRun.id] && (
+              <ConfettiExplosion
+                particleCount={50}
+                width={200}
+                duration={2200}
+                force={0.4}
+              />
+            )}
+            <div
+              onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
+              style={{ cursor: 'pointer' }}
+            >
+              <Folder size={17} color="#5a5a5a" />
             </div>
-            {isHovered ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex items-center ml-4"
-                onClick={() => handleExportClick(platform)}
-              >
-                <HardDriveDownload size={16} className="mr-2" />
-                Re-Export
-              </Button>
-            ) : <div className="w-[100px]"></div>}
+            <span
+              className="cursor-pointer hover:underline"
+              onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
+            >
+              {formatExportSize(latestRun.exportSize)}
+            </span>
+            <span className="text-gray-500">-</span>
+            <span
+              className="cursor-pointer flex items-center hover:underline"
+              onClick={() => onViewRunDetails(latestRun, platform)}
+            >
+              {formatLastRunTime(latestRun)}
+              <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
+            </span>
           </div>
         );
       case 'error':
       case 'stopped':
         return (
-          <div className="flex items-center justify-between w-full h-[36px]">
-            <div className="flex items-center space-x-2">
-              <X className="text-red-500" size={16} />
-              <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
-                Export {latestRun.status === 'error' ? 'failed' : 'stopped'}
-              </span>
-            </div>
-            {isHovered ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex items-center"
-                onClick={() => handleExportClick(platform)}
-              >
-                <HardDriveDownload size={16} className="mr-2" />
-                Retry Export
-              </Button>
-            ) : <div className="w-[100px]"></div>}
+          <div className="flex items-center space-x-2">
+            <X className="text-red-500" size={16} />
+            <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
+              Export {latestRun.status === 'error' ? 'failed' : 'stopped'}
+            </span>
           </div>
         );
       default:
-        return <div className="h-[36px]"><span>Unknown status</span></div>;
+        return <span>Unknown status</span>;
     }
   };
 
@@ -412,9 +394,8 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Platform</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Results</TableHead>
                     <TableHead></TableHead>
+                    <TableHead>Results</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -445,7 +426,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                       <TableCell>
                         <p className="font-medium">{platform.description}</p>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="w-[500px]">
                         {renderResults(platform)}
                       </TableCell>
                     </TableRow>
