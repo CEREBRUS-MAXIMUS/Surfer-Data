@@ -57,6 +57,22 @@ We believe that personal data aggregation is the key to enabling truly useful, u
 7. The app then scrapes the user's data from the platform.
 8. Finally, the extracted data is exported and saved to your local storage.
 
+## Sample Exported Data
+
+```json{
+  "platform_name": "X Corp",
+  "name": "Twitter",
+  "runID": "twitter-001-1724267514217",
+  "timestamp": 1724267623318,
+  "content": [
+    "Twitter Post 1",
+    "Twitter Post 2",
+    "Twitter Post 3",
+    ...
+  ]
+}
+```
+
 ## Getting Started
 
 To download the app, head over to [https://surfsup.ai](https://surfsup.ai). Or you can go to the releases page.
@@ -76,7 +92,7 @@ We use Supabase to collect analytics. We ONLY collect the number of installs, th
 - [x] Replace `setTimeout` with `await` for script execution to ensure elements exist before scraping
 - [ ] Implement robust error handling for the scraping process
 - [ ] Add support for more online platforms
-- [ ] Add verbosity to runs
+- [x] Add verbosity to runs
 
 ### Medium to Long-Term
 - [ ] Implement concurrent scraping to allow for multiple scraping jobs to run simultaneously
