@@ -102,7 +102,7 @@ We use Supabase to collect analytics. We ONLY collect the number of installs, th
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See [`LICENSE`](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/blob/main/LICENSE) for more information.
 
 ## Built With
 
