@@ -1,4 +1,4 @@
-# Surfer: The World's First Digital Footprint Exporter
+# Surfer: The Digital Footprint Exporter
 
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
