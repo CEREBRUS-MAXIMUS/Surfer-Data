@@ -457,33 +457,50 @@ export const createWindow = async (visible: boolean = true) => {
         },
         saveAs: false,
       })
-        .then((dl: Electron.DownloadItem) => {
+        .then(async (dl: Electron.DownloadItem) => {
           console.log('Download completed:', dl.getSavePath());
           const filePath = dl.getSavePath();
+          const exportSize = fs.statSync(filePath).size;
 
-          if (path.extname(filePath).toLowerCase() === '.zip') {
-            console.log('Zip file detected. Starting extraction...');
-            extractZip(filePath, idPath)
-              .then(() => {
-                console.log('Zip file extracted successfully to:', idPath);
+          if (url.includes('file.notion.so') && filePath.endsWith('.zip')) {
+            // Handle Notion ZIP extraction
+            const extractPath = path.join(idPath, 'extracted');
+            
+            try {
+              await extractZip(filePath, extractPath);
+              console.log('Outer ZIP extracted to:', extractPath);
 
-                fs.unlinkSync(filePath);
-                console.log('Original zip file removed:', filePath);
-                mainWindow?.webContents.send(
-                  'export-complete',
-                  path.basename(companyPath),
-                  path.basename(platformPath),
-                  platformId,
-                  idPath,
-                );
-              })
-              .catch((error: Error) => {
-                console.error('Error extracting zip file:', error);
-                mainWindow?.webContents.send('download-error', {
-                  fileName,
-                  error: `Error extracting zip file: ${error.message}`,
-                });
+              // Find the inner ZIP file
+              const innerZipFile = fs.readdirSync(extractPath).find(file => file.endsWith('.zip'));
+              
+              if (innerZipFile) {
+                const innerZipPath = path.join(extractPath, innerZipFile);
+                await extractZip(innerZipPath, extractPath);
+                console.log('Inner ZIP extracted to:', extractPath);
+                
+                // Delete the inner ZIP file after extraction
+                fs.unlinkSync(innerZipPath);
+              }
+
+              // Delete the original ZIP file
+              fs.unlinkSync(filePath);
+
+              console.log('Notion ZIP fully extracted to:', extractPath);
+              mainWindow?.webContents.send(
+                'export-complete',
+                path.basename(companyPath),
+                path.basename(platformPath),
+                platformId,
+                extractPath,
+                exportSize
+              );
+            } catch (error) {
+              console.error('Error extracting ZIP:', error);
+              mainWindow?.webContents.send('download-error', {
+                fileName,
+                error: 'Error extracting ZIP: ' + error.message,
               });
+            }
           } else {
             console.log('Non-zip file. No extraction needed.');
             mainWindow?.webContents.send(
@@ -492,6 +509,7 @@ export const createWindow = async (visible: boolean = true) => {
               path.basename(platformPath),
               platformId,
               idPath,
+              exportSize
             );
           }
         })
@@ -841,13 +859,25 @@ ipcMain.on('open-folder', (event, folderPath) => {
 ipcMain.on('get-artifact-files', (event, exportPath) => {
   try {
     console.log('Reading artifact files from:', exportPath);
-    const files = fs.readdirSync(exportPath);
-    const artifactFiles = files.map((file) => {
-      const filePath = path.join(exportPath, file);
-      const content = fs.readFileSync(filePath, 'utf-8');
-      return { name: file, content };
-    });
-    console.log('Artifact files:', artifactFiles);
+    const artifactFiles = [];
+
+    function readFilesRecursively(currentPath) {
+      const items = fs.readdirSync(currentPath);
+      items.forEach((item) => {
+        const itemPath = path.join(currentPath, item);
+        const stats = fs.statSync(itemPath);
+        if (stats.isDirectory()) {
+          readFilesRecursively(itemPath);
+        } else {
+          const content = fs.readFileSync(itemPath, 'utf-8');
+          artifactFiles.push({ name: item, content });
+        }
+      });
+    }
+
+    readFilesRecursively(exportPath);
+
+    console.log('Artifact files length:', artifactFiles.length);
     event.reply('artifact-files', artifactFiles);
   } catch (error) {
     console.error('Error reading artifact files:', error);

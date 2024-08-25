@@ -433,7 +433,7 @@ const showLogs = (platform) => {
             onClick={() => handleExportClick(platform)}
           >
             <HardDriveDownload size={16} className="mr-2" />
-            {getLatestRun(platform.id) && getLatestRun(platform.id).status === 'success' ? 'Re-Export' : 'Export'}
+            {getLatestRun(platform.id) && getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export'}
           </Button>
         </div>
       )}

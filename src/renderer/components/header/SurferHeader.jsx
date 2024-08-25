@@ -562,8 +562,6 @@ export const SurferHeader = () => {
   const isFullScreen = useSelector((state) => state.app.isFullScreen);
   const isMac = useSelector((state) => state.app.isMac);
   const { theme } = useTheme();
-
-  console.log("RUNS", runs);
   const activeRuns = runs.filter((run) => run.status === 'running').length;
 
   useEffect(() => {
@@ -629,7 +627,6 @@ export const SurferHeader = () => {
   };
 
   const getIconForBreadcrumb = (item) => {
-    console.log("BREADCRUMB TEXT", item);
     if(item.text === 'Home') {
       return <Home size={16} className="mr-2" color={theme === 'dark' ? '#ffffff' : '#000000'} />;
     }

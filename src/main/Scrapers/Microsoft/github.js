@@ -45,7 +45,7 @@ async function continueExportGithub() {
         while (true) {
           await wait(2);
           const repoLinks = await waitForElement(id, 'a[itemprop="name codeRepository"]', 'Repositories', true);
-          customConsoleLog(id, 'Adding ', repoLinks.length, ' repos!');
+          customConsoleLog(id, 'Adding', repoLinks.length, 'repos!');
           for (const repoLink of repoLinks) {
             let desc = '';
 
