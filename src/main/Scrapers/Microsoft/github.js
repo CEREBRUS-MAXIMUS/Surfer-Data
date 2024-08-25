@@ -38,13 +38,14 @@ async function continueExportGithub() {
       ipcRenderer.sendToHost('get-run-id');
       ipcRenderer.on('got-run-id', async (event, id) => {
         bigStepper(id);
-        customConsoleLog(id, 'got run id! ', id);
+        customConsoleLog(id, 'Continuing GitHub export!');
         
         const repos = [];
 
         while (true) {
           await wait(2);
-          const repoLinks = await waitForElement(id, 'a[itemprop="name codeRepository"]', 'Repository links', true);
+          const repoLinks = await waitForElement(id, 'a[itemprop="name codeRepository"]', 'Repositories', true);
+          customConsoleLog(id, 'Adding ', repoLinks.length, ' repos!');
           for (const repoLink of repoLinks) {
             let desc = '';
 
@@ -60,7 +61,7 @@ async function continueExportGithub() {
             });
           }
 
-          await wait(2);
+          await wait(5);
 
           const nextPageButton = await waitForElement(id, 'a.next_page', 'Next page button');
           if (!nextPageButton) {

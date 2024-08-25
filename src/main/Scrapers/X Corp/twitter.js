@@ -11,7 +11,7 @@ async function exportTwitter(company, name, runID) {
   customConsoleLog('Querying for profile pictures');
   const profilePics = await waitForElement(
     runID,
-    'img[alt]:not([alt=""]):not([alt="Image"])',
+    'img.css-9pa8cd',
     'Your profile picture',
     true
   );
