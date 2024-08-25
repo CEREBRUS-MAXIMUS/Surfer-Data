@@ -207,14 +207,15 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     return `${formattedSize} ${units[unitIndex]}`;
   };
 
-  const renderResults = (platform) => {
-    const latestRun = getLatestRun(platform.id);
-    const exportRunning = isExportRunning(platform.id);
-    const isHovered = hoveredPlatformId === platform.id;
+const renderResults = (platform) => {
+  const latestRun = getLatestRun(platform.id);
+  const exportRunning = isExportRunning(platform.id);
+  const isHovered = hoveredPlatformId === platform.id;
 
-    return (
-      <div className="relative w-full h-[36px] flex items-center">
-        <div className="flex-grow">
+  return (
+    <div className="relative w-full flex items-center">
+      <div className="flex-grow flex items-center">
+        <div className="flex-shrink-0 mr-4 w-1/2">
           {!latestRun || latestRun.status === 'idle' ? (
             <div className="flex justify-between items-center w-full h-full">
               <div></div>
@@ -223,47 +224,40 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
             renderRunStatus(latestRun, platform)
           )}
         </div>
-        {isHovered && (
-          <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex items-center"
-              onClick={() => handleExportClick(platform)}
-            >
-              <HardDriveDownload size={16} className="mr-2" />
-              {latestRun && latestRun.status === 'success' ? 'Re-Export' : 'Export'}
-            </Button>
+        {latestRun && latestRun.status === 'running' && (
+          <div className="flex-grow overflow-hidden">
+            {showLogs(platform)}
           </div>
         )}
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   const renderRunStatus = (latestRun, platform) => {
     switch (latestRun.status) {
       case 'running':
-        return (
-          <div className="flex items-center space-x-2 group">
-            <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
-            <Tooltip delayDuration={300}>
-              <TooltipTrigger asChild>
-                <span className="group-hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
-                  {latestRun.currentStep?.name || 'Running...'}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                {showLogs(platform)}
-              </TooltipContent>
-            </Tooltip>
-            <span
-              className="cursor-pointer flex items-center hover:underline"
-              onClick={() => onViewRunDetails(latestRun, platform)}
-            >
-              <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
-            </span>
+      return (
+        <div className="flex items-center space-x-2">
+          <div className="flex-grow">
+            <div className="flex items-center space-x-2 group">
+              <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
+              <span className="group-hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
+                {latestRun.currentStep?.name || 'Running...'}
+              </span>
+              <span
+                className="cursor-pointer flex items-center hover:underline"
+                onClick={() => onViewRunDetails(latestRun, platform)}
+              >
+                <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
+              </span>
+            </div>
           </div>
-        );
+          {/* <div className="flex-grow ml-4">
+            {showLogs(platform)}
+          </div> */}
+        </div>
+      );
       case 'success':
         return (
           <div className="flex items-center space-x-2">
@@ -312,25 +306,25 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     }
   };
 
-  const showLogs = (platform) => {
-    const latestRun = activeRuns.find(run => run.platformId === platform.id);
-    if (!latestRun || !latestRun.logs) return null;
+const showLogs = (platform) => {
+  const latestRun = activeRuns.find(run => run.platformId === platform.id);
+  if (!latestRun || !latestRun.logs) return null;
 
-    const logLines = latestRun.logs.split('\n');
+  const logLines = latestRun.logs.split('\n');
 
-    return (
-      <div className="max-h-[200px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '300px' }}>
-        <pre className="font-mono text-xs whitespace-pre-wrap break-words">
-          {logLines.map((line, index) => (
-            <span key={index} className={line === 'YOU NEED TO SIGN IN!' ? 'text-red-500' : ''}>
-              {line}
-              {index < logLines.length - 1 && '\n'}
-            </span>
-          ))}
-        </pre>
-      </div>
-    );
-  }
+  return (
+    <div className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '300px' }}>
+      <pre className="font-mono text-xs whitespace-pre-wrap break-words">
+        {logLines.map((line, index) => (
+          <span key={index} className={line === 'YOU NEED TO SIGN IN!' ? 'text-red-500' : ''}>
+            {line}
+            {index < logLines.length - 1 && '\n'}
+          </span>
+        ))}
+      </pre>
+    </div>
+  );
+}
 
   useEffect(() => {
     const logContainer = document.querySelector('.overflow-y-auto');
@@ -396,6 +390,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                     <TableHead>Platform</TableHead>
                     <TableHead></TableHead>
                     <TableHead>Results</TableHead>
+                    <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -426,9 +421,24 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
                       <TableCell>
                         <p className="font-medium">{platform.description}</p>
                       </TableCell>
-                      <TableCell className="w-[500px]">
+                      <TableCell className="w-[600px]">
                         {renderResults(platform)}
                       </TableCell>
+                      <TableCell>
+      {hoveredPlatformId === platform.id && (
+        <div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handleExportClick(platform)}
+          >
+            <HardDriveDownload size={16} className="mr-2" />
+            {getLatestRun(platform.id) && getLatestRun(platform.id).status === 'success' ? 'Re-Export' : 'Export'}
+          </Button>
+        </div>
+      )}
+                      </TableCell>
+
                     </TableRow>
                   ))}
                 </TableBody>
