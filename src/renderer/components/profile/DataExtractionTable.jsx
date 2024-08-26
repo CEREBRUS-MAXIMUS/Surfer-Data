@@ -425,7 +425,7 @@ const showLogs = (platform) => {
                         {renderResults(platform)}
                       </TableCell>
                       <TableCell>
-      {hoveredPlatformId === platform.id && (
+
         <div>
           <Button
             size="sm"
@@ -436,7 +436,7 @@ const showLogs = (platform) => {
             {getLatestRun(platform.id) && getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export'}
           </Button>
         </div>
-      )}
+
                       </TableCell>
 
                     </TableRow>
