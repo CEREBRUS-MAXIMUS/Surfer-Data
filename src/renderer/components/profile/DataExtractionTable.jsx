@@ -382,7 +382,7 @@ const showLogs = (platform) => {
       </div>
       {paginatedPlatforms.length > 0 ? (
         <div className="flex flex-col flex-grow overflow-hidden">
-          <div className="overflow-auto flex-grow">
+          <div className="overflow-x-auto overflow-y-hidden">
             <TooltipProvider>
               <Table>
                 <TableHeader>
