@@ -16,7 +16,7 @@ async function exportTwitter(company, name, runID) {
     true
   );
 
-  customConsoleLog(runID, 'this pfp\'s', profilePics);
+  customConsoleLog(runID, 'Got profile picture!');
 
   if (!profilePics) {
     customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
