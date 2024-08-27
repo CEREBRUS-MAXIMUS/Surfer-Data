@@ -140,13 +140,15 @@ const Tab = styled.div`
 const LOGO_SIZE = 24;
 
 interface WebviewManagerProps {
-  webviewRef: React.RefObject<HTMLIFrameElement>;
+  webviewRefs: { [key: string]: React.RefObject<HTMLIFrameElement> };
+  getWebviewRef: (runId: string) => React.RefObject<HTMLIFrameElement>;
   isConnected: boolean;
   setIsConnected: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const WebviewManager: React.FC<WebviewManagerProps> = ({
-  webviewRef,
+  webviewRefs,
+  getWebviewRef,
   isConnected,
   setIsConnected,
 }) => {
@@ -184,6 +186,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
       if (platform) {
         await new Promise((resolve) => setTimeout(resolve, 2000));
+        const webviewRef = getWebviewRef(newRun.id);
         if (webviewRef.current) {
           console.log('exporting this: ', platform.company, platform.name);
           webviewRef.current.send(
@@ -221,19 +224,20 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
     console.log('this run: ', run);
     dispatch(updateRunURL(id, url));
     await new Promise((resolve) => setTimeout(resolve, 2000));
+    const webviewRef = getWebviewRef(id);
     webviewRef.current?.send('change-url-success', url, id);
-  }, [dispatch, runs]);
+  }, [dispatch, runs, getWebviewRef]);
 
   useEffect(() => {
-    const webview = webviewRef.current;
     const ipcMessageHandler = async (event) => {
       const { channel, args } = event;
 
-      if (channel === 'get-run-id') {
-        const runningRuns = runs.filter((run) => run.status === 'running');
-        if (runningRuns.length > 0) {
+      if (channel === 'get-run-id') { 
+        const githubRun = runs.find((run) => run.status === 'running' && run.platformId.includes('github'));
+        if (githubRun) {
           console.log('sent run id');
-          webview.send('got-run-id', runningRuns[runningRuns.length - 1].id);
+          const webviewRef = getWebviewRef(githubRun.id);
+          webviewRef.current?.send('got-run-id', githubRun.id);
         }
       }
 
@@ -254,17 +258,22 @@ if (channel === 'console-log') {
       }
     };
 
-    if (webview) {
-      console.log('adding event listener!');
-      webview.addEventListener('ipc-message', ipcMessageHandler);
-    }
+    const webviewRefsArray = Object.values(webviewRefs);
+    webviewRefsArray.forEach((webviewRef) => {
+      if (webviewRef.current) {
+        console.log('adding event listener!');
+        webviewRef.current.addEventListener('ipc-message', ipcMessageHandler);
+      }
+    });
 
     return () => {
-      if (webview) {
-        webview.removeEventListener('ipc-message', ipcMessageHandler);
-      }
+      webviewRefsArray.forEach((webviewRef) => {
+        if (webviewRef.current) {
+          webviewRef.current.removeEventListener('ipc-message', ipcMessageHandler);
+        }
+      });
     };
-  }, [runs]);
+  }, [runs, getWebviewRef]);
 
   useEffect(() => {
     if (runs.length > 0) {
@@ -360,15 +369,15 @@ if (channel === 'console-log') {
     ) : null;
   };
 
-  const handleRunDetails = () => {
-    // Implement run details functionality
-    console.log('Run details clicked');
-  };
+  // const handleRunDetails = () => {
+  //   // Implement run details functionality
+  //   console.log('Run details clicked');
+  // };
 
-  const handleLearnMode = () => {
-    // Implement learn mode functionality
-    console.log('Learn mode clicked');
-  };
+  // const handleLearnMode = () => {
+  //   // Implement learn mode functionality
+  //   console.log('Learn mode clicked');
+  // };
 
   const handleStopRun = async () => {
     const activeRun = activeRuns[activeRunIndex];
@@ -422,8 +431,10 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
   const currentRunIndex = Math.min(activeRunIndex, activeRuns.length - 1);
 
   const handleOpenDevTools = () => {
-    if (webviewRef.current) {
-      webviewRef.current.openDevTools();
+    const activeRun = activeRuns[activeRunIndex];
+    if (activeRun) {
+      const webviewRef = getWebviewRef(activeRun.id);
+      webviewRef.current?.openDevTools();
     }
   };
 
@@ -436,34 +447,30 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
   }
 
   useEffect(() => {
-    const webview = webviewRef.current;
-    if (webview) {
-      const setWebview = () => {
-        const oldAgent = webview.getUserAgent();
-        const newAgent = modifyUserAgent(oldAgent);
+    const webviewRefsArray = Object.values(webviewRefs);
+    webviewRefsArray.forEach((webviewRef) => {
+      if (webviewRef.current) {
+        const setWebview = () => {
+          const oldAgent = webviewRef.current.getUserAgent();
+          const newAgent = modifyUserAgent(oldAgent);
 
-        webview.setUserAgent(newAgent);
-        webview.setZoomFactor(0.8);
-      };
+          webviewRef.current.setUserAgent(newAgent);
+          webviewRef.current.setZoomFactor(0.8);
+        };
 
-      // const handleStartLoading = () => setIsLoading(true);
-      // const handleStopLoading = () => setIsLoading(false);
+        webviewRef.current.addEventListener('dom-ready', setWebview);
+        webviewRef.current.addEventListener('did-navigate', setWebview);
+        webviewRef.current.addEventListener('did-navigate-in-page', setWebview);
 
-      webview.addEventListener('dom-ready', setWebview);
-      webview.addEventListener('did-navigate', setWebview);
-      webview.addEventListener('did-navigate-in-page', setWebview);
-      // webview.addEventListener('did-start-loading', handleStartLoading);
-      // webview.addEventListener('did-stop-loading', handleStopLoading);
-
-      return () => {
-        webview.removeEventListener('dom-ready', setWebview);
-        webview.removeEventListener('did-navigate', setWebview);
-        webview.removeEventListener('did-navigate-in-page', setWebview);
-        // webview.removeEventListener('did-start-loading', handleStartLoading);
-        // webview.removeEventListener('did-stop-loading', handleStopLoading);
-      };
-    }
-  }, [webviewRef.current]);
+        return () => {
+          webviewRef.current.removeEventListener('dom-ready', setWebview);
+          webviewRef.current.removeEventListener('did-navigate', setWebview);
+          webviewRef.current.removeEventListener('did-navigate-in-page', setWebview);
+        };
+      }
+    });
+  }, [webviewRefs]);
+ 
 
   return (
     <FullScreenOverlay isVisible={isRunLayerVisible}>
@@ -512,7 +519,7 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
               <webview
                 key={run.id}
                 src={run.url}
-                ref={index === activeRunIndex ? webviewRef : null}
+                ref={getWebviewRef(run.id)}
                 style={{
                   width: '100%',
                   height: '100%',

@@ -230,7 +230,8 @@ export const createWindow = async (visible: boolean = true) => {
         details.url.includes('https://appleid.apple.com/auth/') ||
         details.url.includes(
           'https://proddatamgmtqueue.blob.core.windows.net/exportcontainer/',
-        )
+        ) ||
+        details.url.includes('file.notion.so')
       ) {
         console.log('ALLOWING THIS URL: ', details.url);
         return { action: 'allow' };

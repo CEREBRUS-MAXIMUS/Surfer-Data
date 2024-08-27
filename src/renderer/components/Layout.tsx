@@ -4,17 +4,27 @@ import { SurferHeader } from './header/SurferHeader';
 import WebviewManager from './profile/WebviewManager';
 
 interface LayoutProps {
-  webviewRef: React.RefObject<any>;
+  webviewRefs: { [key: string]: React.RefObject<HTMLWebViewElement> };
+  getWebviewRef: (runId: string) => React.RefObject<HTMLWebViewElement>;
   isConnected: boolean;
   setIsConnected: (connected: boolean) => void;
-  contentScale: number;
+  contentScale: number; 
+  onHomeClick: () => void;
   children: React.ReactNode;
 }
 
-const Layout: React.FC<LayoutProps> = ({ webviewRef, isConnected, setIsConnected, contentScale, children }) => {
+const Layout: React.FC<LayoutProps> = ({
+  webviewRefs,
+  getWebviewRef,
+  isConnected,
+  setIsConnected,
+  contentScale,
+  onHomeClick,
+  children
+}) => {
   return (
     <div className="h-screen flex flex-col w-full">
-      <SurferHeader className="flex-shrink-0 h-[55px] w-full" />
+      <SurferHeader className="flex-shrink-0 h-[55px] w-full" onHomeClick={onHomeClick} />
       <main className="flex-grow overflow-hidden relative w-full max-w-full min-w-full bg-background">
         <div
           className="absolute top-0 left-0 w-full h-full overflow-auto"
@@ -28,7 +38,8 @@ const Layout: React.FC<LayoutProps> = ({ webviewRef, isConnected, setIsConnected
           <div className="absolute inset-0 w-full h-full">
             {children}
             <WebviewManager
-              webviewRef={webviewRef}
+              webviewRefs={webviewRefs}
+              getWebviewRef={getWebviewRef}
               isConnected={isConnected}
               setIsConnected={setIsConnected}
             />

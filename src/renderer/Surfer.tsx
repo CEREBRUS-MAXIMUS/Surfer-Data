@@ -19,7 +19,11 @@ function Surfer() {
   const contentScale = useSelector((state: IAppState) => state.preferences.contentScale);
   const route = useSelector((state: IAppState) => state.app.route);
   const runs = useSelector((state: IAppState) => state.app.runs);
-  const webviewRef = useRef(null);
+    const activeRuns = runs.filter(
+      (run) => run.status === 'pending' || run.status === 'running',
+    );
+  const webviewRefs = useRef<{ [key: string]: React.RefObject<HTMLWebViewElement> }>({});
+
   const [showNotConnectedAlert, setShowNotConnectedAlert] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
   const [updateProgress, setUpdateProgress] = useState<number | null>(null);
@@ -89,7 +93,6 @@ function Surfer() {
     };
   }, [dispatch, contentScale]);
 
-
   useEffect(() => {
     console.log('Current route:', route);
   }, [route]);
@@ -148,6 +151,13 @@ function Surfer() {
     dispatch(updateBreadcrumb([{ icon: 'Home', text: 'Home', link: '/home' }]));
   };
 
+  const getWebviewRef = (runId: string) => {
+    if (!webviewRefs.current[runId]) {
+      webviewRefs.current[runId] = React.createRef();
+    }
+    return webviewRefs.current[runId];
+  };
+
   return (
     <div className={`flex h-screen`}>
       <div className="flex-1 transition-all duration-300">
@@ -156,7 +166,8 @@ function Surfer() {
             <Landing />
           ) : (
             <Layout
-              webviewRef={webviewRef}
+              webviewRefs={webviewRefs.current}
+              getWebviewRef={getWebviewRef}
               isConnected={isConnected}
               setIsConnected={setIsConnected}
               contentScale={safeContentScale}
