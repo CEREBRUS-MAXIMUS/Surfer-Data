@@ -19,6 +19,7 @@ const exportGmail = require('./Scrapers/Google/gmail');
 const exportYouTube = require('./Scrapers/Google/youtube');
 const exportGoogleWeather = require('./Scrapers/Google/weather');
 const exportNews = require('./Scrapers/Google/news');
+const { exportTakeout, continueExportTakeout } = require('./Scrapers/Google/takeout');
 const {
   exportChatgpt,
   continueExportChatgpt,
@@ -61,6 +62,9 @@ ipcRenderer.on('export-website', async (event, company, name, runID, exportPath)
     case 'News':
       await exportNews(company, name, runID);
       break;
+    case 'Takeout':
+      await exportTakeout(company, name, runID);
+      break;
   }
 
   if (exportPath) {
@@ -77,5 +81,9 @@ ipcRenderer.on('export-website', async (event, company, name, runID, exportPath)
 ipcRenderer.on('change-url-success', async (event, url, id) => {
   if (id.includes('chatgpt-001')) {
     await continueExportChatgpt(id);
+  }
+
+  if (id.includes('takeout-001')) {
+    await continueExportTakeout(id);
   }
 });

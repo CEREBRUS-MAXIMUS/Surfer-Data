@@ -302,7 +302,7 @@ if (channel === 'console-log') {
       //   dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
       // } else {
 
-       if (name === 'Notion' || name === 'ChatGPT'){
+       if (name === 'Notion' || name === 'ChatGPT' || name === 'Takeout'){
         
         const downloadRun = activeRuns.filter(
           (run) => run.platformId === `${name.toLowerCase()}-001`,
