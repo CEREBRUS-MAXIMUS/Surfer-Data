@@ -29,13 +29,12 @@ async function exportNotion(company, runID) {
         btn.scrollIntoView({ behavior: 'instant', block: 'center' });
         bigStepper(runID);
         btn.click();
-        await wait(4);
         foundSettings = true;
         break;
       }
     }
   }
-
+        await wait(4);
   // Second Settings button
   const newButtons = await waitForElement(runID, 'div[role="button"]', 'Second settings button', true);
   foundSettings = false;
@@ -45,7 +44,7 @@ async function exportNotion(company, runID) {
       for (const childDiv of childDivs) {
         const grandchildDivs = childDiv.querySelectorAll('div');
         for (const grandchildDiv of grandchildDivs) {
-          if (grandchildDiv.textContent.includes('Settings')) {
+          if (grandchildDiv.textContent === 'Settings') {
             grandchildDiv.scrollIntoView({ behavior: 'instant', block: 'center' });
             bigStepper(runID);
             grandchildDiv.click();

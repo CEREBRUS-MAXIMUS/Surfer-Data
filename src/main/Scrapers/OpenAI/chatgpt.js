@@ -86,7 +86,7 @@ async function continueExportChatgpt(id){
           await wait(1); // Wait for 1 second before checking again
         }
       }
-      customConsoleLog(id, 'downloadBtns: ', downloadBtns);
+      customConsoleLog(id, 'Download button found, clicking it!');
       bigStepper(id)
       downloadBtns[downloadBtns.length - 1].click();
   
