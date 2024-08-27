@@ -462,7 +462,7 @@ export const createWindow = async (visible: boolean = true) => {
           const filePath = dl.getSavePath();
           const exportSize = fs.statSync(filePath).size;
 
-          if (url.includes('file.notion.so') && filePath.endsWith('.zip')) {
+          if (filePath.toLowerCase().endsWith('.zip')) {
             // Handle Notion ZIP extraction
             const extractPath = path.join(idPath, 'extracted');
             
