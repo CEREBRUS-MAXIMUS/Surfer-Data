@@ -88,6 +88,8 @@ We use Supabase to collect analytics. We ONLY collect the number of installs, th
 ## Roadmap
 
 ### Short-Term
+- [ ] Data being maintained/updated everyday
+- [ ] Scheduled exports
 - [ ] Obtain a code signing certificate for Windows
 - [x] Replace `setTimeout` with `await` for script execution to ensure elements exist before scraping
 - [ ] Implement robust error handling for the scraping process
@@ -95,7 +97,8 @@ We use Supabase to collect analytics. We ONLY collect the number of installs, th
 - [x] Add verbosity to runs
 
 ### Medium to Long-Term
-- [ ] Implement concurrent scraping to allow for multiple scraping jobs to run simultaneously
+- [x] Implement concurrent scraping to allow for multiple scraping jobs to run simultaneously
+- [ ] Adding knowledge graphs, chatting with data, visualizations, etc
 - [ ] Adding sub-tasks within platforms (i.e. Twitter Bookmarks, LinkedIn Connections Data, etc)
 - [ ] Integrate with other agentic frameworks like LangChain for advanced personal AI assistants
 - [ ] Explore integration with wearable devices for enhanced personal data tracking and acknowledgment
