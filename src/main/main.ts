@@ -464,7 +464,7 @@ export const createWindow = async (visible: boolean = true) => {
           const exportSize = fs.statSync(filePath).size;
 
           if (filePath.toLowerCase().endsWith('.zip')) {
-            // Handle Notion ZIP extraction
+
             const extractPath = path.join(idPath, 'extracted');
             
             try {
@@ -486,7 +486,7 @@ export const createWindow = async (visible: boolean = true) => {
               // Delete the original ZIP file
               fs.unlinkSync(filePath);
 
-              console.log('Notion ZIP fully extracted to:', extractPath);
+              console.log('Zip fully extracted to:', extractPath);
               mainWindow?.webContents.send(
                 'export-complete',
                 path.basename(companyPath),

@@ -50,27 +50,25 @@ async function continueExportChatgpt(id){
     ipcRenderer.send('connect-website', company);
     return;
   }
-  
-      let emailFound = false;
       const checkEmails = async () => {
         const emails = await waitForElement(id, "div.xS[role='link']", 'Download Email', true);
         for (const email of emails) {
           if (email.innerText.includes('ChatGPT - Your data export is ready')) {
             bigStepper(id)
             email.click();
-            emailFound = true;
-            break;
+            return true; // Return true if the email is found
           }
         }
+        return false; // Return false if the email is not found
       };
 
+      let emailFound = false;
       while (!emailFound) {
-        await checkEmails();
+        emailFound = await checkEmails();
         if (!emailFound) {
-          await wait(1); // Wait for 1 second before checking again
+          await wait(1);
         }
       }
-
       // Wait for the email to load
       await wait(2);
 

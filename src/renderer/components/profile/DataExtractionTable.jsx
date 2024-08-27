@@ -327,9 +327,11 @@ const showLogs = (platform) => {
 }
 
   useEffect(() => {
-    const logContainer = document.querySelector('.overflow-y-auto');
-    if (logContainer) {
-      logContainer.scrollTop = logContainer.scrollHeight;
+    const logContainers = document.querySelectorAll('.overflow-y-auto');
+    if (logContainers) {
+      logContainers.forEach(container => {
+        container.scrollTop = container.scrollHeight;
+      });
     }
   }, [runs]);
 

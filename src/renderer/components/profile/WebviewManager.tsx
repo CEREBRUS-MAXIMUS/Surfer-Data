@@ -210,21 +210,17 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
   }, [dispatch, runs]);
 
 const handleLogs = useCallback((runId: string, ...logs: any[]) => {
-  console.log('Logs for run:', runId, logs);
   const run = runs.find((run) => run.id === runId);
   if (!run) return;
   dispatch(updateRunLogs(runId, logs));
 }, [dispatch, runs]);
 
   const handleChangeUrl = useCallback(async (url: string, id: string) => {
-    console.log('this runs: ', runs);
-    console.log('this url: ', url);
-    console.log('this id: ', id);
     const run = runs.find((run) => run.id === id);
-    console.log('this run: ', run);
     dispatch(updateRunURL(id, url));
     await new Promise((resolve) => setTimeout(resolve, 2000));
     const webviewRef = getWebviewRef(id);
+    console.log('SENDING TO THIS WEBVIEW REF!!! ', webviewRef.current);
     webviewRef.current?.send('change-url-success', url, id);
   }, [dispatch, runs, getWebviewRef]);
 
@@ -261,7 +257,6 @@ if (channel === 'console-log') {
     const webviewRefsArray = Object.values(webviewRefs);
     webviewRefsArray.forEach((webviewRef) => {
       if (webviewRef.current) {
-        console.log('adding event listener!');
         webviewRef.current.addEventListener('ipc-message', ipcMessageHandler);
       }
     });
@@ -291,16 +286,6 @@ if (channel === 'console-log') {
       exportSize: number
     ) => {
       console.log('export complete: ', company, name, runID, namePath, exportSize);
-      // if (runID === 0) {
-      //   console.log('stopping download run: ', runs);
-      //   const downloadRun = runs.filter(
-      //     (run) => run.platformId === `${name.toLowerCase()}-001`,
-      //   )[0];
-
-      //   await trackRun('success', company, name) 
-     
-      //   dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
-      // } else {
 
        if (name === 'Notion' || name === 'ChatGPT'){
         
