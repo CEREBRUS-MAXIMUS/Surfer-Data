@@ -394,6 +394,7 @@ export const createWindow = async (visible: boolean = true) => {
   async function convertMboxToJson(
     mboxFilePath: string,
     jsonOutputPath: string,
+    id: number,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const readStream = fs.createReadStream(mboxFilePath);
@@ -412,12 +413,14 @@ export const createWindow = async (visible: boolean = true) => {
             isFirstMessage = false;
 
             const jsonMessage = {
+              accountID: id,
               from: message.from?.text,
               to: message.to?.text || message.to,
               subject: message.subject,
-              date: message.date,
-              added_to_db: new Date().toISOString(),
+              timestamp: message.date,
+
               body: message.text,
+              added_to_db: new Date().toISOString(),
             };
 
             writeStream.write(JSON.stringify(jsonMessage, null, 2));
@@ -589,7 +592,13 @@ export const createWindow = async (visible: boolean = true) => {
 
                   try {
                     console.log('Converting MBOX to JSON:', mboxFilePath);
-                    await convertMboxToJson(mboxFilePath, jsonOutputPath);
+                    const accountID =
+                      new URL(url).searchParams.get('authuser') || '0';
+                    await convertMboxToJson(
+                      mboxFilePath,
+                      jsonOutputPath,
+                      accountID,
+                    );
                     console.log('MBOX converted to JSON:', jsonOutputPath);
                   } catch (error) {
                     console.error('Error converting MBOX to JSON:', error);
@@ -759,28 +768,26 @@ ipcMain.on('handle-update', (event, company, name, emailContent, runID) => {
   const namePath = path.join(companyPath, name);
   const runPath = path.join(namePath, 'gmail-001');
   const extractedPath = path.join(runPath, 'extracted');
-  const convertedMboxPath = path.join(extractedPath, 'converted_mbox.json');
+  const filePath = path.join(extractedPath, 'converted_mbox.json');
 
   // Read existing data if available
   let existingData = [];
-  if (fs.existsSync(convertedMboxPath)) {
-    existingData = JSON.parse(fs.readFileSync(convertedMboxPath, 'utf-8'));
+  if (fs.existsSync(filePath)) {
+    existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
   }
 
-  // Parse the emailContent if it's a string
-  const parsedEmailContent =
-    typeof emailContent === 'string' ? JSON.parse(emailContent) : emailContent;
+  let parsedEmailContent = JSON.parse(emailContent);
 
-  // Add timestamp to the email content
+  // Add the added_to_db key
   parsedEmailContent.added_to_db = new Date().toISOString();
 
-  // Append the new email to the existing content
+  // Append the updated email content to the existing data
   existingData.push(parsedEmailContent);
 
   // Write the updated data
-  fs.writeFileSync(convertedMboxPath, JSON.stringify(existingData, null, 2));
+  fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
 
-  console.log(`Email appended to: ${convertedMboxPath}`);
+  console.log(`Email appended to: ${filePath}`);
 });
 
 ipcMain.on('export-complete', (event, company, name, runID) => {
@@ -1047,9 +1054,9 @@ ipcMain.on('open-folder', (event, folderPath) => {
 ipcMain.on('get-artifact-files', (event, exportPath) => {
   try {
     console.log('Reading artifact files from:', exportPath);
-    const artifactFiles = [];
+    const artifactFiles: { name: string; content: string }[] = [];
 
-    function readFilesRecursively(currentPath) {
+    function readFilesRecursively(currentPath: string) {
       const items = fs.readdirSync(currentPath);
       items.forEach((item) => {
         const itemPath = path.join(currentPath, item);
@@ -1057,8 +1064,11 @@ ipcMain.on('get-artifact-files', (event, exportPath) => {
         if (stats.isDirectory()) {
           readFilesRecursively(itemPath);
         } else {
-          const content = fs.readFileSync(itemPath, 'utf-8');
-          artifactFiles.push({ name: item, content });
+          const fileExtension = path.extname(item).toLowerCase();
+          if (['.json', '.txt', '.md'].includes(fileExtension)) {
+            const content = fs.readFileSync(itemPath, 'utf-8');
+            artifactFiles.push({ name: item, content });
+          }
         }
       });
     }

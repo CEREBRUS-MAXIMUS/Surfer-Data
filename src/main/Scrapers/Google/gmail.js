@@ -19,14 +19,21 @@ async function checkIfEmailExists(emailContent) {
     console.error('User data path not available');
     return false;
   }
-
-  const surferDataPath = path.join(userDataPath, 'surfer_data');
-  const gmailPath = path.join(surferDataPath, 'Google', 'Gmail');
-
-  // If the Gmail folder doesn't exist, no emails have been exported yet
+  const gmailPath = path.join(userDataPath, 'surfer_data', 'Google', 'Gmail');
   if (!fs.existsSync(gmailPath)) {
     return false;
   }
+  const folders = fs
+    .readdirSync(gmailPath)
+    .filter((item) => fs.statSync(path.join(gmailPath, item)).isDirectory());
+  const lastFolder = folders.sort().pop();
+  const lastFolderPath = lastFolder ? path.join(gmailPath, lastFolder) : null;
+  if (!lastFolderPath) {
+    return false;
+  }
+  const extractedPath = path.join(lastFolderPath, 'extracted');
+
+  // If the Gmail folder doesn't exist, no emails have been exported yet
 
   // Get all items in the Gmail folder
   const items = fs.readdirSync(gmailPath);
@@ -87,7 +94,11 @@ async function exportTakeout(id) {
   exportButton[1].click();
   customConsoleLog(id, 'Clicked Export Button, going to gmail soon!');
   await wait(3);
-  ipcRenderer.sendToHost('change-url', 'https://gmail.com', id); // later this will not be hardcoded
+  ipcRenderer.sendToHost(
+    'change-url',
+    'https://mail.google.com/mail/u/0/#inbox', // HARDCODING THE USER ID FOR NOW!
+    id,
+  );
   return;
 }
 
@@ -252,6 +263,8 @@ async function exportGmail(company, name, runID, firstExport, steps) {
               const emailDetails = document.getElementsByClassName('ajv');
 
               const emailJSON = {
+                accountID:
+                  new URL(window.location.href).pathname.split('/')[3] || '0',
                 from:
                   Array.from(emailDetails)
                     .find((detail) => detail.innerText.includes('from:'))
@@ -277,13 +290,15 @@ async function exportGmail(company, name, runID, firstExport, steps) {
                     .slice(1)
                     .join(':')
                     .trim() || '',
-                date:
-                  Array.from(emailDetails)
-                    .find((detail) => detail.innerText.includes('date:'))
-                    ?.innerText.split(':')
-                    .slice(1)
-                    .join(':')
-                    .trim() || '',
+                timestamp:
+                  new Date(
+                    Array.from(emailDetails)
+                      .find((detail) => detail.innerText.includes('date:'))
+                      ?.innerText.split(':')
+                      .slice(1)
+                      .join(':')
+                      .trim(),
+                  ).toISOString() || null,
                 body: email.innerText || '',
               };
 
