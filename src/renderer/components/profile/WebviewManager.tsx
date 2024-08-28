@@ -14,7 +14,7 @@ import {
   bigStepper,
   updateRunLogs,
 } from '../../state/actions';
-import { platforms } from '../../config/platforms';
+import { platforms } from '../../../config/platforms';
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
@@ -187,12 +187,18 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
         await new Promise((resolve) => setTimeout(resolve, 2000));
         const webviewRef = getWebviewRef(newRun.id);
         if (webviewRef.current) {
-          console.log('exporting this: ', platform.company, platform.name);
+          console.log(
+            'exporting this: ',
+            platform.company,
+            platform.name,
+            platform.steps,
+          );
           webviewRef.current.send(
             'export-website',
             platform.company,
             platform.name,
             newRun.id,
+            platform.steps,
           );
         }
       } else {

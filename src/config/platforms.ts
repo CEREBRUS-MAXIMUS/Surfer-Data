@@ -1,9 +1,7 @@
-import { Mail } from 'lucide-react';
-import GmailLight from '../components/assets/platforms/GmailLight';
-import GmailDark from '../components/assets/platforms/GmailDark';
-import { IPlatform } from '../types/interfaces';
+import GmailLight from '../renderer/components/assets/platforms/GmailLight';
+import GmailDark from '../renderer/components/assets/platforms/GmailDark';
 
-export const platforms: IPlatform[] = [
+export const platforms = [
   {
     id: 'gmail-001',
     name: 'Gmail',
@@ -25,20 +23,33 @@ export const platforms: IPlatform[] = [
       {
         status: 'pending',
         function: 'checkSignIn',
-        elementSelector: 'h1',
+        elements: [
+          { selector: 'h1', name: 'Sign-in header', label: 'Sign-in check' },
+        ],
         description: 'Checking if the user is signed in',
       },
       {
         status: 'pending',
         function: 'waitForElement',
-        elementSelector: "div.xS[role='link']",
-        elementName: 'Mail link',
+        elements: [
+          {
+            selector: "div.xS[role='link']",
+            name: 'Mail link',
+            label: 'Mail link',
+          },
+        ],
         description: 'Waiting for mail link to appear',
       },
       {
         status: 'pending',
         function: 'click',
-        elementSelector: "div.xS[role='link']",
+        elements: [
+          {
+            selector: "div.xS[role='link']",
+            name: 'Mail link',
+            label: 'Mail link',
+          },
+        ],
         description: 'Clicking on the mail link',
       },
       {
@@ -49,8 +60,19 @@ export const platforms: IPlatform[] = [
       {
         status: 'pending',
         function: 'collectEmails',
-        elementSelector: '#\\:3',
-        elementName: 'Email container',
+        elements: [
+          {
+            selector: '#\\:3',
+            name: 'Email container',
+            label: 'Email content',
+          },
+          {
+            selector: '.h0',
+            name: 'Navigation buttons',
+            label: 'Email navigation',
+          },
+        ],
+        olderButtonLabel: 'Older',
         description: 'Collecting emails',
       },
       {

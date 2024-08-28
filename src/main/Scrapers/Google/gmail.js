@@ -6,72 +6,9 @@ const {
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-async function exportGmail(company, name, runID) {
+async function exportGmail(company, name, runID, steps) {
   const emails = [];
-  let steps = [
-    {
-      status: 'pending',
-      function: 'wait',
-      description: 'Waiting for the page to load',
-    },
-    {
-      status: 'pending',
-      function: 'checkSignIn',
-      elements: [
-        { selector: 'h1', name: 'Sign-in header', label: 'Sign-in check' },
-      ],
-      description: 'Checking if the user is signed in',
-    },
-    {
-      status: 'pending',
-      function: 'waitForElement',
-      elements: [
-        {
-          selector: "div.xS[role='link']",
-          name: 'Mail link',
-          label: 'Mail link',
-        },
-      ],
-      description: 'Waiting for mail link to appear',
-    },
-    {
-      status: 'pending',
-      function: 'click',
-      elements: [
-        {
-          selector: "div.xS[role='link']",
-          name: 'Mail link',
-          label: 'Mail link',
-        },
-      ],
-      description: 'Clicking on the mail link',
-    },
-    {
-      status: 'pending',
-      function: 'wait',
-      description: 'Waiting for the mail page to load',
-    },
-    {
-      status: 'pending',
-      function: 'collectEmails',
-      elements: [
-        { selector: '#\\:3', name: 'Email container', label: 'Email content' },
-        {
-          selector: '.h0',
-          name: 'Navigation buttons',
-          label: 'Email navigation',
-        },
-      ],
-      olderButtonLabel: 'Older',
-      description: 'Collecting emails',
-    },
-    {
-      status: 'pending',
-      function: 'sendExport',
-      description: 'Sending the export',
-    },
-  ];
-  // console.log('this steps: ', steps);
+  console.log('this steps: ', steps);
   for (const step of steps) {
     bigStepper(runID);
     console.log('this step: ', step);

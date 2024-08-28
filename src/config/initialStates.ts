@@ -1,4 +1,4 @@
-import { IAppState, IPreferences } from '../types/interfaces';
+import { IAppState, IPreferences } from '../renderer/types/interfaces';
 
 export const initialPreferencesState: IPreferences = {
   contentScale: 1,

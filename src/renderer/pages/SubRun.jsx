@@ -1,14 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { addRun, stopRun, setCurrentRoute } from '../state/actions';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../components/ui/table';
 import { ChevronRight, ChevronDown, ArrowLeft } from 'lucide-react';
 import { openDB } from 'idb';
 import RunDetailsPage from '../components/profile/RunDetailsPage';
-import { platforms } from '../config/platforms';
-import { trackRun } from '../../../analytics'
+import { platforms } from '../../config/platforms';
+import { trackRun } from '../../../analytics';
 
 const SubRun = ({ platform, subRun }) => {
   const dispatch = useDispatch();
@@ -26,13 +39,17 @@ const SubRun = ({ platform, subRun }) => {
         },
       });
       const loadedRuns = await db.getAll('runs');
-      setRuns(loadedRuns.filter(run => run.platformId === platform.id && run.subRunId === subRun.id));
+      setRuns(
+        loadedRuns.filter(
+          (run) => run.platformId === platform.id && run.subRunId === subRun.id,
+        ),
+      );
     };
     loadRuns();
   }, [platform, subRun]);
 
   const toggleRunExpansion = (runId) => {
-    setExpandedRuns(prev => ({ ...prev, [runId]: !prev[runId] }));
+    setExpandedRuns((prev) => ({ ...prev, [runId]: !prev[runId] }));
   };
 
   const handleViewDetails = (run) => {
@@ -53,14 +70,18 @@ const SubRun = ({ platform, subRun }) => {
       subRunId: subRun.id,
       startDate: startTime,
       status: 'pending',
-      tasks: subRun.tasks.map(task => ({
+      tasks: subRun.tasks.map((task) => ({
         ...task,
         startTime,
-        steps: task.steps.map(step => ({ ...step, status: 'pending', startTime })),
-        status: 'pending'
+        steps: task.steps.map((step) => ({
+          ...step,
+          status: 'pending',
+          startTime,
+        })),
+        status: 'pending',
       })),
       currentStep: platform.steps[0],
-      logs: ''
+      logs: '',
     };
 
     dispatch(addRun(newRun));
@@ -71,16 +92,21 @@ const SubRun = ({ platform, subRun }) => {
     };
     addRunToDB();
 
-    setRuns(prevRuns => [...prevRuns, newRun]);
+    setRuns((prevRuns) => [...prevRuns, newRun]);
 
     console.log('Starting new run for', subRun.name);
   };
 
   const handleStopRun = async (runId) => {
-      const platformId = runId.split('-')[0];
-      const platform = platforms.find((p) => p.id === platformId);
+    const platformId = runId.split('-')[0];
+    const platform = platforms.find((p) => p.id === platformId);
 
-    await trackRun('stopped', platform.company, platform.name, activeRun.currentStep)
+    await trackRun(
+      'stopped',
+      platform.company,
+      platform.name,
+      activeRun.currentStep,
+    );
 
     dispatch(stopRun(runId));
 
@@ -95,9 +121,13 @@ const SubRun = ({ platform, subRun }) => {
     };
     updateRunInDB();
 
-    setRuns(prevRuns => prevRuns.map(run =>
-      run.id === runId ? { ...run, status: 'stopped', endDate: new Date().toISOString() } : run
-    ));
+    setRuns((prevRuns) =>
+      prevRuns.map((run) =>
+        run.id === runId
+          ? { ...run, status: 'stopped', endDate: new Date().toISOString() }
+          : run,
+      ),
+    );
 
     console.log('Stopping run:', runId);
   };
@@ -147,7 +177,11 @@ const SubRun = ({ platform, subRun }) => {
                         size="sm"
                         onClick={() => toggleRunExpansion(run.id)}
                       >
-                        {expandedRuns[run.id] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                        {expandedRuns[run.id] ? (
+                          <ChevronDown size={16} />
+                        ) : (
+                          <ChevronRight size={16} />
+                        )}
                       </Button>
                     </TableCell>
                     <TableCell>{run.status}</TableCell>
@@ -155,11 +189,20 @@ const SubRun = ({ platform, subRun }) => {
                     <TableCell>{run.endDate || '-'}</TableCell>
                     <TableCell>
                       <div className="space-x-2">
-                        <Button size="sm" variant="outline" onClick={() => handleViewDetails(run)}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewDetails(run)}
+                        >
                           View Details
                         </Button>
-                        {(run.status === 'pending' || run.status === 'running') && (
-                          <Button size="sm" variant="destructive" onClick={() => handleStopRun(run.id)}>
+                        {(run.status === 'pending' ||
+                          run.status === 'running') && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleStopRun(run.id)}
+                          >
                             Stop Run
                           </Button>
                         )}
@@ -170,24 +213,39 @@ const SubRun = ({ platform, subRun }) => {
                     <TableRow>
                       <TableCell colSpan={5}>
                         <div className="pl-8">
-                          {run.tasks && run.tasks.map((task) => (
-                            <div key={task.id} className="mb-4">
-                              <h4 className="font-medium">{task.name}</h4>
-                              <div className="flex items-center space-x-2">
-                                <div className={`px-2 py-1 rounded ${task.status === 'pending' ? 'bg-gray-200' : task.status === 'running' ? 'bg-blue-200 animate-pulse' : task.status === 'success' ? 'bg-green-200' : 'bg-red-200'}`}>
-                                  {task.status}
+                          {run.tasks &&
+                            run.tasks.map((task) => (
+                              <div key={task.id} className="mb-4">
+                                <h4 className="font-medium">{task.name}</h4>
+                                <div className="flex items-center space-x-2">
+                                  <div
+                                    className={`px-2 py-1 rounded ${task.status === 'pending' ? 'bg-gray-200' : task.status === 'running' ? 'bg-blue-200 animate-pulse' : task.status === 'success' ? 'bg-green-200' : 'bg-red-200'}`}
+                                  >
+                                    {task.status}
+                                  </div>
+                                  <ul className="list-disc list-inside">
+                                    {task.steps &&
+                                      task.steps.map((step) => (
+                                        <li
+                                          key={step.id}
+                                          className={
+                                            step.status === 'error'
+                                              ? 'text-red-500'
+                                              : ''
+                                          }
+                                        >
+                                          {step.name} - {step.status}
+                                          {step.errorMessage && (
+                                            <span className="text-red-500 ml-2">
+                                              {step.errorMessage}
+                                            </span>
+                                          )}
+                                        </li>
+                                      ))}
+                                  </ul>
                                 </div>
-                                <ul className="list-disc list-inside">
-                                  {task.steps && task.steps.map((step) => (
-                                    <li key={step.id} className={step.status === 'error' ? 'text-red-500' : ''}>
-                                      {step.name} - {step.status}
-                                      {step.errorMessage && <span className="text-red-500 ml-2">{step.errorMessage}</span>}
-                                    </li>
-                                  ))}
-                                </ul>
                               </div>
-                            </div>
-                          ))}
+                            ))}
                         </div>
                       </TableCell>
                     </TableRow>

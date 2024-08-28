@@ -1,29 +1,73 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { startRun, toggleRunVisibility, setExportRunning, updateExportStatus, addRun } from '../../state/actions';
+import {
+  startRun,
+  toggleRunVisibility,
+  setExportRunning,
+  updateExportStatus,
+  addRun,
+} from '../../state/actions';
 import { useTheme } from '../ui/theme-provider';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
-import { Button } from "../ui/button";
-import { ArrowUpRight, ArrowRight, Check, X, Link, Download, Search, ChevronLeft, ChevronRight, HardDriveDownload, Folder, Eye } from 'lucide-react';
-import { platforms } from '../../config/platforms';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../ui/table';
+import { Button } from '../ui/button';
+import {
+  ArrowUpRight,
+  ArrowRight,
+  Check,
+  X,
+  Link,
+  Download,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  HardDriveDownload,
+  Folder,
+  Eye,
+} from 'lucide-react';
+import { platforms } from '../../../config/platforms';
 import { openDB } from 'idb';
-import { Input } from "../ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
-import { Checkbox } from "../ui/checkbox";
-import { formatDistanceToNow, parseISO, format, isToday, isYesterday } from 'date-fns';
-import { Progress } from "../ui/progress";
+import { Input } from '../ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '../ui/dialog';
+import { Checkbox } from '../ui/checkbox';
+import {
+  formatDistanceToNow,
+  parseISO,
+  format,
+  isToday,
+  isYesterday,
+} from 'date-fns';
+import { Progress } from '../ui/progress';
 import RunDetailsPage from './RunDetailsPage';
 import { platform } from 'os';
 import { MoonLoader } from 'react-spinners';
 import ConfettiExplosion from 'react-confetti-explosion';
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
+import {
+  Tooltip,
+  TooltipProvider,
+  TooltipTrigger,
+  TooltipContent,
+} from '../ui/tooltip';
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
-  const runs = useSelector(state => state.app.runs);
-    const activeRuns = runs.filter(
-      (run) => run.status === 'pending' || run.status === 'running',
-    );
+  const runs = useSelector((state) => state.app.runs);
+  const activeRuns = runs.filter(
+    (run) => run.status === 'pending' || run.status === 'running',
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
@@ -59,7 +103,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
 
   useEffect(() => {
     const handleDbChange = () => {
-      setDbUpdateTrigger(prev => prev + 1);
+      setDbUpdateTrigger((prev) => prev + 1);
     };
 
     window.electron.ipcRenderer.on('db-changed', handleDbChange);
@@ -74,18 +118,23 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   //   window.electron.ipcRenderer.send('show-dev-tools')
   // }, [])
 
+  const getLatestRun = useCallback(
+    (platformId) => {
+      const platformRuns = runs.filter((run) => run.platformId === platformId);
+      if (platformRuns.length === 0) return null;
 
-
-  const getLatestRun = useCallback((platformId) => {
-    const platformRuns = runs.filter(run => run.platformId === platformId);
-    if (platformRuns.length === 0) return null;
-
-    return platformRuns.reduce((latest, current) => {
-      const latestDate = latest.startDate ? new Date(latest.startDate) : new Date(0);
-      const currentDate = current.startDate ? new Date(current.startDate) : new Date(0);
-      return currentDate > latestDate ? current : latest;
-    });
-  }, [runs]);
+      return platformRuns.reduce((latest, current) => {
+        const latestDate = latest.startDate
+          ? new Date(latest.startDate)
+          : new Date(0);
+        const currentDate = current.startDate
+          ? new Date(current.startDate)
+          : new Date(0);
+        return currentDate > latestDate ? current : latest;
+      });
+    },
+    [runs],
+  );
 
   const renderSubRuns = (subRuns) => {
     const displayCount = 2;
@@ -96,7 +145,8 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       <div>
         {displayedRuns.map((subRun, index) => (
           <span key={subRun.id} className="text-sm text-gray-600">
-            {subRun.name}{index < displayedRuns.length - 1 ? ', ' : ''}
+            {subRun.name}
+            {index < displayedRuns.length - 1 ? ', ' : ''}
           </span>
         ))}
         {remainingCount > 0 && (
@@ -107,16 +157,17 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   };
 
   const filteredPlatforms = platforms
-  .filter(platform => platform.steps)
-  .filter(platform =>
-    platform.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    platform.company.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    .filter((platform) => platform.steps)
+    .filter(
+      (platform) =>
+        platform.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        platform.company.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
 
   const pageCount = Math.ceil(filteredPlatforms.length / itemsPerPage);
   const paginatedPlatforms = filteredPlatforms.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   const clearSearch = () => {
@@ -139,9 +190,8 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       url: platform.home_url,
       exportSize: null,
       currentStep: platform.steps[0],
-      logs: ''
+      logs: '',
     };
-
 
     dispatch(startRun(newRun));
     // dispatch(toggleRunVisibility());
@@ -157,22 +207,35 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     } else if (isYesterday(date)) {
       return `Yesterday at ${format(date, 'h:mm a')}`;
     } else {
-      return format(date, 'MMM d, yyyy \'at\' h:mm a');
+      return format(date, "MMM d, yyyy 'at' h:mm a");
     }
   };
 
   const getPlatformLogo = (platform) => {
     const Logo = theme === 'dark' ? platform.logo.dark : platform.logo.light;
     return Logo ? (
-      <div style={{ width: `${LOGO_SIZE}px`, height: `${LOGO_SIZE}px`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        style={{
+          width: `${LOGO_SIZE}px`,
+          height: `${LOGO_SIZE}px`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <Logo style={{ width: '100%', height: '100%' }} />
       </div>
     ) : null;
   };
 
-  const isExportRunning = useCallback((platformId) => {
-    return runs.some(run => run.platformId === platformId && run.status === 'running');
-  }, [runs]);
+  const isExportRunning = useCallback(
+    (platformId) => {
+      return runs.some(
+        (run) => run.platformId === platformId && run.status === 'running',
+      );
+    },
+    [runs],
+  );
 
   const onViewRunDetails = (run, platform) => {
     setSelectedRun({ run, platform });
@@ -207,57 +270,60 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     return `${formattedSize} ${units[unitIndex]}`;
   };
 
-const renderResults = (platform) => {
-  const latestRun = getLatestRun(platform.id);
-  const exportRunning = isExportRunning(platform.id);
-  const isHovered = hoveredPlatformId === platform.id;
+  const renderResults = (platform) => {
+    const latestRun = getLatestRun(platform.id);
+    const exportRunning = isExportRunning(platform.id);
+    const isHovered = hoveredPlatformId === platform.id;
 
-  return (
-    <div className="relative w-full flex items-center">
-      <div className="flex-grow flex items-center">
-        <div className="flex-shrink-0 mr-4 w-1/2">
-          {!latestRun || latestRun.status === 'idle' ? (
-            <div className="flex justify-between items-center w-full h-full">
-              <div></div>
+    return (
+      <div className="relative w-full flex items-center">
+        <div className="flex-grow flex items-center">
+          <div className="flex-shrink-0 mr-4 w-1/2">
+            {!latestRun || latestRun.status === 'idle' ? (
+              <div className="flex justify-between items-center w-full h-full">
+                <div></div>
+              </div>
+            ) : (
+              renderRunStatus(latestRun, platform)
+            )}
+          </div>
+          {latestRun && latestRun.status === 'running' && (
+            <div className="flex-grow overflow-hidden">
+              {showLogs(platform)}
             </div>
-          ) : (
-            renderRunStatus(latestRun, platform)
           )}
         </div>
-        {latestRun && latestRun.status === 'running' && (
-          <div className="flex-grow overflow-hidden">
-            {showLogs(platform)}
-          </div>
-        )}
       </div>
-    </div>
-  );
-};
+    );
+  };
 
   const renderRunStatus = (latestRun, platform) => {
     switch (latestRun.status) {
       case 'running':
-      return (
-        <div className="flex items-center space-x-2">
-          <div className="flex-grow">
-            <div className="flex items-center space-x-2 group">
-              <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
-              <span className="group-hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
-                {latestRun.currentStep?.name || 'Running...'}
-              </span>
-              <span
-                className="cursor-pointer flex items-center hover:underline"
-                onClick={() => onViewRunDetails(latestRun, platform)}
-              >
-                <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
-              </span>
+        return (
+          <div className="flex items-center space-x-2">
+            <div className="flex-grow">
+              <div className="flex items-center space-x-2 group">
+                <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
+                <span
+                  className="group-hover:underline cursor-pointer"
+                  onClick={() => onViewRunDetails(latestRun, platform)}
+                >
+                  {latestRun.currentStep?.name || 'Running...'}
+                </span>
+                <span
+                  className="cursor-pointer flex items-center hover:underline"
+                  onClick={() => onViewRunDetails(latestRun, platform)}
+                >
+                  <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
+                </span>
+              </div>
             </div>
-          </div>
-          {/* <div className="flex-grow ml-4">
+            {/* <div className="flex-grow ml-4">
             {showLogs(platform)}
           </div> */}
-        </div>
-      );
+          </div>
+        );
       case 'success':
         return (
           <div className="flex items-center space-x-2">
@@ -270,14 +336,24 @@ const renderResults = (platform) => {
               />
             )}
             <div
-              onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
+              onClick={() =>
+                window.electron.ipcRenderer.send(
+                  'open-folder',
+                  latestRun.exportPath,
+                )
+              }
               style={{ cursor: 'pointer' }}
             >
               <Folder size={17} color="#5a5a5a" />
             </div>
             <span
               className="cursor-pointer hover:underline"
-              onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
+              onClick={() =>
+                window.electron.ipcRenderer.send(
+                  'open-folder',
+                  latestRun.exportPath,
+                )
+              }
             >
               {formatExportSize(latestRun.exportSize)}
             </span>
@@ -296,7 +372,10 @@ const renderResults = (platform) => {
         return (
           <div className="flex items-center space-x-2">
             <X className="text-red-500" size={16} />
-            <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
+            <span
+              className="hover:underline cursor-pointer"
+              onClick={() => onViewRunDetails(latestRun, platform)}
+            >
               Export {latestRun.status === 'error' ? 'failed' : 'stopped'}
             </span>
           </div>
@@ -306,25 +385,31 @@ const renderResults = (platform) => {
     }
   };
 
-const showLogs = (platform) => {
-  const latestRun = activeRuns.find(run => run.platformId === platform.id);
-  if (!latestRun || !latestRun.logs) return null;
+  const showLogs = (platform) => {
+    const latestRun = activeRuns.find((run) => run.platformId === platform.id);
+    if (!latestRun || !latestRun.logs) return null;
 
-  const logLines = latestRun.logs.split('\n');
+    const logLines = latestRun.logs.split('\n');
 
-  return (
-    <div className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '300px' }}>
-      <pre className="font-mono text-xs whitespace-pre-wrap break-words">
-        {logLines.map((line, index) => (
-          <span key={index} className={line === 'YOU NEED TO SIGN IN!' ? 'text-red-500' : ''}>
-            {line}
-            {index < logLines.length - 1 && '\n'}
-          </span>
-        ))}
-      </pre>
-    </div>
-  );
-}
+    return (
+      <div
+        className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded"
+        style={{ maxWidth: '300px' }}
+      >
+        <pre className="font-mono text-xs whitespace-pre-wrap break-words">
+          {logLines.map((line, index) => (
+            <span
+              key={index}
+              className={line === 'YOU NEED TO SIGN IN!' ? 'text-red-500' : ''}
+            >
+              {line}
+              {index < logLines.length - 1 && '\n'}
+            </span>
+          ))}
+        </pre>
+      </div>
+    );
+  };
 
   useEffect(() => {
     const logContainer = document.querySelector('.overflow-y-auto');
@@ -334,12 +419,17 @@ const showLogs = (platform) => {
   }, [runs]);
 
   useEffect(() => {
-    runs.forEach(run => {
+    runs.forEach((run) => {
       const prevRun = prevRunsRef.current[run.id];
-      if (prevRun && prevRun.status === 'running' && run.status === 'success' && !completedRuns[run.id]) {
-        setCompletedRuns(prev => ({ ...prev, [run.id]: true }));
+      if (
+        prevRun &&
+        prevRun.status === 'running' &&
+        run.status === 'success' &&
+        !completedRuns[run.id]
+      ) {
+        setCompletedRuns((prev) => ({ ...prev, [run.id]: true }));
         setTimeout(() => {
-          setCompletedRuns(prev => {
+          setCompletedRuns((prev) => {
             const newState = { ...prev };
             delete newState[run.id];
             return newState;
@@ -359,7 +449,10 @@ const showLogs = (platform) => {
     <div className="w-full h-full flex-col px-[50px] pt-6 pb-6 select-none">
       <div className="flex-shrink-0 mb-4">
         <div className="relative w-full max-w-2xl">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <Search
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            size={20}
+          />
           <Input
             type="text"
             placeholder="Search company or platform..."
@@ -410,10 +503,18 @@ const showLogs = (platform) => {
                             {getPlatformLogo(platform)}
                             <div className="flex items-center">
                               <p className="flex items-center">
-                                <span className="text-gray-500">{platform.company}/</span>
-                                <span className="font-semibold">{platform.name}</span>
+                                <span className="text-gray-500">
+                                  {platform.company}/
+                                </span>
+                                <span className="font-semibold">
+                                  {platform.name}
+                                </span>
                               </p>
-                              <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
+                              <ArrowUpRight
+                                size={22}
+                                className="ml-1"
+                                color="#5a5a5a"
+                              />
                             </div>
                           </div>
                         </div>
@@ -425,20 +526,23 @@ const showLogs = (platform) => {
                         {renderResults(platform)}
                       </TableCell>
                       <TableCell>
-
-        <div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleExportClick(platform)}
-          >
-            <HardDriveDownload size={16} className="mr-2" />
-            {getLatestRun(platform.id) ? (getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export') : 'Export'}
-          </Button>
-        </div>
-
+                        <div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleExportClick(platform)}
+                          >
+                            <HardDriveDownload size={16} className="mr-2" />
+                            {getLatestRun(platform.id)
+                              ? getLatestRun(platform.id).status ===
+                                  'success' ||
+                                getLatestRun(platform.id).status === 'running'
+                                ? 'Re-Export'
+                                : 'Export'
+                              : 'Export'}
+                          </Button>
+                        </div>
                       </TableCell>
-
                     </TableRow>
                   ))}
                 </TableBody>
@@ -448,7 +552,9 @@ const showLogs = (platform) => {
           {filteredPlatforms.length > itemsPerPage && (
             <div className="flex-shrink-0 flex justify-between items-center mt-4">
               <div>
-                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredPlatforms.length)} of {filteredPlatforms.length} platforms
+                Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
+                {Math.min(currentPage * itemsPerPage, filteredPlatforms.length)}{' '}
+                of {filteredPlatforms.length} platforms
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -476,7 +582,9 @@ const showLogs = (platform) => {
       ) : (
         <div className="flex-grow flex items-center justify-center">
           <div className="text-center py-8 bg-gray-100 rounded-md">
-            <p className="text-gray-500 text-lg">No platforms found matching "{searchTerm}"</p>
+            <p className="text-gray-500 text-lg">
+              No platforms found matching "{searchTerm}"
+            </p>
             <button
               onClick={clearSearch}
               className="mt-2 text-blue-500 hover:underline"

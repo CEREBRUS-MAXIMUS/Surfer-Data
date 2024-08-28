@@ -14,12 +14,12 @@ contextBridge.exposeInMainWorld('electron', {
 
 ipcRenderer.on(
   'export-website',
-  async (event, company, name, runID, exportPath) => {
+  async (event, company, name, runID, steps, exportPath) => {
     customConsoleLog(runID, 'Exporting', name);
-
+    console.log('this steps: ', steps);
     switch (name) {
       case 'Gmail':
-        await exportGmail(company, name, runID);
+        await exportGmail(company, name, runID, steps);
         break;
     }
 

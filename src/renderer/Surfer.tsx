@@ -8,21 +8,30 @@ import Platform from './pages/Platform';
 import SubRun from './pages/SubRun';
 import Settings from './pages/Settings';
 import RunDetailsPage from './components/profile/RunDetailsPage';
-import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs } from './state/actions';
+import {
+  setContentScale,
+  setCurrentRoute,
+  updateBreadcrumb,
+  stopAllJobs,
+} from './state/actions';
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
 import { Progress } from './components/ui/progress';
-import { platforms } from './config/platforms';
+import { platforms } from '../config/platforms';
 
 function Surfer() {
   const dispatch = useDispatch();
-  const contentScale = useSelector((state: IAppState) => state.preferences.contentScale);
+  const contentScale = useSelector(
+    (state: IAppState) => state.preferences.contentScale,
+  );
   const route = useSelector((state: IAppState) => state.app.route);
   const runs = useSelector((state: IAppState) => state.app.runs);
-    const activeRuns = runs.filter(
-      (run) => run.status === 'pending' || run.status === 'running',
-    );
-  const webviewRefs = useRef<{ [key: string]: React.RefObject<HTMLWebViewElement> }>({});
+  const activeRuns = runs.filter(
+    (run) => run.status === 'pending' || run.status === 'running',
+  );
+  const webviewRefs = useRef<{
+    [key: string]: React.RefObject<HTMLWebViewElement>;
+  }>({});
 
   const [showNotConnectedAlert, setShowNotConnectedAlert] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
@@ -34,10 +43,15 @@ function Surfer() {
       setUpdateProgress(progress);
     };
 
-    window.electron.ipcRenderer.on('update-download-progress', handleUpdateDownloadProgress);
+    window.electron.ipcRenderer.on(
+      'update-download-progress',
+      handleUpdateDownloadProgress,
+    );
 
     return () => {
-      window.electron.ipcRenderer.removeAllListeners('update-download-progress');
+      window.electron.ipcRenderer.removeAllListeners(
+        'update-download-progress',
+      );
     };
   }, []);
 
@@ -89,7 +103,10 @@ function Surfer() {
       window.removeEventListener('keydown', handleKeyDown);
       window.electron.ipcRenderer.removeAllListeners('connect-website');
       window.electron.ipcRenderer.removeAllListeners('route-change');
-      window.electron.ipcRenderer.removeListener('stop-all-jobs', handleStopAllJobs);
+      window.electron.ipcRenderer.removeListener(
+        'stop-all-jobs',
+        handleStopAllJobs,
+      );
     };
   }, [dispatch, contentScale]);
 
@@ -111,7 +128,7 @@ function Surfer() {
       case 'platform':
         if (routeParts.length > 1) {
           const platformId = routeParts[1];
-          const platform = platforms.find(p => p.id === platformId);
+          const platform = platforms.find((p) => p.id === platformId);
           if (platform) {
             return <Platform platform={platform} />;
           } else {
@@ -124,14 +141,14 @@ function Surfer() {
         if (routeParts.length > 2) {
           const platformId = routeParts[1];
           const subRunId = routeParts[2];
-          const platform = platforms.find(p => p.id === platformId);
+          const platform = platforms.find((p) => p.id === platformId);
           if (platform) {
-            const subRun = platform.subRuns.find(sr => sr.id === subRunId);
+            const subRun = platform.subRuns.find((sr) => sr.id === subRunId);
             if (subRun) {
-              return <SubRun platform={platform} subRun={subRun} />
+              return <SubRun platform={platform} subRun={subRun} />;
             } else {
               console.warn(`SubRun not found for id: ${subRunId}`);
-              return <Platform platform={platform} />
+              return <Platform platform={platform} />;
             }
           } else {
             console.warn(`Platform not found for id: ${platformId}`);
@@ -162,7 +179,7 @@ function Surfer() {
     <div className={`flex h-screen`}>
       <div className="flex-1 transition-all duration-300">
         <div className="w-full h-full bg-background">
-          {(route === '/' || route === undefined) ? (
+          {route === '/' || route === undefined ? (
             <Landing />
           ) : (
             <Layout
@@ -184,13 +201,16 @@ function Surfer() {
             >
               <AlertTitle>Account not connected</AlertTitle>
               <AlertDescription>
-                Please sign into your account then hit the "I've signed in" button!
+                Please sign into your account then hit the "I've signed in"
+                button!
               </AlertDescription>
             </Alert>
           )}
           {updateProgress !== null && (
             <div className="fixed bottom-4 left-4 right-4 bg-background p-4 rounded-lg shadow-lg">
-              <h3 className="text-sm font-semibold mb-2">Downloading Update: {updateProgress.toFixed(0)}%</h3>
+              <h3 className="text-sm font-semibold mb-2">
+                Downloading Update: {updateProgress.toFixed(0)}%
+              </h3>
               <Progress value={updateProgress} className="w-full" />
             </div>
           )}
