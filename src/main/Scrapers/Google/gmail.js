@@ -19,14 +19,20 @@ async function checkIfEmailExists(emailContent) {
     console.error('User data path not available');
     return false;
   }
-
-  const surferDataPath = path.join(userDataPath, 'surfer_data');
-  const gmailPath = path.join(surferDataPath, 'Google', 'Gmail');
-
-  // If the Gmail folder doesn't exist, no emails have been exported yet
+  const gmailPath = path.join(userDataPath, 'surfer_data', 'Google', 'Gmail');
   if (!fs.existsSync(gmailPath)) {
     return false;
   }
+  const folders = fs.readdirSync(gmailPath).filter(item => fs.statSync(path.join(gmailPath, item)).isDirectory());
+  const lastFolder = folders.sort().pop();
+  const lastFolderPath = lastFolder ? path.join(gmailPath, lastFolder) : null;
+  if (!lastFolderPath) {
+    return false;
+  }
+  const extractedPath = path.join(lastFolderPath, 'extracted');
+
+  // If the Gmail folder doesn't exist, no emails have been exported yet
+
 
   // Get all items in the Gmail folder
   const items = fs.readdirSync(gmailPath);
@@ -43,6 +49,7 @@ async function checkIfEmailExists(emailContent) {
       for (const file of files) {
         const filePath = path.join(itemPath, file);
         const fileContent = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+
 
         // Check if the email content exists in the file
         if (
@@ -295,7 +302,7 @@ const emailDetails = document.getElementsByClassName('ajv');
                   ).toISOString() || null,
                 body: email.innerText || '',
               };
-              
+
               const emailExists = await checkIfEmailExists(JSON.stringify(emailJSON));
               if (emailExists) {
                 existingEmailFound = true;

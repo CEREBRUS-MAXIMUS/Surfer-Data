@@ -414,15 +414,16 @@ async function convertMboxToJson(
 
             isFirstMessage = false;
 
-            const jsonMessage = {
-            accountID: id,
-            from: message.from?.text,
-            to: message.to?.text || message.to,
-            subject: message.subject,
-            date: message.date,
-            added_to_db: new Date().toISOString(),
-            body: message.text,
-          };
+                          const jsonMessage = {
+                            accountID: id,
+                            from: message.from?.text,
+                            to: message.to?.text || message.to,
+                            subject: message.subject,
+                            timestamp: message.date,
+
+                            body: message.text,
+                            added_to_db: new Date().toISOString(),
+                          };
 
           writeStream.write(JSON.stringify(jsonMessage, null, 2));
         });
