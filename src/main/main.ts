@@ -762,25 +762,41 @@ ipcMain.on('handle-update', (event, company, name, emailContent, runID) => {
   const runPath = path.join(namePath, runID);
 
   // Create necessary folders
-  [surferDataPath, companyPath, namePath, runPath].forEach((dir) => {
+  [surferDataPath, companyPath, namePath].forEach((dir) => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
   });
 
+  if (fs.readdirSync(namePath).length === 0) {
+    fs.mkdirSync(runPath);
+  }
+
+  // Get the last folder in namePath
+  const lastFolder = fs.readdirSync(namePath).sort().pop();
+
+  let filePath;
   const timestamp = Date.now();
   const fileName = `${name}_${timestamp}.json`;
-  const filePath = path.join(runPath, fileName);
+
+  // If no file within last folder then create the file w/ timestamp else append to the last file in there
+  if (lastFolder) {
+    const lastFolderPath = path.join(namePath, lastFolder);
+    const filesInLastFolder = fs.readdirSync(lastFolderPath).filter(file => file.endsWith('.json'));
+    
+    if (filesInLastFolder.length === 0) {
+      filePath = path.join(lastFolderPath, fileName);
+    } else {
+      filePath = path.join(lastFolderPath, filesInLastFolder.sort().pop());
+    }
+  } else {
+    filePath = path.join(runPath, fileName);
+  }
 
   // Read existing data if available
   let existingData = { content: [] };
-  const existingFiles = fs
-    .readdirSync(runPath)
-    .filter((file) => file.endsWith('.json'));
-  if (existingFiles.length > 0) {
-    const latestFile = existingFiles.sort().pop();
-    const latestFilePath = path.join(runPath, latestFile);
-    existingData = JSON.parse(fs.readFileSync(latestFilePath, 'utf-8'));
+  if (fs.existsSync(filePath)) {
+    existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
   }
 
   // Append the new email to the existing content
@@ -797,7 +813,16 @@ ipcMain.on('export-complete', (event, company, name, runID) => {
   const surferDataPath = path.join(userData, 'surfer_data');
   const companyPath = path.join(surferDataPath, company);
   const namePath = path.join(companyPath, name);
-  const runPath = path.join(namePath, runID);
+  
+  // Get the last folder within namePath
+  const lastFolder = fs.readdirSync(namePath)
+    .filter(item => fs.statSync(path.join(namePath, item)).isDirectory())
+    .sort((a, b) => {
+      return fs.statSync(path.join(namePath, b)).mtime.getTime() - 
+             fs.statSync(path.join(namePath, a)).mtime.getTime();
+    })[0];
+
+  const runPath = lastFolder ? path.join(namePath, lastFolder) : namePath;
 
   // Get the size of all JSON files in the run folder
   const exportSize = fs
