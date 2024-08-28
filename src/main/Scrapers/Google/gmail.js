@@ -7,59 +7,172 @@ const {
 const { ipcRenderer } = require('electron');
 
 async function exportGmail(company, name, runID) {
-  await wait(2);
-  if (document.querySelector('h1')) {
-    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
-    ipcRenderer.send('connect-website', company);
-    return;
-  }
-  const emails = []; // will add JSON structure later + handle multiple emails in same thread!
+  const emails = [];
+  let steps = [
+    {
+      status: 'pending',
+      function: 'wait',
+      description: 'Waiting for the page to load',
+    },
+    {
+      status: 'pending',
+      function: 'checkSignIn',
+      elements: [
+        { selector: 'h1', name: 'Sign-in header', label: 'Sign-in check' },
+      ],
+      description: 'Checking if the user is signed in',
+    },
+    {
+      status: 'pending',
+      function: 'waitForElement',
+      elements: [
+        {
+          selector: "div.xS[role='link']",
+          name: 'Mail link',
+          label: 'Mail link',
+        },
+      ],
+      description: 'Waiting for mail link to appear',
+    },
+    {
+      status: 'pending',
+      function: 'click',
+      elements: [
+        {
+          selector: "div.xS[role='link']",
+          name: 'Mail link',
+          label: 'Mail link',
+        },
+      ],
+      description: 'Clicking on the mail link',
+    },
+    {
+      status: 'pending',
+      function: 'wait',
+      description: 'Waiting for the mail page to load',
+    },
+    {
+      status: 'pending',
+      function: 'collectEmails',
+      elements: [
+        { selector: '#\\:3', name: 'Email container', label: 'Email content' },
+        {
+          selector: '.h0',
+          name: 'Navigation buttons',
+          label: 'Email navigation',
+        },
+      ],
+      olderButtonLabel: 'Older',
+      description: 'Collecting emails',
+    },
+    {
+      status: 'pending',
+      function: 'sendExport',
+      description: 'Sending the export',
+    },
+  ];
+  // console.log('this steps: ', steps);
+  for (const step of steps) {
+    bigStepper(runID);
+    console.log('this step: ', step);
+    switch (step.function) {
+      case 'wait':
+        const waitTime = Math.random() * 2 + 1; // Random float between 1 and 3
+        customConsoleLog(runID, `Waiting for ${waitTime.toFixed(2)} seconds`);
+        await new Promise((resolve) => setTimeout(resolve, waitTime * 1000));
+        customConsoleLog(runID, `Waited for ${waitTime.toFixed(2)} seconds`);
+        break;
 
-  const mailLink = await waitForElement(runID, "div.xS[role='link']", 'Mail link');
-  if (!mailLink) {
-    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
-    ipcRenderer.send('connect-website', company);
-    return;
-  }
+      case 'checkSignIn':
+        if (document.querySelector(step.elements[0].selector)) {
+          customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
+          ipcRenderer.send('connect-website', company);
+          return;
+        }
+        break;
 
-  bigStepper(runID);
-  mailLink.click();
-  await wait(2);
+      case 'waitForElement':
+        const element = await waitForElement(
+          runID,
+          step.elements[0].selector,
+          step.elements[0].name,
+        );
+        if (!element) {
+          customConsoleLog(
+            runID,
+            `Element not found: ${step.elements[0].name}`,
+          );
+          return;
+        }
+        break;
 
-  bigStepper(runID);
-  while (true) {
-    const email = await waitForElement(runID, '#\\:3', 'Current email content');
-    if (email) {
-      emails.push(email.innerText || '');
+      case 'click':
+        const clickElement = document.querySelector(step.elements[0].selector);
+        if (clickElement) {
+          clickElement.click();
+        } else {
+          customConsoleLog(
+            runID,
+            `Click element not found: ${step.elements[0].name}`,
+          );
+        }
+        break;
+
+      case 'collectEmails':
+        while (true) {
+          const email = await waitForElement(
+            runID,
+            step.elements[0].selector,
+            step.elements[0].name,
+          );
+          if (email) {
+            emails.push(email.innerText || '');
+          }
+
+          const nextParent = await waitForElement(
+            runID,
+            step.elements[1].selector,
+            step.elements[1].name,
+          );
+          if (!nextParent) {
+            customConsoleLog(runID, 'Navigation buttons not found');
+            break;
+          }
+
+          const childNodes = Array.from(nextParent.childNodes);
+          const olderButton = childNodes.find(
+            (node) =>
+              node.getAttribute &&
+              node.getAttribute('aria-label') === step.olderButtonLabel,
+          );
+
+          if (
+            !olderButton ||
+            olderButton.getAttribute('aria-disabled') === 'true'
+          ) {
+            customConsoleLog(runID, 'Reached the end of emails');
+            break;
+          }
+
+          olderButton.click();
+          await wait(2);
+        }
+        break;
+
+      case 'sendExport':
+        const uniqueEmails = [...new Set(emails)];
+        customConsoleLog(
+          runID,
+          'Unique emails collected:',
+          uniqueEmails.length,
+        );
+        ipcRenderer.send('handle-export', company, name, uniqueEmails, runID);
+        break;
+
+      default:
+        customConsoleLog(runID, `Unknown action: ${step.function}`);
     }
-
-    const nextParent = await waitForElement(runID, '.h0', 'Next email button');
-    if (!nextParent) {
-      customConsoleLog(runID, 'Navigation buttons not found');
-      break;
-    }
-
-    const childNodes = Array.from(nextParent.childNodes);
-    const olderButton = childNodes.find(
-      (node) =>
-        node.getAttribute && node.getAttribute('aria-label') === 'Older',
-    );
-
-    if (!olderButton || olderButton.getAttribute('aria-disabled') === 'true') {
-      customConsoleLog(runID, 'Reached the end of emails');
-      break;
-    }
-
-    olderButton.click();
-    await wait(2);
   }
-  const uniqueEmails = [...new Set(emails)];
-  customConsoleLog(runID, 'Unique emails collected:', uniqueEmails.length);
-
-  bigStepper(runID);
-  ipcRenderer.send('handle-export', company, name, uniqueEmails, runID);
-
-  return;
 }
 
-module.exports = exportGmail;
+module.exports = { exportGmail };

@@ -52,13 +52,15 @@ export const initialState: IAppState = {
 };
 
 export interface IStep {
-  id: string;
-  name: string;
   status: 'pending' | 'running' | 'success' | 'error';
   errorMessage?: string;
   startTime?: string;
   endTime?: string;
-  logs: string;
+  logs?: string;
+  function?: string;
+  description?: string;
+  elementSelector?: string;
+  elementName?: string;
 }
 
 export interface ITask {
@@ -92,21 +94,25 @@ export interface IRun {
   exportSize?: number;
   exportDate?: string;
   exportPath?: string;
-  currentStep?: { id: number; name: string; status: 'pending' | 'running' | 'success' | 'error' };
+  currentStep?: {
+    id: number;
+    name: string;
+    status: 'pending' | 'running' | 'success' | 'error';
+  };
   logs?: string;
 }
 
 export interface IPlatform {
   id: string;
   name: string;
+  description: string;
   logo: {
-    light: string;
-    dark: string;
+    light: React.ComponentType;
+    dark: React.ComponentType;
   };
   company: string;
   companyLogo: string;
   home_url: string;
-  subRuns: ISubRun[];
   supportedOS: ('mac' | 'windows' | 'linux')[];
-  steps: Array<{ id: number; name: string; status: 'pending' | 'running' | 'success' | 'error' }>;
+  steps: IStep[];
 }
