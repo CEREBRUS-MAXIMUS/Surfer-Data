@@ -23,8 +23,6 @@ import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
 import { createClient } from '@supabase/supabase-js';
 
-
-
 let appIcon: Tray | null = null;
 
 require('dotenv').config();
@@ -111,50 +109,75 @@ let scrapingManager: ScrapingManager;
 const checkAndUpdateInstallation = async () => {
   const userDataPath = app.getPath('userData');
   const installedFilePath = path.join(userDataPath, 'installed.json');
-  const environment = process.env.NODE_ENV === 'production' ? 'production' : 'local';
+  const environment =
+    process.env.NODE_ENV === 'production' ? 'production' : 'local';
 
   // Break the function if environment isn't production
   if (environment !== 'production') {
-    console.log('Skipping installation check and update in non-production environment');
+    console.log(
+      'Skipping installation check and update in non-production environment',
+    );
     return;
   }
 
   try {
     if (!fs.existsSync(installedFilePath)) {
       // First-time installation
-      fs.writeFileSync(installedFilePath, JSON.stringify({ installed: true, version: app.getVersion(), environment }));
-      
+      fs.writeFileSync(
+        installedFilePath,
+        JSON.stringify({
+          installed: true,
+          version: app.getVersion(),
+          environment,
+        }),
+      );
+
       // Push installation data to Supabase
-      const { data: installationData, error: installationError } = await supabase.from('installations').insert({
-        version: app.getVersion(),
-        platform: process.platform,
-        arch: process.arch,
-        timestamp: new Date().toISOString(),
-      });
+      const { data: installationData, error: installationError } =
+        await supabase.from('installations').insert({
+          version: app.getVersion(),
+          platform: process.platform,
+          arch: process.arch,
+          timestamp: new Date().toISOString(),
+        });
 
       if (installationError) {
-        console.error('Error pushing installation data to Supabase:', installationError);
+        console.error(
+          'Error pushing installation data to Supabase:',
+          installationError,
+        );
       } else {
         console.log('Installation data pushed to Supabase');
       }
     } else {
       // Check if it's an update
-      const installedData = JSON.parse(fs.readFileSync(installedFilePath, 'utf-8'));
-      console.log('IN THE ELSE STATEMENT!')
+      const installedData = JSON.parse(
+        fs.readFileSync(installedFilePath, 'utf-8'),
+      );
+      console.log('IN THE ELSE STATEMENT!');
       console.log('INSTALLED DATA: ', installedData);
       console.log('APP VERSION: ', app.getVersion());
       if (installedData.version !== app.getVersion()) {
         // Update the version and environment in the file
-        fs.writeFileSync(installedFilePath, JSON.stringify({ installed: true, version: app.getVersion(), environment }));
-        console.log('TRYNA PUSH TO SUPABASE!')
+        fs.writeFileSync(
+          installedFilePath,
+          JSON.stringify({
+            installed: true,
+            version: app.getVersion(),
+            environment,
+          }),
+        );
+        console.log('TRYNA PUSH TO SUPABASE!');
         // Push update data to Supabase
-        const { data: updateData, error: updateError } = await supabase.from('app_updates').insert({
-          old_version: installedData.version,
-          new_version: app.getVersion(),
-          platform: process.platform,
-          arch: process.arch,
-          timestamp: new Date().toISOString(),
-        });
+        const { data: updateData, error: updateError } = await supabase
+          .from('app_updates')
+          .insert({
+            old_version: installedData.version,
+            new_version: app.getVersion(),
+            platform: process.platform,
+            arch: process.arch,
+            timestamp: new Date().toISOString(),
+          });
 
         if (updateError) {
           console.error('Error pushing update data to Supabase:', updateError);
@@ -182,7 +205,7 @@ export const createWindow = async (visible: boolean = true) => {
   };
 
   mainWindow = new BrowserWindow({
-    show: visible, 
+    show: visible,
     //set to max with on mac screen
     width: 1560,
     height: 1024,
@@ -466,19 +489,21 @@ export const createWindow = async (visible: boolean = true) => {
           if (filePath.toLowerCase().endsWith('.zip')) {
             // Handle Notion ZIP extraction
             const extractPath = path.join(idPath, 'extracted');
-            
+
             try {
               await extractZip(filePath, extractPath);
               console.log('Outer ZIP extracted to:', extractPath);
 
               // Find the inner ZIP file
-              const innerZipFile = fs.readdirSync(extractPath).find(file => file.endsWith('.zip'));
-              
+              const innerZipFile = fs
+                .readdirSync(extractPath)
+                .find((file) => file.endsWith('.zip'));
+
               if (innerZipFile) {
                 const innerZipPath = path.join(extractPath, innerZipFile);
                 await extractZip(innerZipPath, extractPath);
                 console.log('Inner ZIP extracted to:', extractPath);
-                
+
                 // Delete the inner ZIP file after extraction
                 fs.unlinkSync(innerZipPath);
               }
@@ -493,7 +518,7 @@ export const createWindow = async (visible: boolean = true) => {
                 path.basename(platformPath),
                 platformId,
                 extractPath,
-                exportSize
+                exportSize,
               );
             } catch (error) {
               console.error('Error extracting ZIP:', error);
@@ -510,7 +535,7 @@ export const createWindow = async (visible: boolean = true) => {
               path.basename(platformPath),
               platformId,
               idPath,
-              exportSize
+              exportSize,
             );
           }
         })
@@ -547,28 +572,28 @@ ipcMain.on('close-url', (event) => {
 });
 
 ipcMain.on('check-for-updates', () => {
-              autoUpdater
-                .checkForUpdates()
-                .then((updateCheckResult) => {
-                  if (
-                    updateCheckResult.updateInfo &&
-                    updateCheckResult.updateInfo.version &&
-                    updateCheckResult.updateInfo.version === app.getVersion()
-                  ) {
-                    dialog.showMessageBox(mainWindow, {
-                      type: 'info',
-                      title: 'No Updates',
-                      buttons: ['OK'],
-                      message: 'You are already on the latest version.',
-                    });
-                  }
-                })
-                .catch((err) => {
-                  dialog.showErrorBox(
-                    'Update Error',
-                    'Failed to check for updates: ' + err.toString(),
-                  );
-                });
+  autoUpdater
+    .checkForUpdates()
+    .then((updateCheckResult) => {
+      if (
+        updateCheckResult.updateInfo &&
+        updateCheckResult.updateInfo.version &&
+        updateCheckResult.updateInfo.version === app.getVersion()
+      ) {
+        dialog.showMessageBox(mainWindow, {
+          type: 'info',
+          title: 'No Updates',
+          buttons: ['OK'],
+          message: 'You are already on the latest version.',
+        });
+      }
+    })
+    .catch((err) => {
+      dialog.showErrorBox(
+        'Update Error',
+        'Failed to check for updates: ' + err.toString(),
+      );
+    });
 });
 
 ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
@@ -624,6 +649,83 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
   );
 });
 
+ipcMain.handle('get-user-data-path', () => {
+  return app.getPath('userData');
+});
+
+ipcMain.on('handle-update', (event, company, name, emailContent, runID) => {
+  console.log(
+    'handling update for: ',
+    company,
+    ', specific name: ',
+    name,
+    ', runID: ',
+    runID,
+  );
+
+  const userData = app.getPath('userData');
+  const surferDataPath = path.join(userData, 'surfer_data');
+  const companyPath = path.join(surferDataPath, company);
+  const namePath = path.join(companyPath, name);
+  const runPath = path.join(namePath, runID);
+
+  // Create necessary folders
+  [surferDataPath, companyPath, namePath, runPath].forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+
+  const timestamp = Date.now();
+  const fileName = `${name}_${timestamp}.json`;
+  const filePath = path.join(runPath, fileName);
+
+  // Read existing data if available
+  let existingData = { content: [] };
+  const existingFiles = fs
+    .readdirSync(runPath)
+    .filter((file) => file.endsWith('.json'));
+  if (existingFiles.length > 0) {
+    const latestFile = existingFiles.sort().pop();
+    const latestFilePath = path.join(runPath, latestFile);
+    existingData = JSON.parse(fs.readFileSync(latestFilePath, 'utf-8'));
+  }
+
+  // Append the new email to the existing content
+  existingData.content.push(emailContent);
+
+  // Write the updated data
+  fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
+
+  console.log(`Email appended to: ${filePath}`);
+});
+
+ipcMain.on('export-complete', (event, company, name, runID) => {
+  const userData = app.getPath('userData');
+  const surferDataPath = path.join(userData, 'surfer_data');
+  const companyPath = path.join(surferDataPath, company);
+  const namePath = path.join(companyPath, name);
+  const runPath = path.join(namePath, runID);
+
+  // Get the size of all JSON files in the run folder
+  const exportSize = fs
+    .readdirSync(runPath)
+    .filter((file) => file.endsWith('.json'))
+    .reduce(
+      (total, file) => total + fs.statSync(path.join(runPath, file)).size,
+      0,
+    );
+
+  mainWindow?.webContents.send(
+    'export-complete',
+    company,
+    name,
+    runID,
+    runPath,
+    exportSize,
+  );
+});
+
 ipcMain.on('connect-website', (event, company) => {
   mainWindow?.webContents.send('connect-website', company);
 });
@@ -641,7 +743,7 @@ autoUpdater.on('update-available', (info) => {
     .then((result) => {
       if (result.response === 0) {
         // User clicked 'Yes'
-        mainWindow?.webContents.send('update-download-progress', 0);        
+        mainWindow?.webContents.send('update-download-progress', 0);
         autoUpdater.downloadUpdate();
       }
     });
@@ -667,11 +769,9 @@ autoUpdater.on('update-downloaded', (info) => {
     })
     .then((result) => {
       if (result.response === 0) {
-        mainWindow?.webContents.send('update-download-progress', 100);      
+        mainWindow?.webContents.send('update-download-progress', 100);
         autoUpdater.quitAndInstall();
-      }
-
-      else {
+      } else {
         mainWindow?.webContents.send('update-download-progress', null);
       }
     });
@@ -758,8 +858,6 @@ app
     createRequiredFolders();
 
     autoUpdater.checkForUpdates();
-
-
 
     app.on('activate', () => {
       if (mainWindow === null) createWindow();
@@ -888,7 +986,12 @@ ipcMain.on('get-artifact-files', (event, exportPath) => {
 
 ipcMain.on('open-platform-export-folder', (event, company, name) => {
   console.log('open-platform-export-folder', company, name);
-  const exportFolderPath = path.join(app.getPath('userData'), 'surfer_data', company, name);
+  const exportFolderPath = path.join(
+    app.getPath('userData'),
+    'surfer_data',
+    company,
+    name,
+  );
   console.log('exportFolderPath', exportFolderPath);
   shell.openPath(exportFolderPath);
 });

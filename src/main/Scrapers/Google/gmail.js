@@ -5,10 +5,74 @@ const {
   bigStepper,
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
+const fs = require('fs');
+const path = require('path');
+const { app } = require('electron');
+
+let userDataPath;
+
+ipcRenderer.invoke('get-user-data-path').then((path) => {
+  userDataPath = path;
+});
+
+async function checkIfEmailExists(emailContent) {
+  if (!userDataPath) {
+    console.error('User data path not available');
+    return false;
+  }
+
+  const surferDataPath = path.join(userDataPath, 'surfer_data');
+  const gmailPath = path.join(surferDataPath, 'Google', 'Gmail');
+
+  // If the Gmail folder doesn't exist, no emails have been exported yet
+  if (!fs.existsSync(gmailPath)) {
+    return false;
+  }
+
+  // Get all items in the Gmail folder
+  const items = fs.readdirSync(gmailPath);
+
+  for (const item of items) {
+    const itemPath = path.join(gmailPath, item);
+    const stats = fs.statSync(itemPath);
+
+    if (stats.isDirectory()) {
+      // If it's a directory, check files inside
+      const files = fs
+        .readdirSync(itemPath)
+        .filter((file) => file.endsWith('.json'));
+      for (const file of files) {
+        const filePath = path.join(itemPath, file);
+        const fileContent = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+
+        // Check if the email content exists in the file
+        if (
+          fileContent.content &&
+          fileContent.content.some((email) => email.includes(emailContent))
+        ) {
+          return true;
+        }
+      }
+    } else if (stats.isFile() && item.endsWith('.json')) {
+      // If it's a JSON file, check its content
+      const fileContent = JSON.parse(fs.readFileSync(itemPath, 'utf-8'));
+
+      // Check if the email content exists in the file
+      if (
+        fileContent.content &&
+        fileContent.content.some((email) => email.includes(emailContent))
+      ) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 async function exportGmail(company, name, runID, steps) {
-  const emails = [];
-  console.log('this steps: ', steps);
+  let existingEmailFound = false;
+
   for (const step of steps) {
     bigStepper(runID);
     console.log('this step: ', step);
@@ -56,14 +120,28 @@ async function exportGmail(company, name, runID, steps) {
         break;
 
       case 'collectEmails':
-        while (true) {
+        while (!existingEmailFound) {
           const email = await waitForElement(
             runID,
             step.elements[0].selector,
             step.elements[0].name,
           );
           if (email) {
-            emails.push(email.innerText || '');
+            const emailContent = email.innerText || '';
+            const emailExists = await checkIfEmailExists(emailContent);
+            if (emailExists) {
+              existingEmailFound = true;
+              break;
+            }
+            // Send each new email immediately
+            ipcRenderer.send(
+              'handle-update',
+              company,
+              name,
+              emailContent,
+              runID,
+            );
+            customConsoleLog(runID, 'New email sent for update');
           }
 
           const nextParent = await waitForElement(
@@ -96,14 +174,9 @@ async function exportGmail(company, name, runID, steps) {
         }
         break;
 
-      case 'sendExport':
-        const uniqueEmails = [...new Set(emails)];
-        customConsoleLog(
-          runID,
-          'Unique emails collected:',
-          uniqueEmails.length,
-        );
-        ipcRenderer.send('handle-export', company, name, uniqueEmails, runID);
+      case 'sendUpdate':
+        customConsoleLog(runID, 'Email collection completed');
+        ipcRenderer.send('export-complete', company, name, runID);
         break;
 
       default:

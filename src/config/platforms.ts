@@ -5,7 +5,7 @@ export const platforms = [
   {
     id: 'gmail-001',
     name: 'Gmail',
-    description: 'Exports all emails.',
+    description: 'Exports all new emails.',
     logo: {
       light: GmailLight,
       dark: GmailDark,
@@ -73,12 +73,12 @@ export const platforms = [
           },
         ],
         olderButtonLabel: 'Older',
-        description: 'Collecting emails',
+        description: 'Collecting new emails',
       },
       {
         status: 'pending',
-        function: 'sendExport',
-        description: 'Sending the export',
+        function: 'sendUpdate',
+        description: 'Sending the update',
       },
     ],
   },
