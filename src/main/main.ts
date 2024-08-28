@@ -763,12 +763,7 @@ ipcMain.on('handle-update', (event, company, name, emailContent, runID) => {
   );
 
   const userData = app.getPath('userData');
-  const surferDataPath = path.join(userData, 'surfer_data');
-  const companyPath = path.join(surferDataPath, company);
-  const namePath = path.join(companyPath, name);
-  const runPath = path.join(namePath, 'gmail-001');
-  const extractedPath = path.join(runPath, 'extracted');
-  const filePath = path.join(extractedPath, 'converted_mbox.json');
+  const filePath = path.join(userData, 'surfer_data', company, name, 'gmail-001', 'extracted', 'converted_mbox.json');
 
   // Read existing data if available
   let existingData = [];

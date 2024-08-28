@@ -34,21 +34,19 @@ async function checkIfEmailExists(id, emailContent) {
 
   if (fs.existsSync(convertedMboxPath)) {
     const fileContent = JSON.parse(fs.readFileSync(convertedMboxPath, 'utf-8'));
-    console.log('fileContent: ', fileContent);
+   customConsoleLog('fileContent: ', fileContent);
     // Check if the email content exists in the file
     if (Array.isArray(fileContent)) {
       for (const email of fileContent) {
-        console.log('email: ', email);
-        if (email.body) {
-          if (email.body.includes(emailContent.body)) {
-            return true;
-          }
+        if (JSON.stringify(email.subject) === emailContent.subject) {
+          customConsoleLog('email exists: ', email);
+          return true;
         }
       }
     }
   }
   return false;
-}
+
 const jsonPath = path.join(extractedPath, jsonFile);
 const jsonContent = fs.readFileSync(jsonPath, 'utf8');
 const jsonData = JSON.parse(jsonContent);
@@ -175,7 +173,7 @@ async function continueExportTakeout(id) {
 }
 
 async function exportGmail(company, name, runID, steps) {
-  const gmailPath = path.join(userDataPath, 'surfer_data', 'Google', 'Gmail');
+  const gmailPath = path.join(userDataPath, 'surfer_data', 'Google', 'Gmail', 'gmail-001', 'extracted', 'converted_mbox.json');
 
   if (!fs.existsSync(gmailPath)) {
     ipcRenderer.sendToHost(
@@ -197,7 +195,7 @@ async function exportGmail(company, name, runID, steps) {
 
   for (const step of steps) {
     bigStepper(runID);
-    console.log('this step: ', step);
+    customConsoleLog('this step: ', step);
     switch (step.function) {
       case 'wait':
         const waitTime = Math.random() * 2 + 1; // Random float between 1 and 3
@@ -296,9 +294,10 @@ async function exportGmail(company, name, runID, steps) {
               };
 
               const emailExists = await checkIfEmailExists(
+                runID,
                 JSON.stringify(emailJSON),
               );
-              console.log('emailExists: ', emailExists);
+              customConsoleLog('emailExists: ', emailExists);
               if (emailExists) {
                 customConsoleLog(runID, 'Email already exists, skipping');
                 existingEmailFound = true;
