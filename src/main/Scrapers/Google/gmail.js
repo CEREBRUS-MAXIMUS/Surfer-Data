@@ -19,56 +19,34 @@ async function checkIfEmailExists(emailContent) {
     console.error('User data path not available');
     return false;
   }
-  const gmailPath = path.join(userDataPath, 'surfer_data', 'Google', 'Gmail');
+  const gmailPath = path.join(
+    userDataPath,
+    'surfer_data',
+    'Google',
+    'Gmail',
+    'gmail-001',
+  );
   if (!fs.existsSync(gmailPath)) {
     return false;
   }
-  const folders = fs
-    .readdirSync(gmailPath)
-    .filter((item) => fs.statSync(path.join(gmailPath, item)).isDirectory());
-  const lastFolder = folders.sort().pop();
-  const lastFolderPath = lastFolder ? path.join(gmailPath, lastFolder) : null;
-  if (!lastFolderPath) {
-    return false;
-  }
-  const extractedPath = path.join(lastFolderPath, 'extracted');
+  const extractedPath = path.join(gmailPath, 'extracted');
+  const convertedMboxPath = path.join(extractedPath, 'converted_mbox.json');
 
-  // If the Gmail folder doesn't exist, no emails have been exported yet
-
-  // Get all items in the Gmail folder
-  const items = fs.readdirSync(gmailPath);
-
-  for (const item of items) {
-    const itemPath = path.join(gmailPath, item);
-    const stats = fs.statSync(itemPath);
-
-    if (stats.isDirectory()) {
-      const extractedPath = path.join(itemPath, 'extracted');
-      const convertedMboxPath = path.join(extractedPath, 'converted_mbox.json');
-
-      if (fs.existsSync(convertedMboxPath)) {
-        const fileContent = JSON.parse(
-          fs.readFileSync(convertedMboxPath, 'utf-8'),
-        );
-
-        // Check if the email content exists in the file
-        if (Array.isArray(fileContent)) {
-          for (const email of fileContent) {
-            if (
-              email.from === emailContent.from &&
-              email.to === emailContent.to &&
-              email.subject === emailContent.subject &&
-              email.date === emailContent.date &&
-              email.body === emailContent.body
-            ) {
-              return true;
-            }
+  if (fs.existsSync(convertedMboxPath)) {
+    const fileContent = JSON.parse(fs.readFileSync(convertedMboxPath, 'utf-8'));
+    console.log('fileContent: ', fileContent);
+    // Check if the email content exists in the file
+    if (Array.isArray(fileContent)) {
+      for (const email of fileContent) {
+        console.log('email: ', email);
+        if (email.body) {
+          if (email.body.includes(emailContent.body)) {
+            return true;
           }
         }
       }
     }
   }
-
   return false;
 }
 
@@ -305,9 +283,11 @@ async function exportGmail(company, name, runID, firstExport, steps) {
               const emailExists = await checkIfEmailExists(
                 JSON.stringify(emailJSON),
               );
+              console.log('emailExists: ', emailExists);
               if (emailExists) {
+                customConsoleLog(runID, 'Email already exists, skipping');
                 existingEmailFound = true;
-                break;
+                continue; // Skip this email and continue with the next one
               }
               ipcRenderer.send(
                 'handle-update',
@@ -351,10 +331,10 @@ async function exportGmail(company, name, runID, firstExport, steps) {
         }
         break;
 
-      case 'sendUpdate':
-        customConsoleLog(runID, 'Email collection completed');
-        ipcRenderer.send('handle-update', company, name, emailContent, runID);
-        break;
+      // case 'sendUpdate':
+      //   customConsoleLog(runID, 'Email collection completed');
+      //   ipcRenderer.send('handle-update', company, name, emailContent, runID);
+      //   break;
 
       default:
         customConsoleLog(runID, `Unknown action: ${step.function}`);
