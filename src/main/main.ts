@@ -1090,9 +1090,9 @@ ipcMain.on('open-folder', (event, folderPath) => {
 ipcMain.on('get-artifact-files', (event, exportPath) => {
   try {
     console.log('Reading artifact files from:', exportPath);
-    const artifactFiles = [];
+    const artifactFiles: { name: string; content: string }[] = [];
 
-    function readFilesRecursively(currentPath) {
+    function readFilesRecursively(currentPath: string) {
       const items = fs.readdirSync(currentPath);
       items.forEach((item) => {
         const itemPath = path.join(currentPath, item);
@@ -1100,8 +1100,11 @@ ipcMain.on('get-artifact-files', (event, exportPath) => {
         if (stats.isDirectory()) {
           readFilesRecursively(itemPath);
         } else {
-          const content = fs.readFileSync(itemPath, 'utf-8');
-          artifactFiles.push({ name: item, content });
+          const fileExtension = path.extname(item).toLowerCase();
+          if (['.json', '.txt', '.md'].includes(fileExtension)) {
+            const content = fs.readFileSync(itemPath, 'utf-8');
+            artifactFiles.push({ name: item, content });
+          }
         }
       });
     }
