@@ -57,9 +57,11 @@ async function exportLinkedin(company, name, runID) {
 
         await wait(2);
 
+        customConsoleLog(runID, 'Waiting for Contact Info');
         const contactInfoElements = await waitForElement(runID, '.pv-contact-info__contact-type', 'Contact Info Elements', true);
 
         if (contactInfoElements) {
+          customConsoleLog(runID, 'Trying to get contact info (if any)');
           let email = '';
           // Loop through each element
           Array.from(contactInfoElements).forEach((element) => {

@@ -15,6 +15,8 @@ async function exportChatgpt(company, runID) {
         return;
     }
 
+      customConsoleLog(runID, `Waiting for Dialog Box`);
+
   const dialogBox = await waitForElement(runID, 'div[role="tablist"]', 'Dialog Box', true);
 
   if (!dialogBox) {
@@ -52,6 +54,7 @@ async function continueExportChatgpt(id){
   }
       const checkEmails = async () => {
         const emails = await waitForElement(id, "div.xS[role='link']", 'Download Email', true);
+        customConsoleLog(id, `Waiting for email from OpenAI`);
         for (const email of emails) {
           if (email.innerText.includes('ChatGPT - Your data export is ready')) {
             bigStepper(id)
@@ -63,10 +66,31 @@ async function continueExportChatgpt(id){
       };
 
       let emailFound = false;
+      let refreshCounter = 0;
       while (!emailFound) {
-        emailFound = await checkEmails();
+        emailFound = await checkEmails(); 
         if (!emailFound) {
           await wait(1);
+          refreshCounter++;
+          
+          if (refreshCounter >= 5) {
+            const refreshButton = document.querySelector('div[role="button"][aria-label="Refresh"]');
+            if (refreshButton) {
+
+              // had to simulate a click because gmail is weird
+    ['mousedown', 'click', 'mouseup'].forEach((eventType) => {
+      var event = new MouseEvent(eventType, {
+        view: window,
+        bubbles: true,
+        cancelable: true,
+      });
+      refreshButton.dispatchEvent(event);
+    });
+              customConsoleLog(id, 'Refreshing emails');
+              await wait(1); // Wait for refresh to complete
+            }
+            refreshCounter = 0;
+          }
         }
       }
       // Wait for the email to load
@@ -74,6 +98,7 @@ async function continueExportChatgpt(id){
 
       let downloadBtns = [];
       while (downloadBtns.length === 0) {
+        customConsoleLog(id, `Waiting for Download button`);
         downloadBtns = await waitForElement(
           id,
           'a[href*="https://proddatamgmtqueue.blob.core.windows.net/exportcontainer/"]',

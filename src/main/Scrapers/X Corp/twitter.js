@@ -8,7 +8,7 @@ async function exportTwitter(company, name, runID) {
     ipcRenderer.send('connect-website', company);
     return;
   }
-  customConsoleLog('Querying for profile pictures');
+  customConsoleLog(runID, 'Waiting for profile pictures');
   const profilePics = await waitForElement(
     runID,
     'img.css-9pa8cd',
@@ -36,6 +36,7 @@ async function exportTwitter(company, name, runID) {
   bigStepper(runID);
   customConsoleLog(runID, 'Starting tweet collection');
   while (noNewTweetsCount < 3) {
+    customConsoleLog(runID, 'Waiting for tweets');
     const tweets = await waitForElement(
       runID,
       'div[data-testid="cellInnerDiv"]',

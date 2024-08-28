@@ -18,14 +18,16 @@ async function exportYouTube(company, name, runID) {
   bigStepper(runID);
 
   // Extract video information
+  customConsoleLog(runID, 'Waiting for Video elements');
   const videoElements = await waitForElement(
-    runID,  
+    runID,
     'ytd-rich-grid-media',
     'Video elements',
     true,
   );
 
   if (videoElements && videoElements.length > 0) {
+    customConsoleLog(runID, 'Got Video elements');
     for (const videoElement of videoElements) {
       const titleElement = videoElement.querySelector(
         'yt-formatted-string#video-title',

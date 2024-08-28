@@ -21,9 +21,11 @@ async function exportNotion(company, runID) {
   await wait(5);
 
   // First Settings button
+  customConsoleLog(runID, 'Waiting for First settings button');
   const settingsButton = await waitForElement(runID, 'div[role="button"]', 'First settings button', true);
   let foundSettings = false;
   if (settingsButton) {
+    customConsoleLog(runID, 'Got first settings button');
     for (const btn of settingsButton) {
       if (btn.textContent.includes('Settings') && btn.querySelector('svg')) {
         btn.scrollIntoView({ behavior: 'instant', block: 'center' });
@@ -36,6 +38,7 @@ async function exportNotion(company, runID) {
   }
         await wait(4);
   // Second Settings button
+  customConsoleLog(runID, 'Waiting for Second settings button');
   const newButtons = await waitForElement(runID, 'div[role="button"]', 'Second settings button', true);
   foundSettings = false;
   if (newButtons) {
@@ -45,6 +48,7 @@ async function exportNotion(company, runID) {
         const grandchildDivs = childDiv.querySelectorAll('div');
         for (const grandchildDiv of grandchildDivs) {
           if (grandchildDiv.textContent === 'Settings') {
+            customConsoleLog(runID, 'Got second settings button');
             grandchildDiv.scrollIntoView({ behavior: 'instant', block: 'center' });
             bigStepper(runID);
             grandchildDiv.click();
@@ -60,6 +64,7 @@ async function exportNotion(company, runID) {
   }
 
   // Export all workspace content button
+  customConsoleLog(runID, 'Waiting for Export all workspace content button');
   const exportButton = await waitForElement(runID, 'div[role="button"]', 'Export all workspace content button', true);
   let foundExport = false;
   if (exportButton) {
@@ -67,6 +72,7 @@ async function exportNotion(company, runID) {
       if (btn.textContent.includes('Export all workspace content')) {
         btn.scrollIntoView({ behavior: 'instant', block: 'center' });
         bigStepper(runID);
+        customConsoleLog(runID, 'Got export all workspace content button');
         btn.click();
         foundExport = true;
         await wait(2);
@@ -76,6 +82,7 @@ async function exportNotion(company, runID) {
   }
 
   // Final Export button
+  customConsoleLog(runID, 'Waiting for Final Export button');
   const finalExportButton = await waitForElement(runID, 'div[role="button"]', 'Final Export button', true);
   let foundFinalExport = false;
   if (finalExportButton) {
@@ -83,6 +90,7 @@ async function exportNotion(company, runID) {
       if (btn.textContent === 'Export') {
         btn.scrollIntoView({ behavior: 'instant', block: 'center' });
         bigStepper(runID);
+        customConsoleLog(runID, 'Got final export button');
         btn.click();
         await wait(2);  
         foundFinalExport = true;
