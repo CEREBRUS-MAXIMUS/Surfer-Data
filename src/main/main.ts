@@ -391,52 +391,50 @@ export const createWindow = async (visible: boolean = true) => {
     });
   }
 
+  async function convertMboxToJson(
+    mboxFilePath: string,
+    jsonOutputPath: string,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const readStream = fs.createReadStream(mboxFilePath);
+      const writeStream = fs.createWriteStream(jsonOutputPath);
 
+      writeStream.write('[');
+      let isFirstMessage = true;
 
-async function convertMboxToJson(
-  mboxFilePath: string,
-  jsonOutputPath: string,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const readStream = fs.createReadStream(mboxFilePath);
-    const writeStream = fs.createWriteStream(jsonOutputPath);
-
-    writeStream.write('[');
-    let isFirstMessage = true;
-
-    mboxParser(readStream)
-      .then((messages) => {
-        messages.forEach((message) => {
-          if (!isFirstMessage) {
-            writeStream.write(',');
-          }
+      mboxParser(readStream)
+        .then((messages) => {
+          messages.forEach((message) => {
+            if (!isFirstMessage) {
+              writeStream.write(',');
+            }
 
             isFirstMessage = false;
 
             const jsonMessage = {
-            from: message.from?.text,
-            to: message.to?.text || message.to,
-            subject: message.subject,
-            date: message.date,
-            added_to_db: new Date().toISOString(),
-            body: message.text,
-          };
+              from: message.from?.text,
+              to: message.to?.text || message.to,
+              subject: message.subject,
+              date: message.date,
+              added_to_db: new Date().toISOString(),
+              body: message.text,
+            };
 
-          writeStream.write(JSON.stringify(jsonMessage, null, 2));
+            writeStream.write(JSON.stringify(jsonMessage, null, 2));
+          });
+
+          writeStream.write(']');
+          writeStream.end();
+          console.log('MBOX to JSON conversion completed');
+          resolve();
+        })
+        .catch((error) => {
+          console.error('Error parsing MBOX:', error);
+          writeStream.end(']');
+          reject(error);
         });
-
-        writeStream.write(']');
-        writeStream.end();
-        console.log('MBOX to JSON conversion completed');
-        resolve();
-      })
-      .catch((error) => {
-        console.error('Error parsing MBOX:', error);
-        writeStream.end(']');
-        reject(error);
-      });
-  });
-}
+    });
+  }
   let lastDownloadUrl = '';
   let lastDownloadTime = 0;
 
@@ -478,14 +476,12 @@ async function convertMboxToJson(
         platformPath = path.join(companyPath, 'ChatGPT');
         platformId = `chatgpt-001-${Date.now()}`;
         idPath = path.join(platformPath, platformId);
-      } 
-      else if (url.includes('takeout-download.usercontent.google.com')) {
+      } else if (url.includes('takeout-download.usercontent.google.com')) {
         companyPath = path.join(surferDataPath, 'Google');
         platformPath = path.join(companyPath, 'Gmail');
-        platformId = `gmail-001-${Date.now()}`;
+        platformId = `gmail-001`;
         idPath = path.join(platformPath, platformId);
-      }
-      else {
+      } else {
         console.error('Unknown download URL, needs to be handled:', url);
         return;
       }
@@ -584,26 +580,27 @@ async function convertMboxToJson(
                   return null;
                 };
 
-  const mboxFilePath = findMboxFile(extractPath);
-  if (mboxFilePath) {
-    const jsonOutputPath = path.join(extractPath, 'converted_mbox.json');
+                const mboxFilePath = findMboxFile(extractPath);
+                if (mboxFilePath) {
+                  const jsonOutputPath = path.join(
+                    extractPath,
+                    'converted_mbox.json',
+                  );
 
-    try {
-      console.log('Converting MBOX to JSON:', mboxFilePath);
-      await convertMboxToJson(mboxFilePath, jsonOutputPath);
-      console.log('MBOX converted to JSON:', jsonOutputPath);
-
-
-    } catch (error) {
-      console.error('Error converting MBOX to JSON:', error);
-      mainWindow?.webContents.send('download-error', {
-        fileName,
-        error: 'Error converting MBOX to JSON: ' + error.message,
-      });
-    }
-  } else {
-    console.log('No MBOX file found in the extracted content.');
-  }
+                  try {
+                    console.log('Converting MBOX to JSON:', mboxFilePath);
+                    await convertMboxToJson(mboxFilePath, jsonOutputPath);
+                    console.log('MBOX converted to JSON:', jsonOutputPath);
+                  } catch (error) {
+                    console.error('Error converting MBOX to JSON:', error);
+                    mainWindow?.webContents.send('download-error', {
+                      fileName,
+                      error: 'Error converting MBOX to JSON: ' + error.message,
+                    });
+                  }
+                } else {
+                  console.log('No MBOX file found in the extracted content.');
+                }
               }
               mainWindow?.webContents.send(
                 'export-complete',
@@ -760,65 +757,30 @@ ipcMain.on('handle-update', (event, company, name, emailContent, runID) => {
   const surferDataPath = path.join(userData, 'surfer_data');
   const companyPath = path.join(surferDataPath, company);
   const namePath = path.join(companyPath, name);
-  const runPath = path.join(namePath, runID);
-
-  // Create necessary folders
-  [surferDataPath, companyPath, namePath].forEach((dir) => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  });
-
-  if (fs.readdirSync(namePath).length === 0) {
-    fs.mkdirSync(runPath);
-  }
-
-  // Get the last folder in namePath
-  const lastFolder = fs.readdirSync(namePath).sort().pop();
-
-  let filePath;
-  const timestamp = Date.now();
-  const fileName = `${name}_${timestamp}.json`;
-
-  // If no file within last folder then create the file w/ timestamp else append to the last file in there
-  if (lastFolder) {
-    const lastFolderPath = path.join(namePath, lastFolder);
-    const filesInLastFolder = fs.readdirSync(lastFolderPath).filter(file => file.endsWith('.json'));
-    if (filesInLastFolder.length === 0) {
-      const extractedFolder = path.join(lastFolderPath, 'extracted');
-      if (fs.existsSync(extractedFolder)) { // if the extracted folder exists
-        const jsonFile = fs
-          .readdirSync(extractedFolder)
-          .filter((file) => file.endsWith('.json'))
-          .sort()
-          .pop();
-        filePath = path.join(extractedFolder, jsonFile);
-
-      } else {
-        filePath = path.join(lastFolderPath, fileName);
-      }
-    } else {
-      filePath = path.join(lastFolderPath, filesInLastFolder.sort().pop());
-    }
-  } else {
-    filePath = path.join(runPath, fileName);
-  }
+  const runPath = path.join(namePath, 'gmail-001');
+  const extractedPath = path.join(runPath, 'extracted');
+  const convertedMboxPath = path.join(extractedPath, 'converted_mbox.json');
 
   // Read existing data if available
-  let existingData = { };
-  if (fs.existsSync(filePath)) {
-    existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8')); 
+  let existingData = [];
+  if (fs.existsSync(convertedMboxPath)) {
+    existingData = JSON.parse(fs.readFileSync(convertedMboxPath, 'utf-8'));
   }
+
+  // Parse the emailContent if it's a string
+  const parsedEmailContent =
+    typeof emailContent === 'string' ? JSON.parse(emailContent) : emailContent;
+
+  // Add timestamp to the email content
+  parsedEmailContent.added_to_db = new Date().toISOString();
+
   // Append the new email to the existing content
-
-            emailContent.added_to_db = new Date().toISOString();
-
-              existingData.push(JSON.parse(emailContent));
+  existingData.push(parsedEmailContent);
 
   // Write the updated data
-  fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
+  fs.writeFileSync(convertedMboxPath, JSON.stringify(existingData, null, 2));
 
-  console.log(`Email appended to: ${filePath}`);
+  console.log(`Email appended to: ${convertedMboxPath}`);
 });
 
 ipcMain.on('export-complete', (event, company, name, runID) => {
@@ -826,13 +788,16 @@ ipcMain.on('export-complete', (event, company, name, runID) => {
   const surferDataPath = path.join(userData, 'surfer_data');
   const companyPath = path.join(surferDataPath, company);
   const namePath = path.join(companyPath, name);
-  
+
   // Get the last folder within namePath
-  const lastFolder = fs.readdirSync(namePath)
-    .filter(item => fs.statSync(path.join(namePath, item)).isDirectory())
+  const lastFolder = fs
+    .readdirSync(namePath)
+    .filter((item) => fs.statSync(path.join(namePath, item)).isDirectory())
     .sort((a, b) => {
-      return fs.statSync(path.join(namePath, b)).mtime.getTime() - 
-             fs.statSync(path.join(namePath, a)).mtime.getTime();
+      return (
+        fs.statSync(path.join(namePath, b)).mtime.getTime() -
+        fs.statSync(path.join(namePath, a)).mtime.getTime()
+      );
     })[0];
 
   const runPath = lastFolder ? path.join(namePath, lastFolder) : namePath;
@@ -918,7 +883,6 @@ autoUpdater.on('error', (info) => {
   });
   // curWindow.showMessage(info);
 });
-
 
 ipcMain.handle('restart-app', () => {
   app.relaunch();
