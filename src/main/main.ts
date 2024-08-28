@@ -805,15 +805,19 @@ ipcMain.on('handle-update', (event, company, name, emailContent, runID) => {
   }
 
   // Read existing data if available
-  let existingData = { };
+  let existingData = [];
   if (fs.existsSync(filePath)) {
     existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8')); 
   }
-  // Append the new email to the existing content
+  
+ let parsedEmailContent = JSON.parse(emailContent);
 
-            emailContent.added_to_db = new Date().toISOString();
+ // Add the added_to_db key
+ parsedEmailContent.added_to_db = new Date().toISOString();
 
-              existingData.push(JSON.parse(emailContent));
+ // Append the updated email content to the existing data
+ existingData.push(parsedEmailContent);
+
 
   // Write the updated data
   fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
