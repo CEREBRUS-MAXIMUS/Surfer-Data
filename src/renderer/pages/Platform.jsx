@@ -1,13 +1,36 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../components/ui/table';
 import { Download, ChevronRight, ChevronDown, Folder } from 'lucide-react';
 import { openDB } from 'idb';
 import RunDetailsPage from '../components/profile/RunDetailsPage';
 import SubRun from './SubRun';
 import { useTheme } from '../components/ui/theme-provider';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '../components/ui/alert-dialog';
 import { useDispatch } from 'react-redux';
 import { deleteRunsForPlatform } from '../state/actions';
 import { deleteRunsForPlatformFromDB } from '../lib/databases';
@@ -32,13 +55,13 @@ const Platform = ({ platform }) => {
         },
       });
       const loadedRuns = await db.getAll('runs');
-      setRuns(loadedRuns.filter(run => run.platformId === platform.id));
+      setRuns(loadedRuns.filter((run) => run.platformId === platform.id));
     };
     loadRuns();
   }, [platform.id]);
 
   const toggleRunExpansion = (runId) => {
-    setExpandedRuns(prev => ({ ...prev, [runId]: !prev[runId] }));
+    setExpandedRuns((prev) => ({ ...prev, [runId]: !prev[runId] }));
   };
 
   const handleViewDetails = (run) => {
@@ -51,11 +74,13 @@ const Platform = ({ platform }) => {
 
   const handleSubRunClick = (subRun) => {
     dispatch(setCurrentRoute(`/subrun/${platform.id}/${subRun.id}`));
-    dispatch(updateBreadcrumb([
-      { icon: 'Home', text: 'Home', link: '/home' },
-      { text: platform.name, link: `/platform/${platform.id}` },
-      { text: subRun.name, link: `/subrun/${platform.id}/${subRun.id}` }
-    ]));
+    dispatch(
+      updateBreadcrumb([
+        { icon: 'Home', text: 'Home', link: '/home' },
+        { text: platform.name, link: `/platform/${platform.id}` },
+        { text: subRun.name, link: `/subrun/${platform.id}/${subRun.id}` },
+      ]),
+    );
   };
 
   const handleDeleteAllData = async () => {
@@ -71,7 +96,15 @@ const Platform = ({ platform }) => {
   const getPlatformLogo = () => {
     const Logo = theme === 'dark' ? platform.logo.dark : platform.logo.light;
     return Logo ? (
-      <div style={{ width: `${LOGO_SIZE}px`, height: `${LOGO_SIZE}px`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        style={{
+          width: `${LOGO_SIZE}px`,
+          height: `${LOGO_SIZE}px`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <Logo style={{ width: '100%', height: '100%' }} />
       </div>
     ) : null;
@@ -79,12 +112,16 @@ const Platform = ({ platform }) => {
 
   const handleOpenExportFolder = () => {
     console.log('open-platform-export-folder', platform.company, platform.name);
-    window.electron.ipcRenderer.send('open-platform-export-folder', platform.company, platform.name);
+    window.electron.ipcRenderer.send(
+      'open-platform-export-folder',
+      platform.company,
+      platform.name,
+    );
   };
 
   return (
     <div className="space-y-8 px-[50px] pt-6">
-          {/* {getPlatformLogo()}
+      {/* {getPlatformLogo()}
           <div>
             <CardTitle className="text-2xl">{platform.name}</CardTitle>
           </div>
@@ -105,28 +142,28 @@ const Platform = ({ platform }) => {
         </CardContent>
       </Card> */}
 
-          <div className="flex justify-between items-center">
-            <CardTitle>{platform.name} History</CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleOpenExportFolder}
-              className="flex items-center"
-            >
-              <Folder size={16} className="mr-2" />
-              Open Export Folder
-            </Button>
-          </div>
+      <div className="flex justify-between items-center">
+        <CardTitle>{platform.name} History</CardTitle>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleOpenExportFolder}
+          className="flex items-center"
+        >
+          <Folder size={16} className="mr-2" />
+          Open Export Folder
+        </Button>
+      </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>Result</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {runs.map((run) => {
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Time</TableHead>
+            <TableHead>Result</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {/* {runs.map((run) => {
                 const subRun = platform.subRuns.find(sr => sr.id === run.subRunId);
                 return (
                   <React.Fragment key={run.id}>
@@ -147,9 +184,9 @@ const Platform = ({ platform }) => {
 
                   </React.Fragment>
                 );
-              })}
-            </TableBody>
-          </Table>
+              })} */}
+        </TableBody>
+      </Table>
 
       <Card>
         <CardHeader>
@@ -164,7 +201,9 @@ const Platform = ({ platform }) => {
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete all data associated with {platform.name}, including all runs and extracted information.
+                  This action cannot be undone. This will permanently delete all
+                  data associated with {platform.name}, including all runs and
+                  extracted information.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

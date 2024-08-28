@@ -19,28 +19,34 @@ async function checkIfEmailExists(id, emailContent) {
     console.error('User data path not available');
     return false;
   }
-  const gmailPath = path.join(userDataPath, 'surfer_data', 'Google', 'Gmail');
+  const gmailPath = path.join(
+    userDataPath,
+    'surfer_data',
+    'Google',
+    'Gmail',
+    'gmail-001',
+  );
   if (!fs.existsSync(gmailPath)) {
     return false;
   }
-  const folders = fs.readdirSync(gmailPath)
-    .filter(item => fs.statSync(path.join(gmailPath, item)).isDirectory());
-  const folderWithExtracted = folders.find((folder) => {
-    const folderPath = path.join(gmailPath, folder);
-    return fs.existsSync(path.join(folderPath, 'extracted'));
-  });
+  const extractedPath = path.join(gmailPath, 'extracted');
+  const convertedMboxPath = path.join(extractedPath, 'converted_mbox.json');
 
-  const folderWithExtractedPath = path.join(gmailPath, folderWithExtracted);
-  const extractedPath = path.join(folderWithExtractedPath, 'extracted');
-
-  // If the Gmail folder doesn't exist, no emails have been exported yet
-
-
-  // Get all items in the Gmail folder
-  const items = fs.readdirSync(extractedPath);
-// ge tthe json file 
-const jsonFile = items.find(item => item.endsWith('.json'));
-if (!jsonFile) {
+  if (fs.existsSync(convertedMboxPath)) {
+    const fileContent = JSON.parse(fs.readFileSync(convertedMboxPath, 'utf-8'));
+    console.log('fileContent: ', fileContent);
+    // Check if the email content exists in the file
+    if (Array.isArray(fileContent)) {
+      for (const email of fileContent) {
+        console.log('email: ', email);
+        if (email.body) {
+          if (email.body.includes(emailContent.body)) {
+            return true;
+          }
+        }
+      }
+    }
+  }
   return false;
 }
 const jsonPath = path.join(extractedPath, jsonFile);
@@ -60,33 +66,33 @@ return emailExists;
 }
 
 async function exportTakeout(id) {
-    await wait(4);
-    const nextButton = await waitForElement(
-      id,
-      'button[aria-label="Next step"]',
-      'Next Step',
-    );
-    nextButton.scrollIntoView();
-    nextButton.click();
+  await wait(4);
+  const nextButton = await waitForElement(
+    id,
+    'button[aria-label="Next step"]',
+    'Next Step',
+  );
+  nextButton.scrollIntoView();
+  nextButton.click();
 
-    await wait(2);
+  await wait(2);
 
-    const exportButton = await waitForElement(
-      id,
-      'span[jsname="V67aGc"].UywwFc-vQzf8d',
-      'Export Button',
-      true,
-    );
-    exportButton[1].scrollIntoView();
-    exportButton[1].click();
-    customConsoleLog(id, 'Clicked Export Button, going to gmail soon!');
-    await wait(3);
-    ipcRenderer.sendToHost(
-      'change-url',
-      'https://mail.google.com/mail/u/0/#inbox', // HARDCODING THE USER ID FOR NOW!
-      id,
-    ); 
-    return;
+  const exportButton = await waitForElement(
+    id,
+    'span[jsname="V67aGc"].UywwFc-vQzf8d',
+    'Export Button',
+    true,
+  );
+  exportButton[1].scrollIntoView();
+  exportButton[1].click();
+  customConsoleLog(id, 'Clicked Export Button, going to gmail soon!');
+  await wait(3);
+  ipcRenderer.sendToHost(
+    'change-url',
+    'https://mail.google.com/mail/u/0/#inbox', // HARDCODING THE USER ID FOR NOW!
+    id,
+  );
+  return;
 }
 
 async function continueExportTakeout(id) {
@@ -120,9 +126,11 @@ async function continueExportTakeout(id) {
     if (!emailFound) {
       await wait(1);
       refreshCounter++;
-      
+
       if (refreshCounter >= 10) {
-        const refreshButton = document.querySelector('div[role="button"][aria-label="Refresh"]');
+        const refreshButton = document.querySelector(
+          'div[role="button"][aria-label="Refresh"]',
+        );
         if (refreshButton) {
           // Simulate a click because Gmail is weird
           ['mousedown', 'click', 'mouseup'].forEach((eventType) => {
@@ -168,33 +176,18 @@ async function continueExportTakeout(id) {
 
 async function exportGmail(company, name, runID, steps) {
   const gmailPath = path.join(userDataPath, 'surfer_data', 'Google', 'Gmail');
- 
-  // Check if gmailPath exists
+
   if (!fs.existsSync(gmailPath)) {
-    customConsoleLog(runID, 'Gmail path does not exist. Initiating first export.');
-    await initiateFirstExport(runID);
-    return;
-  }
+    ipcRenderer.sendToHost(
+      'change-url',
+      'https://takeout.google.com/u/0/settings/takeout/custom/gmail', // HARDCODING THE FIRST ACCOUNT RN!
+      runID,
+    );
 
-  const folders = fs.readdirSync(gmailPath)
-    .filter(item => fs.statSync(path.join(gmailPath, item)).isDirectory());
-
-  if (folders.length === 0) {
-    customConsoleLog(runID, 'No folders found in Gmail path. Initiating first export.');
-    await initiateFirstExport(runID);
-    return;
-  }
-  const folderWithExtracted = folders.find(folder => {
-    const folderPath = path.join(gmailPath, folder);
-    return fs.existsSync(path.join(folderPath, 'extracted'));
-  });
-
-  const folderWithExtractedPath = path.join(gmailPath, folderWithExtracted);
-  const extractedPath = path.join(folderWithExtractedPath, 'extracted');
-
-  if (!fs.existsSync(extractedPath)) {
-    customConsoleLog(runID, 'Extracted path does not exist. Initiating first export.');
-    await initiateFirstExport(runID);
+    customConsoleLog(
+      runID,
+      'This is the first export, will do google takeout here!',
+    );
     return;
   }
 
@@ -254,16 +247,17 @@ async function exportGmail(company, name, runID, steps) {
             runID,
             step.elements[0].selector,
             step.elements[0].name,
-            true
+            true,
           );
           if (emails) {
             for (const email of emails) {
-document.querySelector('div[aria-label="Show details"]').click();
-await wait(1)
-const emailDetails = document.getElementsByClassName('ajv');
+              document.querySelector('div[aria-label="Show details"]').click();
+              await wait(1);
+              const emailDetails = document.getElementsByClassName('ajv');
 
               const emailJSON = {
-                accountID: new URL(window.location.href).pathname.split('/')[3] || '0',
+                accountID:
+                  new URL(window.location.href).pathname.split('/')[3] || '0',
                 from:
                   Array.from(emailDetails)
                     .find((detail) => detail.innerText.includes('from:'))
@@ -301,22 +295,25 @@ const emailDetails = document.getElementsByClassName('ajv');
                 body: email.innerText || '',
               };
 
-              const emailExists = await checkIfEmailExists(runID, JSON.stringify(emailJSON));
+              const emailExists = await checkIfEmailExists(
+                JSON.stringify(emailJSON),
+              );
+              console.log('emailExists: ', emailExists);
               if (emailExists) {
+                customConsoleLog(runID, 'Email already exists, skipping');
                 existingEmailFound = true;
-                break;
+                continue; // Skip this email and continue with the next one
               }
-                          ipcRenderer.send(
-                            'handle-update',
-                            company,
-                            name,
-                            JSON.stringify(emailJSON),
-                            runID,
-                          );
-                          customConsoleLog(runID, 'New email sent for update');
+              ipcRenderer.send(
+                'handle-update',
+                company,
+                name,
+                JSON.stringify(emailJSON),
+                runID,
+              );
+              customConsoleLog(runID, 'New email sent for update');
             }
             // Send each new email immediately
-
           }
 
           const nextParent = await waitForElement(
@@ -349,10 +346,10 @@ const emailDetails = document.getElementsByClassName('ajv');
         }
         break;
 
-      case 'sendUpdate':
-        customConsoleLog(runID, 'Email collection completed');
-        ipcRenderer.send('export-complete', company, name, runID);
-        break;
+      // case 'sendUpdate':
+      //   customConsoleLog(runID, 'Email collection completed');
+      //   ipcRenderer.send('handle-update', company, name, emailContent, runID);
+      //   break;
 
       default:
         customConsoleLog(runID, `Unknown action: ${step.function}`);

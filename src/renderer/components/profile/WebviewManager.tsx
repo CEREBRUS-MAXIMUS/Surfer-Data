@@ -329,8 +329,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       //   dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
       // } else {
 
-       if (namePath.includes('extracted')){
-        
+      if (namePath.includes('extracted')) {
         const downloadRun = activeRuns.filter(
           (run) => run.platformId === `${name.toLowerCase()}-001`,
         )[0];
