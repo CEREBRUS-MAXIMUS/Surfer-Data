@@ -14,7 +14,7 @@ ipcRenderer.invoke('get-user-data-path').then((path) => {
   userDataPath = path;
 });
 
-async function checkIfEmailExists(emailContent) {
+async function checkIfEmailExists(id, emailContent) {
   if (!userDataPath) {
     console.error('User data path not available');
     return false;
@@ -23,57 +23,40 @@ async function checkIfEmailExists(emailContent) {
   if (!fs.existsSync(gmailPath)) {
     return false;
   }
-  const folders = fs.readdirSync(gmailPath).filter(item => fs.statSync(path.join(gmailPath, item)).isDirectory());
-  const lastFolder = folders.sort().pop();
-  const lastFolderPath = lastFolder ? path.join(gmailPath, lastFolder) : null;
-  if (!lastFolderPath) {
-    return false;
-  }
-  const extractedPath = path.join(lastFolderPath, 'extracted');
+  const folders = fs.readdirSync(gmailPath)
+    .filter(item => fs.statSync(path.join(gmailPath, item)).isDirectory());
+  const folderWithExtracted = folders.find((folder) => {
+    const folderPath = path.join(gmailPath, folder);
+    return fs.existsSync(path.join(folderPath, 'extracted'));
+  });
+
+  const folderWithExtractedPath = path.join(gmailPath, folderWithExtracted);
+  const extractedPath = path.join(folderWithExtractedPath, 'extracted');
 
   // If the Gmail folder doesn't exist, no emails have been exported yet
 
 
   // Get all items in the Gmail folder
-  const items = fs.readdirSync(gmailPath);
-
-  for (const item of items) {
-    const itemPath = path.join(gmailPath, item);
-    const stats = fs.statSync(itemPath);
-
-    if (stats.isDirectory()) {
-      // If it's a directory, check files inside
-      const files = fs
-        .readdirSync(itemPath)
-        .filter((file) => file.endsWith('.json'));
-      for (const file of files) {
-        const filePath = path.join(itemPath, file);
-        const fileContent = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-
-
-        // Check if the email content exists in the file
-        if (
-          fileContent.content &&
-          fileContent.content.some((email) => email.includes(emailContent))
-        ) {
-          return true;
-        }
-      }
-    } else if (stats.isFile() && item.endsWith('.json')) {
-      // If it's a JSON file, check its content
-      const fileContent = JSON.parse(fs.readFileSync(itemPath, 'utf-8'));
-
-      // Check if the email content exists in the file
-      if (
-        fileContent.content &&
-        fileContent.content.some((email) => email.includes(emailContent))
-      ) {
-        return true;
-      }
-    }
-  }
-
+  const items = fs.readdirSync(extractedPath);
+// ge tthe json file 
+const jsonFile = items.find(item => item.endsWith('.json'));
+if (!jsonFile) {
   return false;
+}
+const jsonPath = path.join(extractedPath, jsonFile);
+const jsonContent = fs.readFileSync(jsonPath, 'utf8');
+const jsonData = JSON.parse(jsonContent);
+// Check if the emailContent is in the jsonData
+customConsoleLog(id, 'THIS EMAIL CONTENT BEING COMPARED: ', emailContent);
+const emailExists = jsonData.some(email => {
+  const subjectMatch = JSON.stringify(email.subject) === emailContent.subject;
+  //const timestampMatch = new Date(email.timestamp).toISOString().slice(0, -5) === new Date(emailContent.timestamp).toISOString().slice(0, -5);
+  
+  return subjectMatch;
+});
+customConsoleLog(id, 'Email exists:', emailExists);
+return emailExists;
+
 }
 
 async function exportTakeout(id) {
@@ -183,20 +166,35 @@ async function continueExportTakeout(id) {
   );
 }
 
-async function exportGmail(company, name, runID, firstExport, steps) {
+async function exportGmail(company, name, runID, steps) {
   const gmailPath = path.join(userDataPath, 'surfer_data', 'Google', 'Gmail');
+ 
+  // Check if gmailPath exists
+  if (!fs.existsSync(gmailPath)) {
+    customConsoleLog(runID, 'Gmail path does not exist. Initiating first export.');
+    await initiateFirstExport(runID);
+    return;
+  }
 
-if (!fs.existsSync(gmailPath)) {
-  ipcRenderer.sendToHost(
-    'change-url',
-    'https://takeout.google.com/u/0/settings/takeout/custom/gmail', // HARDCODING THE FIRST ACCOUNT RN!
-    runID,
-  ); 
+  const folders = fs.readdirSync(gmailPath)
+    .filter(item => fs.statSync(path.join(gmailPath, item)).isDirectory());
 
-    customConsoleLog(
-      runID,
-      'This is the first export, will do google takeout here!',
-    );
+  if (folders.length === 0) {
+    customConsoleLog(runID, 'No folders found in Gmail path. Initiating first export.');
+    await initiateFirstExport(runID);
+    return;
+  }
+  const folderWithExtracted = folders.find(folder => {
+    const folderPath = path.join(gmailPath, folder);
+    return fs.existsSync(path.join(folderPath, 'extracted'));
+  });
+
+  const folderWithExtractedPath = path.join(gmailPath, folderWithExtracted);
+  const extractedPath = path.join(folderWithExtractedPath, 'extracted');
+
+  if (!fs.existsSync(extractedPath)) {
+    customConsoleLog(runID, 'Extracted path does not exist. Initiating first export.');
+    await initiateFirstExport(runID);
     return;
   }
 
@@ -303,7 +301,7 @@ const emailDetails = document.getElementsByClassName('ajv');
                 body: email.innerText || '',
               };
 
-              const emailExists = await checkIfEmailExists(JSON.stringify(emailJSON));
+              const emailExists = await checkIfEmailExists(runID, JSON.stringify(emailJSON));
               if (emailExists) {
                 existingEmailFound = true;
                 break;
@@ -360,6 +358,19 @@ const emailDetails = document.getElementsByClassName('ajv');
         customConsoleLog(runID, `Unknown action: ${step.function}`);
     }
   }
+}
+
+async function initiateFirstExport(runID) {
+  ipcRenderer.sendToHost(
+    'change-url',
+    'https://takeout.google.com/u/0/settings/takeout/custom/gmail', // HARDCODING THE FIRST ACCOUNT RN!
+    runID,
+  ); 
+
+  customConsoleLog(
+    runID,
+    'This is the first export, will do google takeout here!',
+  );
 }
 
 module.exports = { exportGmail, continueExportTakeout, exportTakeout };

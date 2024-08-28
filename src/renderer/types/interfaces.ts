@@ -105,7 +105,6 @@ export interface IRun {
 export interface IPlatform {
   id: string;
   name: string;
-  firstExport: boolean;
   description: string;
   logo: {
     light: React.ComponentType;
