@@ -63,7 +63,7 @@ export const platforms = [
         function: 'collectEmails',
         elements: [
           {
-            selector: '#\\:3',
+            selector: '.a3s.aiL',
             name: 'Email container',
             label: 'Email content',
           },
@@ -80,7 +80,7 @@ export const platforms = [
         status: 'pending',
         function: 'sendUpdate',
         description: 'Sending the update',
-      }, 
+      },
     ],
-  } 
+  },
 ];

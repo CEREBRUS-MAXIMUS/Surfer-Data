@@ -418,6 +418,7 @@ async function convertMboxToJson(
             to: message.to?.text || message.to,
             subject: message.subject,
             date: message.date,
+            added_to_db: new Date().toISOString(),
             body: message.text,
           };
 
@@ -786,14 +787,12 @@ ipcMain.on('handle-update', (event, company, name, emailContent, runID) => {
     if (filesInLastFolder.length === 0) {
       const extractedFolder = path.join(lastFolderPath, 'extracted');
       if (fs.existsSync(extractedFolder)) { // if the extracted folder exists
-        console.log('extracted folder exists');
         const jsonFile = fs
           .readdirSync(extractedFolder)
           .filter((file) => file.endsWith('.json'))
           .sort()
           .pop();
         filePath = path.join(extractedFolder, jsonFile);
-        console.log('filePath: ', filePath);
 
       } else {
         filePath = path.join(lastFolderPath, fileName);
@@ -810,11 +809,11 @@ ipcMain.on('handle-update', (event, company, name, emailContent, runID) => {
   if (fs.existsSync(filePath)) {
     existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8')); 
   }
-
-  console.log('existingData: ', existingData);
-
   // Append the new email to the existing content
-  existingData.push(emailContent);
+
+            emailContent.added_to_db = new Date().toISOString();
+
+              existingData.push(JSON.parse(emailContent));
 
   // Write the updated data
   fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
@@ -920,11 +919,6 @@ autoUpdater.on('error', (info) => {
   // curWindow.showMessage(info);
 });
 
-ipcMain.on('auth-token-from-webview', (event, token) => {
-  console.log('Token received in main process:', token);
-  // Send the token to the renderer process (Onboarding component)
-  mainWindow?.webContents.send('auth-token-for-renderer', token);
-});
 
 ipcMain.handle('restart-app', () => {
   app.relaunch();

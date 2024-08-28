@@ -154,7 +154,7 @@ async function continueExportTakeout(id) {
   while (downloadBtns.length === 0) {
     downloadBtns = await waitForElement(
       id,
-      'a[href*="https://accounts.google.com/AccountChooser?continue=https://takeout.google.com/settings/takeout/download?"]',
+      'a[href*="https://accounts.google.com/AccountChooser?continue=https://takeout.google.com"]',
       'Download button',
       true,
     );
@@ -177,10 +177,10 @@ async function exportGmail(company, name, runID, firstExport, steps) {
 
 if (!fs.existsSync(gmailPath)) {
   ipcRenderer.sendToHost(
-     'change-url',
-     'https://takeout.google.com/settings/takeout/custom/gmail',
-     runID,
-   ); 
+    'change-url',
+    'https://takeout.google.com/u/0/settings/takeout/custom/gmail', // HARDCODING THE FIRST ACCOUNT RN!
+    runID,
+  ); 
 
     customConsoleLog(
       runID,
@@ -241,27 +241,42 @@ if (!fs.existsSync(gmailPath)) {
 
       case 'collectEmails':
         while (!existingEmailFound) {
-          const email = await waitForElement(
+          const emails = await waitForElement(
             runID,
             step.elements[0].selector,
             step.elements[0].name,
+            true
           );
-          if (email) {
-            const emailContent = email.innerText || '';
-            const emailExists = await checkIfEmailExists(emailContent);
-            if (emailExists) {
-              existingEmailFound = true;
-              break;
+          if (emails) {
+            for (const email of emails) {
+document.querySelector('div[aria-label="Show details"]').click();
+await wait(1)
+const emailDetails = document.getElementsByClassName('ajv');
+
+              const emailJSON = {
+                from: Array.from(emailDetails).find(detail => detail.innerText.includes('from:'))?.innerText.split(':').slice(1).join(':').trim() || '',
+                to: Array.from(emailDetails).find(detail => detail.innerText.includes('to:') && !detail.innerText.includes('reply-to:'))?.innerText.split(':').slice(1).join(':').trim() || '',
+                subject: Array.from(emailDetails).find(detail => detail.innerText.includes('subject:'))?.innerText.split(':').slice(1).join(':').trim() || '',
+                date: Array.from(emailDetails).find(detail => detail.innerText.includes('date:'))?.innerText.split(':').slice(1).join(':').trim() || '',
+                body: email.innerText || '',
+              }
+              
+              const emailExists = await checkIfEmailExists(JSON.stringify(emailJSON));
+              if (emailExists) {
+                existingEmailFound = true;
+                break;
+              }
+                          ipcRenderer.send(
+                            'handle-update',
+                            company,
+                            name,
+                            JSON.stringify(emailJSON),
+                            runID,
+                          );
+                          customConsoleLog(runID, 'New email sent for update');
             }
             // Send each new email immediately
-            ipcRenderer.send(
-              'handle-update',
-              company,
-              name,
-              emailContent,
-              runID,
-            );
-            customConsoleLog(runID, 'New email sent for update');
+
           }
 
           const nextParent = await waitForElement(
