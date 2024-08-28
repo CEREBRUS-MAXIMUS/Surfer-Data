@@ -70,7 +70,124 @@ async function checkIfEmailExists(emailContent) {
   return false;
 }
 
-async function exportGmail(company, name, runID, steps) {
+async function exportTakeout(id) {
+    await wait(4);
+    const nextButton = await waitForElement(
+      id,
+      'button[aria-label="Next step"]',
+      'Next Step',
+    );
+    nextButton.scrollIntoView();
+    nextButton.click();
+
+    await wait(2);
+
+    const exportButton = await waitForElement(
+      id,
+      'span[jsname="V67aGc"].UywwFc-vQzf8d',
+      'Export Button',
+      true,
+    );
+    exportButton[1].scrollIntoView();
+    exportButton[1].click();
+    customConsoleLog(id, 'Clicked Export Button, going to gmail soon!');
+    await wait(3);
+    ipcRenderer.sendToHost('change-url', 'https://gmail.com', id); // later this will not be hardcoded
+    return;
+}
+
+async function continueExportTakeout(id) {
+  customConsoleLog(
+    id,
+    'Continuing export for Takeout, will take a few minutes to get download email!',
+  );
+
+  let emailFound = false;
+  let refreshCounter = 0;
+
+  const checkEmails = async () => {
+    const emails = await waitForElement(
+      id,
+      "div.xS[role='link']",
+      'Download Email',
+      true,
+    );
+    for (const email of emails) {
+      if (email.innerText.includes('Your Google data is ready to download')) {
+        bigStepper(id);
+        email.click();
+        return true;
+      }
+    }
+    return false;
+  };
+
+  while (!emailFound) {
+    emailFound = await checkEmails();
+    if (!emailFound) {
+      await wait(1);
+      refreshCounter++;
+      
+      if (refreshCounter >= 10) {
+        const refreshButton = document.querySelector('div[role="button"][aria-label="Refresh"]');
+        if (refreshButton) {
+          // Simulate a click because Gmail is weird
+          ['mousedown', 'click', 'mouseup'].forEach((eventType) => {
+            var event = new MouseEvent(eventType, {
+              view: window,
+              bubbles: true,
+              cancelable: true,
+            });
+            refreshButton.dispatchEvent(event);
+          });
+          customConsoleLog(id, 'Refreshing emails');
+          await wait(1); // Wait for refresh to complete
+        }
+        refreshCounter = 0;
+      }
+    }
+  }
+
+  // Wait for the email to load
+  await wait(2);
+
+  let downloadBtns = [];
+  while (downloadBtns.length === 0) {
+    downloadBtns = await waitForElement(
+      id,
+      'a[href*="https://accounts.google.com/AccountChooser?continue=https://takeout.google.com/settings/takeout/download?"]',
+      'Download button',
+      true,
+    );
+    if (downloadBtns.length === 0) {
+      await wait(1); // Wait for 1 second before checking again
+    }
+  }
+
+  bigStepper(id);
+  downloadBtns[downloadBtns.length - 1].click();
+
+  customConsoleLog(
+    id,
+    'Download button clicked, will take a few minutes to download + convert!!!',
+  );
+}
+
+async function exportGmail(company, name, runID, firstExport, steps) {
+  if (!firstExport) {
+   ipcRenderer.sendToHost(
+     'change-url',
+     'https://takeout.google.com/settings/takeout/custom/gmail',
+     runID,
+   ); 
+
+    customConsoleLog(
+      runID,
+      'THIS FIRST EXPORT SHOULD DO GOOGLE TAKEOUT HERE!!!',
+    );
+    return;
+  }
+
   let existingEmailFound = false;
 
   for (const step of steps) {
@@ -185,4 +302,4 @@ async function exportGmail(company, name, runID, steps) {
   }
 }
 
-module.exports = { exportGmail };
+module.exports = { exportGmail, continueExportTakeout, exportTakeout };

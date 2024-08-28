@@ -13,6 +13,7 @@ export const platforms = [
     company: 'Google',
     companyLogo: '/assets/logos/google.svg',
     home_url: 'https://mail.google.com',
+    firstExport: false,
     supportedOS: ['mac', 'windows', 'linux'],
     steps: [
       {
@@ -79,7 +80,7 @@ export const platforms = [
         status: 'pending',
         function: 'sendUpdate',
         description: 'Sending the update',
-      },
+      }, 
     ],
-  },
+  } 
 ];

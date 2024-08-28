@@ -131,7 +131,7 @@ export const platforms: IPlatform[] = [
     },
     company: 'Google',
     companyLogo: '/assets/logos/google.svg',
-    home_url: 'https://takeout.google.com',
+    home_url: 'https://takeout.google.com/settings/takeout/custom/gmail',
     supportedOS: ['mac', 'windows', 'linux'],
     steps: [
       { id: 'step-001', name: 'Going to Google Takeout', status: 'pending' },
@@ -139,5 +139,5 @@ export const platforms: IPlatform[] = [
       { id: 'step-003', name: 'Going through all emails', status: 'pending' },
       { id: 'step-004', name: 'Exporting Data', status: 'pending' },
     ],
-  }
-]
+  },
+];

@@ -197,7 +197,9 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
             'export-website',
             platform.company,
             platform.name,
+
             newRun.id,
+                        platform.firstExport,
             platform.steps,
           );
         }
@@ -329,7 +331,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       //   dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
       // } else {
 
-       if (name === 'Notion' || name === 'ChatGPT' || name === 'Takeout'){
+       if (namePath.includes('extracted')){
         
         const downloadRun = activeRuns.filter(
           (run) => run.platformId === `${name.toLowerCase()}-001`,

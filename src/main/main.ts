@@ -480,8 +480,8 @@ async function convertMboxToJson(
       } 
       else if (url.includes('takeout-download.usercontent.google.com')) {
         companyPath = path.join(surferDataPath, 'Google');
-        platformPath = path.join(companyPath, 'Takeout');
-        platformId = `takeout-001-${Date.now()}`;
+        platformPath = path.join(companyPath, 'Gmail');
+        platformId = `gmail-001-${Date.now()}`;
         idPath = path.join(platformPath, platformId);
       }
       else {

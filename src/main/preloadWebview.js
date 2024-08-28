@@ -5,7 +5,7 @@ if (window.trustedTypes && window.trustedTypes.createPolicy) {
 }
 const { contextBridge, ipcRenderer, BrowserWindow } = require('electron');
 const { customConsoleLog } = require('./preloadFunctions');
-const { exportGmail } = require('./Scrapers/Google/gmail');
+const { exportGmail, continueExportTakeout, exportTakeout } = require('./Scrapers/Google/gmail');
 
 contextBridge.exposeInMainWorld('electron', {
   getExportSize: (exportPath) =>
@@ -14,12 +14,12 @@ contextBridge.exposeInMainWorld('electron', {
 
 ipcRenderer.on(
   'export-website',
-  async (event, company, name, runID, steps, exportPath) => {
+  async (event, company, name, runID, firstExport, steps, exportPath) => {
     customConsoleLog(runID, 'Exporting', name);
     console.log('this steps: ', steps);
     switch (name) {
       case 'Gmail':
-        await exportGmail(company, name, runID, steps);
+        await exportGmail(company, name, runID, firstExport, steps);
         break;
     }
 
@@ -42,5 +42,16 @@ ipcRenderer.on('change-url-success', async (event, url, id) => {
 
   if (id.includes('takeout-001')) {
     await continueExportTakeout(id);
+  }
+
+  if (id.includes('gmail-001')) {
+    if (url.includes('takeout.google.com')) {
+      await exportTakeout(id);
+    }
+
+    else {
+      await continueExportTakeout(id);
+    }
+
   }
 });
