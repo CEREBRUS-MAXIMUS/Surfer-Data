@@ -91,7 +91,11 @@ async function exportTakeout(id) {
     exportButton[1].click();
     customConsoleLog(id, 'Clicked Export Button, going to gmail soon!');
     await wait(3);
-    ipcRenderer.sendToHost('change-url', 'https://gmail.com', id); // later this will not be hardcoded
+    ipcRenderer.sendToHost(
+      'change-url',
+      'https://mail.google.com/mail/u/0/#inbox', // HARDCODING THE USER ID FOR NOW!
+      id,
+    ); 
     return;
 }
 
@@ -254,12 +258,43 @@ await wait(1)
 const emailDetails = document.getElementsByClassName('ajv');
 
               const emailJSON = {
-                from: Array.from(emailDetails).find(detail => detail.innerText.includes('from:'))?.innerText.split(':').slice(1).join(':').trim() || '',
-                to: Array.from(emailDetails).find(detail => detail.innerText.includes('to:') && !detail.innerText.includes('reply-to:'))?.innerText.split(':').slice(1).join(':').trim() || '',
-                subject: Array.from(emailDetails).find(detail => detail.innerText.includes('subject:'))?.innerText.split(':').slice(1).join(':').trim() || '',
-                date: Array.from(emailDetails).find(detail => detail.innerText.includes('date:'))?.innerText.split(':').slice(1).join(':').trim() || '',
+                accountID: new URL(window.location.href).pathname.split('/')[3] || '0',
+                from:
+                  Array.from(emailDetails)
+                    .find((detail) => detail.innerText.includes('from:'))
+                    ?.innerText.split(':')
+                    .slice(1)
+                    .join(':')
+                    .trim() || '',
+                to:
+                  Array.from(emailDetails)
+                    .find(
+                      (detail) =>
+                        detail.innerText.includes('to:') &&
+                        !detail.innerText.includes('reply-to:'),
+                    )
+                    ?.innerText.split(':')
+                    .slice(1)
+                    .join(':')
+                    .trim() || '',
+                subject:
+                  Array.from(emailDetails)
+                    .find((detail) => detail.innerText.includes('subject:'))
+                    ?.innerText.split(':')
+                    .slice(1)
+                    .join(':')
+                    .trim() || '',
+                timestamp:
+                  new Date(
+                    Array.from(emailDetails)
+                      .find((detail) => detail.innerText.includes('date:'))
+                      ?.innerText.split(':')
+                      .slice(1)
+                      .join(':')
+                      .trim(),
+                  ).toISOString() || null,
                 body: email.innerText || '',
-              }
+              };
               
               const emailExists = await checkIfEmailExists(JSON.stringify(emailJSON));
               if (emailExists) {

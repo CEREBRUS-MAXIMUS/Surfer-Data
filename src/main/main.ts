@@ -396,6 +396,7 @@ export const createWindow = async (visible: boolean = true) => {
 async function convertMboxToJson(
   mboxFilePath: string,
   jsonOutputPath: string,
+  id: number
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const readStream = fs.createReadStream(mboxFilePath);
@@ -414,6 +415,7 @@ async function convertMboxToJson(
             isFirstMessage = false;
 
             const jsonMessage = {
+            accountID: id,
             from: message.from?.text,
             to: message.to?.text || message.to,
             subject: message.subject,
@@ -590,7 +592,8 @@ async function convertMboxToJson(
 
     try {
       console.log('Converting MBOX to JSON:', mboxFilePath);
-      await convertMboxToJson(mboxFilePath, jsonOutputPath);
+      const accountID = new URL(url).searchParams.get('authuser') || '0';
+      await convertMboxToJson(mboxFilePath, jsonOutputPath, accountID);
       console.log('MBOX converted to JSON:', jsonOutputPath);
 
 
@@ -809,7 +812,7 @@ ipcMain.on('handle-update', (event, company, name, emailContent, runID) => {
   if (fs.existsSync(filePath)) {
     existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8')); 
   }
-  
+
  let parsedEmailContent = JSON.parse(emailContent);
 
  // Add the added_to_db key
