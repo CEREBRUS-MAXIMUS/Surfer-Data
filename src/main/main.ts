@@ -783,9 +783,21 @@ ipcMain.on('handle-update', (event, company, name, emailContent, runID) => {
   if (lastFolder) {
     const lastFolderPath = path.join(namePath, lastFolder);
     const filesInLastFolder = fs.readdirSync(lastFolderPath).filter(file => file.endsWith('.json'));
-    
     if (filesInLastFolder.length === 0) {
-      filePath = path.join(lastFolderPath, fileName);
+      const extractedFolder = path.join(lastFolderPath, 'extracted');
+      if (fs.existsSync(extractedFolder)) { // if the extracted folder exists
+        console.log('extracted folder exists');
+        const jsonFile = fs
+          .readdirSync(extractedFolder)
+          .filter((file) => file.endsWith('.json'))
+          .sort()
+          .pop();
+        filePath = path.join(extractedFolder, jsonFile);
+        console.log('filePath: ', filePath);
+
+      } else {
+        filePath = path.join(lastFolderPath, fileName);
+      }
     } else {
       filePath = path.join(lastFolderPath, filesInLastFolder.sort().pop());
     }
@@ -794,13 +806,15 @@ ipcMain.on('handle-update', (event, company, name, emailContent, runID) => {
   }
 
   // Read existing data if available
-  let existingData = { content: [] };
+  let existingData = { };
   if (fs.existsSync(filePath)) {
-    existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8')); 
   }
 
+  console.log('existingData: ', existingData);
+
   // Append the new email to the existing content
-  existingData.content.push(emailContent);
+  existingData.push(emailContent);
 
   // Write the updated data
   fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));

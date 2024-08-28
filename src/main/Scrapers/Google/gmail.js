@@ -7,7 +7,6 @@ const {
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
-const { app } = require('electron');
 
 let userDataPath;
 
@@ -174,8 +173,10 @@ async function continueExportTakeout(id) {
 }
 
 async function exportGmail(company, name, runID, firstExport, steps) {
-  if (!firstExport) {
-   ipcRenderer.sendToHost(
+  const gmailPath = path.join(userDataPath, 'surfer_data', 'Google', 'Gmail');
+
+if (!fs.existsSync(gmailPath)) {
+  ipcRenderer.sendToHost(
      'change-url',
      'https://takeout.google.com/settings/takeout/custom/gmail',
      runID,
@@ -183,10 +184,12 @@ async function exportGmail(company, name, runID, firstExport, steps) {
 
     customConsoleLog(
       runID,
-      'THIS FIRST EXPORT SHOULD DO GOOGLE TAKEOUT HERE!!!',
+      'This is the first export, will do google takeout here!',
     );
     return;
   }
+
+  customConsoleLog(runID, 'Not first export, so updating emails!');
 
   let existingEmailFound = false;
 
