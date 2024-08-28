@@ -1,12 +1,7 @@
 import { combineReducers } from 'redux';
-import {
-  IAppState,
-  IPreferences,
-  IRun,
-} from '../types/interfaces';
-import { initialAppState } from '../config/initialStates';
-import { platforms } from '../config/platforms';
-
+import { IAppState, IPreferences, IRun } from '../types/interfaces';
+import { initialAppState } from '../../config/initialStates';
+import { platforms } from '../../config/platforms';
 
 const preferencesReducer = (
   state: IPreferences = initialAppState.preferences,
@@ -20,9 +15,6 @@ const preferencesReducer = (
   }
 };
 
-
-
-
 const appReducer = (state = initialAppState.app, action: any) => {
   switch (action.type) {
     // App-related cases
@@ -31,7 +23,10 @@ const appReducer = (state = initialAppState.app, action: any) => {
     case 'SET_ACTIVE_RUN_INDEX':
       return {
         ...state,
-        activeRunIndex: Math.min(Math.max(0, action.payload), state.runs.length - 1)
+        activeRunIndex: Math.min(
+          Math.max(0, action.payload),
+          state.runs.length - 1,
+        ),
       };
     case 'TOGGLE_RUN_VISIBILITY':
       return { ...state, isRunLayerVisible: !state.isRunLayerVisible };
@@ -40,7 +35,10 @@ const appReducer = (state = initialAppState.app, action: any) => {
     case 'UPDATE_BREADCRUMB':
       return { ...state, breadcrumb: action.payload };
     case 'UPDATE_BREADCRUMB_TO_INDEX':
-      return { ...state, breadcrumb: state.breadcrumb.slice(0, action.payload + 1) };
+      return {
+        ...state,
+        breadcrumb: state.breadcrumb.slice(0, action.payload + 1),
+      };
     case 'SET_IS_FULL_SCREEN':
       return { ...state, isFullScreen: action.payload };
     case 'SET_IS_MAC':
@@ -51,113 +49,129 @@ const appReducer = (state = initialAppState.app, action: any) => {
       return { ...state, runs: [...state.runs, action.payload] };
     case 'CLOSE_RUN':
       //if the last run is closed, set isRunLayerVisible to false
-      return { ...state, runs: state.runs.filter(run => run.id !== action.payload), isRunLayerVisible: state.runs.length > 0 };
+      return {
+        ...state,
+        runs: state.runs.filter((run) => run.id !== action.payload),
+        isRunLayerVisible: state.runs.length > 0,
+      };
     case 'UPDATE_RUN_STATUS':
       return {
         ...state,
-        runs: state.runs.map(run =>
+        runs: state.runs.map((run) =>
           run.id === action.payload.runId
-            ? { ...run, status: action.payload.status, endDate: action.payload.endDate }
-            : run
-        )
+            ? {
+                ...run,
+                status: action.payload.status,
+                endDate: action.payload.endDate,
+              }
+            : run,
+        ),
       };
     case 'UPDATE_STEP_STATUS':
       return {
         ...state,
-        runs: state.runs.map(run =>
+        runs: state.runs.map((run) =>
           run.id === action.payload.runId
             ? {
                 ...run,
-                tasks: run.tasks.map(task =>
+                tasks: run.tasks.map((task) =>
                   task.id === action.payload.taskId
                     ? {
                         ...task,
-                        steps: task.steps.map(step =>
+                        steps: task.steps.map((step) =>
                           step.id === action.payload.stepId
                             ? {
                                 ...step,
                                 status: action.payload.status,
                                 startTime: action.payload.startTime,
                                 endTime: action.payload.endTime,
-                                logs: action.payload.logs || step.logs
+                                logs: action.payload.logs || step.logs,
                               }
-                            : step
-                        )
+                            : step,
+                        ),
                       }
-                    : task
-                )
+                    : task,
+                ),
               }
-            : run
-        )
+            : run,
+        ),
       };
     case 'UPDATE_TASK_STATUS':
       return {
         ...state,
-        runs: state.runs.map(run =>
+        runs: state.runs.map((run) =>
           run.id === action.payload.runId
             ? {
                 ...run,
-                tasks: run.tasks.map(task =>
+                tasks: run.tasks.map((task) =>
                   task.id === action.payload.taskId
                     ? {
                         ...task,
                         status: action.payload.status,
                         startTime: action.payload.startTime,
                         endTime: action.payload.endTime,
-                        logs: action.payload.logs || task.logs
+                        logs: action.payload.logs || task.logs,
                       }
-                    : task
-                )
+                    : task,
+                ),
               }
-            : run
-        )
+            : run,
+        ),
       };
     case 'STOP_RUN':
       // filter part of run id to get company and name from platforms.ts
       const runIdParts = action.payload.runID.split('-');
       const platformId = runIdParts[0] + '-' + runIdParts[1];
-      const platform = platforms.find(p => p.id === platformId);
+      const platform = platforms.find((p) => p.id === platformId);
       const company = platform ? platform.company : '';
       const name = platform ? platform.name : '';
 
-
       return {
         ...state,
-        runs: state.runs.map(run =>
+        runs: state.runs.map((run) =>
           run.id === action.payload.runID
             ? { ...run, status: 'stopped', endDate: new Date().toISOString() }
-            : run
+            : run,
         ),
-        isRunLayerVisible: state.runs.some(run => run.status === 'running')
+        isRunLayerVisible: state.runs.some((run) => run.status === 'running'),
       };
     case 'UPDATE_EXPORT_STATUS':
-
       return {
         ...state,
-        runs: state.runs.map(run =>
+        runs: state.runs.map((run) =>
           run.id === action.payload.runID
-            ? { ...run, status: 'success', exportPath: action.payload.exportPath, exportSize: action.payload.exportSize}
-            : run
-        )
+            ? {
+                ...run,
+                status: 'success',
+                exportPath: action.payload.exportPath,
+                exportSize: action.payload.exportSize,
+              }
+            : run,
+        ),
       };
     case 'SET_EXPORT_RUNNING':
       return {
         ...state,
-        runs: state.runs.map(run =>
+        runs: state.runs.map((run) =>
           run.id === action.payload.runId
-            ? { ...run, status: action.payload.isRunning ? 'running' : 'pending' }
-            : run
-        )
+            ? {
+                ...run,
+                status: action.payload.isRunning ? 'running' : 'pending',
+              }
+            : run,
+        ),
       };
 
     case 'BIG_STEPPER':
       return {
         ...state,
-        runs: state.runs.map(run => {
+        runs: state.runs.map((run) => {
           if (run.id === action.payload.runId) {
-            const platform = platforms.find(p => p.id === run.platformId);
+            const platform = platforms.find((p) => p.id === run.platformId);
             if (platform) {
-              const currentStepIndex = platform.steps.findIndex(step => step.id === action.payload.step.id);
+              const currentStepIndex = platform.steps.findIndex(
+                (step) => step.id === action.payload.step.id,
+              );
               const nextStep = platform.steps[currentStepIndex + 1] || null;
               console.log('current step: ', action.payload.step);
               console.log('next step: ', nextStep);
@@ -165,53 +179,66 @@ const appReducer = (state = initialAppState.app, action: any) => {
             }
           }
           return run;
-        })
+        }),
       };
     case 'UPDATE_RUN_LOGS':
       return {
         ...state,
-        runs: state.runs.map(run =>
+        runs: state.runs.map((run) =>
           run.id === action.payload.runId
-            ? { ...run, logs: action.payload.logs != null ? run.logs + action.payload.logs.join('\n') + '\n' : '' }
-            : run
-        )
+            ? {
+                ...run,
+                logs:
+                  action.payload.logs != null
+                    ? run.logs + action.payload.logs.join('\n') + '\n'
+                    : '',
+              }
+            : run,
+        ),
       };
     case 'STOP_ALL_JOBS':
       return {
         ...state,
-        runs: state.runs.map(run => ({
+        runs: state.runs.map((run) => ({
           ...run,
           status: run.status === 'running' ? 'stopped' : run.status,
-          endDate: run.status === 'running' ? new Date().toISOString() : run.endDate,
-          tasks: run.tasks.map(task => ({
+          endDate:
+            run.status === 'running' ? new Date().toISOString() : run.endDate,
+          tasks: run.tasks.map((task) => ({
             ...task,
             status: task.status === 'running' ? 'stopped' : task.status,
-            endTime: task.status === 'running' ? new Date().toISOString() : task.endTime,
-            steps: task.steps.map(step => ({
+            endTime:
+              task.status === 'running'
+                ? new Date().toISOString()
+                : task.endTime,
+            steps: task.steps.map((step) => ({
               ...step,
               status: step.status === 'running' ? 'stopped' : step.status,
-              endTime: step.status === 'running' ? new Date().toISOString() : step.endTime,
+              endTime:
+                step.status === 'running'
+                  ? new Date().toISOString()
+                  : step.endTime,
             })),
           })),
-        }))
+        })),
       };
     case 'UPDATE_RUN_URL':
       return {
         ...state,
-        runs: state.runs.map(run =>
+        runs: state.runs.map((run) =>
           run.id === action.payload.runId
             ? { ...run, url: action.payload.newUrl }
-            : run
-        )
+            : run,
+        ),
       };
     case 'UPDATE_EXPORT_SIZE':
       return {
         ...state,
-        runs: state.runs.map(run =>
+        runs: state.runs.map((run) =>
           run.id === action.payload.runId
             ? { ...run, exportSize: action.payload.size }
-            : run
-        )
+            : run,
+        ),
       };
     default:
       return state;

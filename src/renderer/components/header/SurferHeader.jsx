@@ -2,7 +2,12 @@ import React, { useEffect } from 'react';
 import styled from 'styled-components';
 import { Eye, Home } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "../ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from '../ui/breadcrumb';
 import {
   Tooltip,
   TooltipContent,
@@ -10,12 +15,18 @@ import {
   TooltipTrigger,
 } from '../ui/tooltip';
 import { useTheme } from '../ui/theme-provider';
-import { setCurrentRoute, toggleRunVisibility, updateBreadcrumbToIndex, setIsMac, setIsFullScreen } from '../../state/actions';
+import {
+  setCurrentRoute,
+  toggleRunVisibility,
+  updateBreadcrumbToIndex,
+  setIsMac,
+  setIsFullScreen,
+} from '../../state/actions';
 import { Button } from '../ui/button';
 import SettingsButton from './SettingsButton';
 import { setIsRunLayerVisible } from '../../state/actions';
 import SupportButton from './SupportButton';
-import { platforms } from '../../config/platforms';
+import { platforms } from '../../../config/platforms';
 
 const getStyleHorizontalLock = (style) =>
   style?.transform
@@ -145,7 +156,6 @@ const StyledSurferHeader = styled.div`
     background-color: hsl(var(--accent));
     color: hsl(var(--accent-foreground));
   }
-
 
   & .surfer-tab {
     align-items: center;
@@ -576,19 +586,32 @@ export const SurferHeader = () => {
     };
 
     window.electron.ipcRenderer.on('platform', handlePlatformReply);
-    window.electron.ipcRenderer.on('fullscreen-changed', handleFullscreenChange);
+    window.electron.ipcRenderer.on(
+      'fullscreen-changed',
+      handleFullscreenChange,
+    );
 
     window.electron.ipcRenderer.send('get-platform');
     window.electron.ipcRenderer.send('get-fullscreen-state');
 
     return () => {
-      window.electron.ipcRenderer.removeListener('platform', handlePlatformReply);
-      window.electron.ipcRenderer.removeListener('fullscreen-changed', handleFullscreenChange);
+      window.electron.ipcRenderer.removeListener(
+        'platform',
+        handlePlatformReply,
+      );
+      window.electron.ipcRenderer.removeListener(
+        'fullscreen-changed',
+        handleFullscreenChange,
+      );
     };
   }, [dispatch]);
 
   useEffect(() => {
-    dispatch(setIsRunLayerVisible(runs.some(run => run.status === 'running') && isRunLayerVisible));
+    dispatch(
+      setIsRunLayerVisible(
+        runs.some((run) => run.status === 'running') && isRunLayerVisible,
+      ),
+    );
   }, [runs, dispatch]);
 
   const handleBreadcrumbClick = (link, index) => {
@@ -598,12 +621,12 @@ export const SurferHeader = () => {
     if (parts.length > 1) {
       view = parts[1];
       if (view === 'platform' && parts.length > 2) {
-        const platform = platforms.find(p => p.id === parts[2]);
+        const platform = platforms.find((p) => p.id === parts[2]);
       } else if (view === 'subrun' && parts.length > 3) {
         const platformId = parts[2];
         const subRunId = parts[3];
-        const platform = platforms.find(p => p.id === platformId);
-        const subRun = platform?.subRuns.find(sr => sr.id === subRunId);
+        const platform = platforms.find((p) => p.id === platformId);
+        const subRun = platform?.subRuns.find((sr) => sr.id === subRunId);
       }
     }
 
@@ -620,22 +643,37 @@ export const SurferHeader = () => {
   const getPlatformLogo = (platform) => {
     const Logo = theme === 'dark' ? platform.logo.dark : platform.logo.light;
     return Logo ? (
-      <div style={{ width: `${LOGO_SIZE}px`, height: `${LOGO_SIZE}px`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '8px' }}>
+      <div
+        style={{
+          width: `${LOGO_SIZE}px`,
+          height: `${LOGO_SIZE}px`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: '8px',
+        }}
+      >
         <Logo style={{ width: '100%', height: '100%' }} />
       </div>
     ) : null;
   };
 
   const getIconForBreadcrumb = (item) => {
-    if(item.text === 'Home') {
-      return <Home size={16} className="mr-2" color={theme === 'dark' ? '#ffffff' : '#000000'} />;
+    if (item.text === 'Home') {
+      return (
+        <Home
+          size={16}
+          className="mr-2"
+          color={theme === 'dark' ? '#ffffff' : '#000000'}
+        />
+      );
     }
-    if(item.link.startsWith('/platform/')) {
+    if (item.link.startsWith('/platform/')) {
       const platformId = item.link.split('/')[2];
-      const platform = platforms.find(p => p.id === platformId);
+      const platform = platforms.find((p) => p.id === platformId);
       return getPlatformLogo(platform);
     }
-    if(item.link.startsWith('/subrun/')) {
+    if (item.link.startsWith('/subrun/')) {
       return null;
     }
     return null;
@@ -699,7 +737,7 @@ export const SurferHeader = () => {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{activeRuns > 0 ? "View Runs" : "No Active Runs"}</p>
+                <p>{activeRuns > 0 ? 'View Runs' : 'No Active Runs'}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

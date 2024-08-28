@@ -12,14 +12,13 @@ import {
   updateRunURL,
   updateExportStatus,
   bigStepper,
-  updateRunLogs
+  updateRunLogs,
 } from '../../state/actions';
-import { platforms } from '../../config/platforms';
+import { platforms } from '../../../config/platforms';
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
-import { trackRun } from '../../../../analytics'
-
+import { trackRun } from '../../../../analytics';
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
   position: fixed;
@@ -180,20 +179,26 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       dispatch(updateRunLogs(newRun.id, null));
       // Parse the run ID
       const parsedId = newRun.id.split('-').slice(0, 2).join('-');
-
+      console.log('this parsed id: ', parsedId);
       // Find the corresponding platform
-      const platform = platforms.find((p) => p.id === parsedId);
-
+      let platform = platforms.find((p) => p.id === parsedId);
+      console.log('this platform: ', platform);
       if (platform) {
         await new Promise((resolve) => setTimeout(resolve, 2000));
         const webviewRef = getWebviewRef(newRun.id);
         if (webviewRef.current) {
-          console.log('exporting this: ', platform.company, platform.name);
+          console.log(
+            'exporting this: ',
+            platform.company,
+            platform.name,
+            platform.steps,
+          );
           webviewRef.current.send(
             'export-website',
             platform.company,
             platform.name,
             newRun.id,
+            platform.steps,
           );
         }
       } else {
@@ -202,38 +207,50 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     }
   };
 
-  const handleBigStepper = useCallback((runId: string) => {
-    const runToStep = runs.find((run) => run.id === runId);
-    if (!runToStep) return;
-    console.log('go to next step for run id: ', runId);
-    dispatch(bigStepper(runToStep.id, runToStep.currentStep));
-  }, [dispatch, runs]);
+  const handleBigStepper = useCallback(
+    (runId: string) => {
+      const runToStep = runs.find((run) => run.id === runId);
+      if (!runToStep) return;
+      console.log('go to next step for run id: ', runId);
+      dispatch(bigStepper(runToStep.id, runToStep.currentStep));
+    },
+    [dispatch, runs],
+  );
 
-const handleLogs = useCallback((runId: string, ...logs: any[]) => {
-  console.log('Logs for run:', runId, logs);
-  const run = runs.find((run) => run.id === runId);
-  if (!run) return;
-  dispatch(updateRunLogs(runId, logs));
-}, [dispatch, runs]);
+  const handleLogs = useCallback(
+    (runId: string, ...logs: any[]) => {
+      console.log('Logs for run:', runId, logs);
+      const run = runs.find((run) => run.id === runId);
+      if (!run) return;
+      dispatch(updateRunLogs(runId, logs));
+    },
+    [dispatch, runs],
+  );
 
-  const handleChangeUrl = useCallback(async (url: string, id: string) => {
-    console.log('this runs: ', runs);
-    console.log('this url: ', url);
-    console.log('this id: ', id);
-    const run = runs.find((run) => run.id === id);
-    console.log('this run: ', run);
-    dispatch(updateRunURL(id, url));
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    const webviewRef = getWebviewRef(id);
-    webviewRef.current?.send('change-url-success', url, id);
-  }, [dispatch, runs, getWebviewRef]);
+  const handleChangeUrl = useCallback(
+    async (url: string, id: string) => {
+      console.log('this runs: ', runs);
+      console.log('this url: ', url);
+      console.log('this id: ', id);
+      const run = runs.find((run) => run.id === id);
+      console.log('this run: ', run);
+      dispatch(updateRunURL(id, url));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const webviewRef = getWebviewRef(id);
+      webviewRef.current?.send('change-url-success', url, id);
+    },
+    [dispatch, runs, getWebviewRef],
+  );
 
   useEffect(() => {
     const ipcMessageHandler = async (event) => {
       const { channel, args } = event;
 
-      if (channel === 'get-run-id') { 
-        const githubRun = runs.find((run) => run.status === 'running' && run.platformId.includes('github'));
+      if (channel === 'get-run-id') {
+        const githubRun = runs.find(
+          (run) =>
+            run.status === 'running' && run.platformId.includes('github'),
+        );
         if (githubRun) {
           console.log('sent run id');
           const webviewRef = getWebviewRef(githubRun.id);
@@ -241,9 +258,9 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
         }
       }
 
-if (channel === 'console-log') {
-  handleLogs(args[0], ...args.slice(1));
-}
+      if (channel === 'console-log') {
+        handleLogs(args[0], ...args.slice(1));
+      }
 
       if (channel === 'toggle-visibility') {
         dispatch(toggleRunVisibility());
@@ -269,7 +286,10 @@ if (channel === 'console-log') {
     return () => {
       webviewRefsArray.forEach((webviewRef) => {
         if (webviewRef.current) {
-          webviewRef.current.removeEventListener('ipc-message', ipcMessageHandler);
+          webviewRef.current.removeEventListener(
+            'ipc-message',
+            ipcMessageHandler,
+          );
         }
       });
     };
@@ -288,17 +308,24 @@ if (channel === 'console-log') {
       name: string,
       runID: number,
       namePath: string,
-      exportSize: number
+      exportSize: number,
     ) => {
-      console.log('export complete: ', company, name, runID, namePath, exportSize);
+      console.log(
+        'export complete: ',
+        company,
+        name,
+        runID,
+        namePath,
+        exportSize,
+      );
       // if (runID === 0) {
       //   console.log('stopping download run: ', runs);
       //   const downloadRun = runs.filter(
       //     (run) => run.platformId === `${name.toLowerCase()}-001`,
       //   )[0];
 
-      //   await trackRun('success', company, name) 
-     
+      //   await trackRun('success', company, name)
+
       //   dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
       // } else {
 
@@ -310,12 +337,18 @@ if (channel === 'console-log') {
 
         console.log('stopping download run: ', downloadRun);
 
-        await trackRun('success', company, name) 
-     
-        dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
-       }
+        await trackRun('success', company, name);
 
-       else {
+        dispatch(
+          updateExportStatus(
+            company,
+            name,
+            downloadRun.id,
+            namePath,
+            exportSize,
+          ),
+        );
+      } else {
         console.log(
           'stopping run for platform id: ',
           company,
@@ -323,11 +356,18 @@ if (channel === 'console-log') {
           ', and runID: ',
           runID,
         );
-        await trackRun('success', company, name) 
-     
-        dispatch(updateExportStatus(company, name, runID.toString(), namePath, exportSize));
-       }
+        await trackRun('success', company, name);
 
+        dispatch(
+          updateExportStatus(
+            company,
+            name,
+            runID.toString(),
+            namePath,
+            exportSize,
+          ),
+        );
+      }
 
       // }
     };
@@ -385,13 +425,16 @@ if (channel === 'console-log') {
       activeRun &&
       (activeRun.status === 'pending' || activeRun.status === 'running')
     ) {
-
       const platformId = activeRun.id.split('-').slice(0, 2).join('-');
 
       const platform = platforms.find((p) => p.id === platformId);
 
-await trackRun('stopped', platform.company, platform.name, activeRun.currentStep) 
-
+      await trackRun(
+        'stopped',
+        platform.company,
+        platform.name,
+        activeRun.currentStep,
+      );
 
       dispatch(stopRun(activeRun.id));
       console.log('Stopping run:', activeRun.id);
@@ -465,12 +508,14 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
         return () => {
           webviewRef.current.removeEventListener('dom-ready', setWebview);
           webviewRef.current.removeEventListener('did-navigate', setWebview);
-          webviewRef.current.removeEventListener('did-navigate-in-page', setWebview);
+          webviewRef.current.removeEventListener(
+            'did-navigate-in-page',
+            setWebview,
+          );
         };
       }
     });
   }, [webviewRefs]);
- 
 
   return (
     <FullScreenOverlay isVisible={isRunLayerVisible}>

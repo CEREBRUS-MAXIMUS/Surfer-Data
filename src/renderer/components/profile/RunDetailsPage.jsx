@@ -1,18 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ChevronDown, ChevronRight, Clock, ArrowLeft, XCircle, Eye, Trash2, ChevronLeft, Folder } from 'lucide-react';
-import { Button } from "../ui/button";
-import { ScrollArea } from "../ui/scroll-area";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import {
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  ArrowLeft,
+  XCircle,
+  Eye,
+  Trash2,
+  ChevronLeft,
+  Folder,
+} from 'lucide-react';
+import { Button } from '../ui/button';
+import { ScrollArea } from '../ui/scroll-area';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { openDB } from 'idb';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "../ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '../ui/breadcrumb';
 import { updateRunStatus, deleteRun } from '../../state/actions';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import MonacoEditor from '@monaco-editor/react';
 import { stopRun, closeRun } from '../../state/actions';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
-import { trackRun } from '../../../../analytics.js'
-import { platforms } from '../../config/platforms';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '../ui/alert-dialog';
+import { trackRun } from '../../../../analytics.js';
+import { platforms } from '../../../config/platforms';
 
 const StatusIndicator = ({ status }) => {
   switch (status) {
@@ -33,7 +60,7 @@ const StatusIndicator = ({ status }) => {
 
 const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   const dispatch = useDispatch();
-  const reduxRuns = useSelector(state => state.app.runs);
+  const reduxRuns = useSelector((state) => state.app.runs);
   const activeRunIndex = useSelector((state) => state.app.activeRunIndex);
   const [run, setRun] = useState(null);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
@@ -46,7 +73,7 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   useEffect(() => {
     const loadRun = async () => {
       // Check if the run exists in Redux state
-      const reduxRun = reduxRuns.find(r => r.id === runId);
+      const reduxRun = reduxRuns.find((r) => r.id === runId);
 
       if (reduxRun) {
         console.log('Loaded run from Redux:', reduxRun);
@@ -64,10 +91,13 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
           // Ensure the first task and its first step are running
           if (loadedRun.tasks.length > 0) {
             loadedRun.tasks[0].status = 'running';
-            loadedRun.tasks[0].startTime = loadedRun.tasks[0].startTime || new Date().toISOString();
+            loadedRun.tasks[0].startTime =
+              loadedRun.tasks[0].startTime || new Date().toISOString();
             if (loadedRun.tasks[0].steps.length > 0) {
               loadedRun.tasks[0].steps[0].status = 'running';
-              loadedRun.tasks[0].steps[0].startTime = loadedRun.tasks[0].steps[0].startTime || new Date().toISOString();
+              loadedRun.tasks[0].steps[0].startTime =
+                loadedRun.tasks[0].steps[0].startTime ||
+                new Date().toISOString();
             }
           }
 
@@ -103,7 +133,10 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
     window.electron.ipcRenderer.on('artifact-files', handleArtifactFiles);
 
     return () => {
-      window.electron.ipcRenderer.removeListener('artifact-files', handleArtifactFiles);
+      window.electron.ipcRenderer.removeListener(
+        'artifact-files',
+        handleArtifactFiles,
+      );
     };
   }, []);
 
@@ -112,27 +145,44 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
     const start = new Date(startTime);
     const end = endTime ? new Date(endTime) : new Date();
     const diff = end - start;
-    const hours = Math.floor(diff / 3600000).toString().padStart(2, '0');
-    const minutes = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
-    const seconds = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+    const hours = Math.floor(diff / 3600000)
+      .toString()
+      .padStart(2, '0');
+    const minutes = Math.floor((diff % 3600000) / 60000)
+      .toString()
+      .padStart(2, '0');
+    const seconds = Math.floor((diff % 60000) / 1000)
+      .toString()
+      .padStart(2, '0');
     return `${hours}:${minutes}:${seconds}`;
   };
 
   const handleStopRun = async () => {
     const activeRun = run;
-    if (activeRun && (activeRun.status === 'pending' || activeRun.status === 'running')) {
-
+    if (
+      activeRun &&
+      (activeRun.status === 'pending' || activeRun.status === 'running')
+    ) {
       const platformId = activeRun.id.split('-').slice(0, 2).join('-');
 
       const platform = platforms.find((p) => p.id === platformId);
 
-await trackRun('stopped', platform.company, platform.name, activeRun.currentStep) 
+      await trackRun(
+        'stopped',
+        platform.company,
+        platform.name,
+        activeRun.currentStep,
+      );
       dispatch(stopRun(activeRun.id));
-      console.log("Stopping run:", activeRun.id);
+      console.log('Stopping run:', activeRun.id);
 
       // Update the run in IndexedDB
       const db = await openDB('dataExtractionDB', 1);
-      const updatedRun = { ...activeRun, status: 'stopped', endDate: new Date().toISOString() };
+      const updatedRun = {
+        ...activeRun,
+        status: 'stopped',
+        endDate: new Date().toISOString(),
+      };
       await db.put('runs', updatedRun);
 
       // Remove the run from Redux state
@@ -146,9 +196,9 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
   };
 
   const toggleStep = (taskId, stepId) => {
-    setExpandedSteps(prev => ({
+    setExpandedSteps((prev) => ({
       ...prev,
-      [`${taskId}-${stepId}`]: !prev[`${taskId}-${stepId}`]
+      [`${taskId}-${stepId}`]: !prev[`${taskId}-${stepId}`],
     }));
   };
 
@@ -166,11 +216,15 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
   };
 
   const handlePrevArtifact = () => {
-    setCurrentArtifactIndex((prev) => (prev > 0 ? prev - 1 : artifacts.length - 1));
+    setCurrentArtifactIndex((prev) =>
+      prev > 0 ? prev - 1 : artifacts.length - 1,
+    );
   };
 
   const handleNextArtifact = () => {
-    setCurrentArtifactIndex((prev) => (prev < artifacts.length - 1 ? prev + 1 : 0));
+    setCurrentArtifactIndex((prev) =>
+      prev < artifacts.length - 1 ? prev + 1 : 0,
+    );
   };
 
   const handleViewArtifacts = () => {
@@ -216,7 +270,10 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex space-x-2">
-              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+              <AlertDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+              >
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm">
                     <Trash2 className="mr-2 h-4 w-4" />
@@ -225,14 +282,19 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure you want to delete this run?</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      Are you sure you want to delete this run?
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the run and remove all associated data.
+                      This action cannot be undone. This will permanently delete
+                      the run and remove all associated data.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteRun}>Delete</AlertDialogAction>
+                    <AlertDialogAction onClick={handleDeleteRun}>
+                      Delete
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -243,7 +305,11 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
                 </Button>
               )}
               {run?.status === 'success' && run?.exportPath && (
-                <Button variant="outline" size="sm" onClick={handleViewArtifacts}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleViewArtifacts}
+                >
                   <Folder className="mr-2 h-4 w-4" />
                   View Artifacts
                 </Button>
@@ -263,7 +329,7 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
             <CardContent>
               <div className="flex h-[400px]">
                 <div className="w-1/3 border-r overflow-y-auto">
-                  {run.tasks.map(task => (
+                  {run.tasks.map((task) => (
                     <div
                       key={task.id}
                       className={`p-2 border-b cursor-pointer ${selectedTaskId === task.id ? 'bg-gray-100' : ''}`}
@@ -271,38 +337,54 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
                     >
                       <div className="flex items-center space-x-2">
                         <StatusIndicator status={task.status} />
-                        <span className="font-semibold text-sm">{task.name}</span>
+                        <span className="font-semibold text-sm">
+                          {task.name}
+                        </span>
                       </div>
                     </div>
                   ))}
                 </div>
                 <div className="w-2/3 overflow-y-auto">
                   <ScrollArea className="h-full">
-                    {run.tasks.find(task => task.id === selectedTaskId)?.steps.map(step => (
-                      <div key={step.id} className="p-2 border-b">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleStep(selectedTaskId, step.id)}
-                            >
-                              {expandedSteps[`${selectedTaskId}-${step.id}`] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                            </Button>
-                            <StatusIndicator status={step.status} />
-                            <span className="font-semibold text-sm">{step.name}</span>
+                    {run.tasks
+                      .find((task) => task.id === selectedTaskId)
+                      ?.steps.map((step) => (
+                        <div key={step.id} className="p-2 border-b">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  toggleStep(selectedTaskId, step.id)
+                                }
+                              >
+                                {expandedSteps[
+                                  `${selectedTaskId}-${step.id}`
+                                ] ? (
+                                  <ChevronDown size={14} />
+                                ) : (
+                                  <ChevronRight size={14} />
+                                )}
+                              </Button>
+                              <StatusIndicator status={step.status} />
+                              <span className="font-semibold text-sm">
+                                {step.name}
+                              </span>
+                            </div>
+                            <span className="text-xs">
+                              {getElapsedTime(step.startTime, step.endTime)}
+                            </span>
                           </div>
-                          <span className="text-xs">{getElapsedTime(step.startTime, step.endTime)}</span>
+                          {expandedSteps[`${selectedTaskId}-${step.id}`] && (
+                            <div className="bg-gray-100 p-2 rounded mt-1">
+                              <pre className="text-xs">
+                                {step.logs || 'No logs available'}
+                              </pre>
+                            </div>
+                          )}
                         </div>
-                        {expandedSteps[`${selectedTaskId}-${step.id}`] && (
-                          <div className="bg-gray-100 p-2 rounded mt-1">
-                            <pre className="text-xs">
-                              {step.logs || 'No logs available'}
-                            </pre>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      ))}
                   </ScrollArea>
                 </div>
               </div>
