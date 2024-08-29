@@ -36,7 +36,6 @@ async function exportTwitter(company, name, runID) {
   bigStepper(runID);
   customConsoleLog(runID, 'Starting tweet collection');
   while (noNewTweetsCount < 3) {
-    customConsoleLog(runID, 'Waiting for tweets');
     const tweets = await waitForElement(
       runID,
       'div[data-testid="cellInnerDiv"]',
@@ -60,8 +59,17 @@ async function exportTwitter(company, name, runID) {
           block: 'end',
         });
 
-      const tweetText = tweet.innerText.replace(/\n/g, ' ');
-      tweetSet.add(tweetText);
+
+      if (tweet.querySelector('time')) {
+        const jsonTweet = {
+        text: tweet.innerText.replace(/\n/g, ' '),
+        timestamp: tweet.querySelector('time').getAttribute('datetime'),
+        }
+        customConsoleLog(runID, 'Tweet:', jsonTweet);
+        tweetSet.add(JSON.stringify(jsonTweet));
+      }
+      
+
     });
 
     const newTweetsAdded = tweetSet.size - initialSize;

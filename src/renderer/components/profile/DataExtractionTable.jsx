@@ -313,7 +313,7 @@ const showLogs = (platform) => {
   const logLines = latestRun.logs.split('\n');
 
   return (
-    <div className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '300px' }}>
+    <div id="log-container" className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '300px' }}>
       <pre className="font-mono text-xs whitespace-pre-wrap break-words">
         {logLines.map((line, index) => (
           <span key={index} className={line === 'YOU NEED TO SIGN IN!' ? 'text-red-500' : ''}>
@@ -327,7 +327,7 @@ const showLogs = (platform) => {
 }
 
   useEffect(() => {
-    const logContainers = document.querySelectorAll('.overflow-y-auto');
+    const logContainers = document.querySelectorAll('#log-container');
     if (logContainers) {
       logContainers.forEach(container => {
         container.scrollTop = container.scrollHeight;
