@@ -367,6 +367,62 @@ export const createWindow = async (visible: boolean = true) => {
     });
   }
 
+async function parseConversationsJSON(extractPath: string) {
+  const conversationsFilePath = path.join(extractPath, 'conversations.json');
+  const parsedConversationsFilePath = path.join(
+    extractPath,
+    'basic_conversations.json',
+  );
+  console.log('Parsing conversations.json...');
+
+  let formattedConversations = [];
+
+  if (fs.existsSync(conversationsFilePath)) {
+    const conversationsData = fs.readFileSync(conversationsFilePath, 'utf8');
+    const parsedData = JSON.parse(conversationsData);
+
+    formattedConversations = parsedData.map((conversation: any) => {
+      const messages = Object.values(conversation.mapping)
+        .filter(
+          (node: any) => node.message && node.message.author.role !== 'system',
+        )
+        .sort((a: any, b: any) => {
+          const timeA = a.message.create_time || 0;
+          const timeB = b.message.create_time || 0;
+          return timeA - timeB;
+        })
+        .map((node: any) => ({
+          message: node.message.content.parts.join('\n'),
+          role: node.message.author.role === 'assistant' ? 'AI' : 'human',
+        }))
+        .filter(msg => msg.message.trim() !== ''); // Filter out blank or whitespace-only messages
+
+      return {
+        title: conversation.title,
+        timestamp: conversation.create_time,
+        conversation: messages,
+      };
+    });
+
+    console.log('Conversations parsed successfully');
+  } else {
+    console.warn('Conversations.json file not found in:', extractPath);
+  }
+
+  // Write the formatted conversations to parsed_conversations.json
+  try {
+    fs.writeFileSync(
+      parsedConversationsFilePath,
+      JSON.stringify(formattedConversations, null, 2),
+    );
+    console.log('Parsed conversations written to parsed_conversations.json');
+  } catch (error) {
+    console.error('Error writing to parsed_conversations.json:', error);
+  }
+
+  return formattedConversations;
+}
+
   let lastDownloadUrl = '';
   let lastDownloadTime = 0;
 
@@ -471,6 +527,11 @@ export const createWindow = async (visible: boolean = true) => {
               await extractZip(filePath, extractPath);
               console.log('Outer ZIP extracted to:', extractPath);
 
+              // parsing conversations.json  
+
+              if (extractPath.includes('ChatGPT')) {
+                await parseConversationsJSON(extractPath)
+              }
               // Find the inner ZIP file
               const innerZipFile = fs.readdirSync(extractPath).find(file => file.endsWith('.zip'));
               
