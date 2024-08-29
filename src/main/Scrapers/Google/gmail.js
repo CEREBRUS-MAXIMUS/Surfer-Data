@@ -30,15 +30,15 @@ async function checkIfEmailExists(id, emailContent) {
     return false;
   }
   const extractedPath = path.join(gmailPath, 'extracted');
-  const convertedMboxPath = path.join(extractedPath, 'converted_mbox.json');
+  const jsonPath = path.join(extractedPath, 'emails.json');
 
-  if (fs.existsSync(convertedMboxPath)) {
-    const fileContent = JSON.parse(fs.readFileSync(convertedMboxPath, 'utf-8'));
+  if (fs.existsSync(jsonPath)) {
+    const fileContent = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
    customConsoleLog('fileContent: ', fileContent);
     // Check if the email content exists in the file
     if (Array.isArray(fileContent)) {
       for (const email of fileContent) {
-        if (JSON.stringify(email.subject) === emailContent.subject) {
+        if (email.subject === JSON.parse(emailContent).subject && email.timestamp.slice(0, -7) === JSON.parse(emailContent).timestamp.slice(0, -7)) {
           customConsoleLog('email exists: ', email);
           return true;
         }
@@ -46,20 +46,6 @@ async function checkIfEmailExists(id, emailContent) {
     }
   }
   return false;
-
-const jsonPath = path.join(extractedPath, jsonFile);
-const jsonContent = fs.readFileSync(jsonPath, 'utf8');
-const jsonData = JSON.parse(jsonContent);
-// Check if the emailContent is in the jsonData
-customConsoleLog(id, 'THIS EMAIL CONTENT BEING COMPARED: ', emailContent);
-const emailExists = jsonData.some(email => {
-  const subjectMatch = JSON.stringify(email.subject) === emailContent.subject;
-  //const timestampMatch = new Date(email.timestamp).toISOString().slice(0, -5) === new Date(emailContent.timestamp).toISOString().slice(0, -5);
-  
-  return subjectMatch;
-});
-customConsoleLog(id, 'Email exists:', emailExists);
-return emailExists;
 
 }
 
@@ -173,7 +159,7 @@ async function continueExportTakeout(id) {
 }
 
 async function exportGmail(company, name, runID, steps) {
-  const gmailPath = path.join(userDataPath, 'surfer_data', 'Google', 'Gmail', 'gmail-001', 'extracted', 'converted_mbox.json');
+  const gmailPath = path.join(userDataPath, 'surfer_data', 'Google', 'Gmail', 'gmail-001', 'extracted', 'emails.json');
 
   if (!fs.existsSync(gmailPath)) {
     ipcRenderer.sendToHost(

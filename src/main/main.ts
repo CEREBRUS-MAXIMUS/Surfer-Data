@@ -587,7 +587,7 @@ export const createWindow = async (visible: boolean = true) => {
                 if (mboxFilePath) {
                   const jsonOutputPath = path.join(
                     extractPath,
-                    'converted_mbox.json',
+                    'emails.json',
                   );
 
                   try {
@@ -763,7 +763,7 @@ ipcMain.on('handle-update', (event, company, name, emailContent, runID) => {
   );
 
   const userData = app.getPath('userData');
-  const filePath = path.join(userData, 'surfer_data', company, name, 'gmail-001', 'extracted', 'converted_mbox.json');
+  const filePath = path.join(userData, 'surfer_data', company, name, 'gmail-001', 'extracted', 'emails.json');
 
   // Read existing data if available
   let existingData = [];
