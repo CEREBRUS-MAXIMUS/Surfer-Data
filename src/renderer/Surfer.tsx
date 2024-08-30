@@ -12,7 +12,7 @@ import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs } from 
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
 import { Progress } from './components/ui/progress';
-import { platforms } from './config/platforms';
+import { platforms } from '../../platforms';
 
 function Surfer() {
   const dispatch = useDispatch();

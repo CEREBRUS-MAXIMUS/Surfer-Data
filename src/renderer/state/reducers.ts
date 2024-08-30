@@ -5,7 +5,7 @@ import {
   IRun,
 } from '../types/interfaces';
 import { initialAppState } from '../config/initialStates';
-import { platforms } from '../config/platforms';
+import { platforms } from '../../../platforms';
 
 
 const preferencesReducer = (

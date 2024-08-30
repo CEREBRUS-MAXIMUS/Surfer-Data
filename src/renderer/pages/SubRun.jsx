@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { ChevronRight, ChevronDown, ArrowLeft } from 'lucide-react';
 import { openDB } from 'idb';
 import RunDetailsPage from '../components/profile/RunDetailsPage';
-import { platforms } from '../config/platforms';
+import { platforms } from '../../../platforms';
 import { trackRun } from '../../../analytics'
 
 const SubRun = ({ platform, subRun }) => {

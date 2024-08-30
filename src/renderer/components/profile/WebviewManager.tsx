@@ -14,7 +14,7 @@ import {
   bigStepper,
   updateRunLogs
 } from '../../state/actions';
-import { platforms } from '../../config/platforms';
+import { platforms } from '../../../../platforms';
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
