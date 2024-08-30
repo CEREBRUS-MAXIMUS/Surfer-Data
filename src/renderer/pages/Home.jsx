@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
 import DataExtractionTable from '../components/profile/DataExtractionTable';
 import RunDetailsPage from '../components/profile/RunDetailsPage';
-import { platforms } from '../config/platforms';
+import { platforms } from '../../../platforms';
 
 const Home = () => {
   const dispatch = useDispatch();

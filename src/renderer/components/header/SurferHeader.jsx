@@ -15,7 +15,7 @@ import { Button } from '../ui/button';
 import SettingsButton from './SettingsButton';
 import { setIsRunLayerVisible } from '../../state/actions';
 import SupportButton from './SupportButton';
-import { platforms } from '../../config/platforms';
+import { platforms } from '../../../../platforms';
 
 const getStyleHorizontalLock = (style) =>
   style?.transform
