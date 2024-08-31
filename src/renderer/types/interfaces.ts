@@ -109,5 +109,4 @@ export interface IPlatform {
   subRuns: ISubRun[];
   supportedOS: ('mac' | 'windows' | 'linux')[];
   steps: Array<{ id: number; name: string; status: 'pending' | 'running' | 'success' | 'error' }>;
-  exportFunction: (company: string, name: string, runID: string, exportPath: string) => Promise<void>;
 }
