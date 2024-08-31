@@ -52,6 +52,16 @@ import ClaudeDark from './src/renderer/components/assets/platforms/ClaudeDark';
 import NewsLight from './src/renderer/components/assets/platforms/NewsLight';
 import NewsDark from './src/renderer/components/assets/platforms/NewsDark';
 import { IPlatform } from './src/renderer/types/interfaces';
+const exportNotion = require('./src/main/Scrapers/Notion/notion');
+const exportGithub = require('./src/main/Scrapers/Microsoft/github');
+const exportLinkedin = require('./src/main/Scrapers/Microsoft/linkedin');
+const exportTwitter = require('./src/main/Scrapers/X Corp/twitter');
+const exportGmail = require('./src/main/Scrapers/Google/gmail');
+const exportYouTube = require('./src/main/Scrapers/Google/youtube');
+const exportChatgpt = require('./src/main/Scrapers/OpenAI/chatgpt');
+const exportGoogleWeather = require('./src/main/Scrapers/Google/weather');
+const exportXTrending = require('./src/main/Scrapers/X Corp/trending');
+const exportNews = require('./src/main/Scrapers/Google/news');
 
 export const platforms: IPlatform[] = [
   {
@@ -172,6 +182,7 @@ export const platforms: IPlatform[] = [
       { id: 'step-004', name: 'Getting all repositories', status: 'pending' },
       { id: 'step-005', name: 'Exporting Data', status: 'pending' },
     ],
+    exportFunction: exportGithub,
   },
   {
     id: 'gmail-001',
@@ -239,7 +250,8 @@ export const platforms: IPlatform[] = [
       { id: 'step-003', name: 'Going through all emails', status: 'pending' },
       { id: 'step-004', name: 'Exporting Data', status: 'pending' },
     ],
-  },
+    exportFunction: exportGmail,
+  }, 
   {
     id: 'notion-001',
     name: 'Notion',
@@ -295,6 +307,7 @@ export const platforms: IPlatform[] = [
       { id: 'step-006', name: 'Clicking on export button', status: 'pending' },
       { id: 'step-007', name: 'Exporting Data', status: 'pending' },
     ],
+    exportFunction: exportNotion,
   },
   {
     id: 'linkedin-001',
@@ -349,6 +362,7 @@ export const platforms: IPlatform[] = [
       { id: 'step-004', name: 'Scraping Data', status: 'pending' },
       { id: 'step-005', name: 'Exporting Data', status: 'pending' },
     ],
+    exportFunction: exportLinkedin,
   },
   {
     id: 'twitter-001',
@@ -402,6 +416,7 @@ export const platforms: IPlatform[] = [
       { id: 'step-003', name: 'Getting tweets', status: 'pending' },
       { id: 'step-005', name: 'Exporting Data', status: 'pending' },
     ],
+    exportFunction: exportTwitter,
   },
   {
     id: 'youtube-001',
@@ -455,6 +470,7 @@ export const platforms: IPlatform[] = [
       { id: 'step-003', name: 'Extracting video titles', status: 'pending' },
       { id: 'step-004', name: 'Exporting Data', status: 'pending' },
     ],
+    exportFunction: exportYouTube,
   },
   {
     id: 'chatgpt-001',
@@ -485,6 +501,7 @@ export const platforms: IPlatform[] = [
       { id: 'step-005', name: 'Clicking on export email', status: 'pending' },
       { id: 'step-006', name: 'Exporting data', status: 'pending' },
     ],
+    exportFunction: exportChatgpt,
   },
   {
     id: 'slack-001',
@@ -704,25 +721,7 @@ export const platforms: IPlatform[] = [
       },
     ],
     supportedOS: ['mac', 'windows', 'linux'],
-    // steps: [
-    //   { id: 'step-001', name: 'Go to Google', status: 'pending' },
-    //   {
-    //     id: 'step-002',
-    //     name: 'Search for "my current weather"',
-    //     status: 'pending',
-    //   },
-    //   {
-    //     id: 'step-003',
-    //     name: 'Wait for weather data to load',
-    //     status: 'pending',
-    //   },
-    //   {
-    //     id: 'step-004',
-    //     name: 'Extract  forecast',
-    //     status: 'pending',
-    //   },
-    //   { id: 'step-005', name: 'Exporting Data', status: 'pending' },
-    // ],
+    exportFunction: exportGoogleWeather,
   },
   {
     id: 'xTrending-001',
@@ -768,48 +767,30 @@ export const platforms: IPlatform[] = [
       },
     ],
     supportedOS: ['mac', 'windows', 'linux'],
-    // steps: [
-    //   { id: 'step-001', name: 'Go to X', status: 'pending' },
-    //   {
-    //     id: 'step-002',
-    //     name: 'Navigate to Explore',
-    //     status: 'pending',
-    //   },
-    //   {
-    //     id: 'step-003',
-    //     name: 'Wait for trending topics',
-    //     status: 'pending',
-    //   },
-    //   {
-    //     id: 'step-004',
-    //     name: 'Extract trending data',
-    //     status: 'pending',
-    //   },
-    //   { id: 'step-005', name: 'Exporting Data', status: 'pending' },
-    // ],
+    exportFunction: exportXTrending,
   },
   {
     id: 'news-001',
     name: 'News',
-    description: 'Exports current top news headlines and stories.',
+    description: 'Exports news articles from Google News.',
     logo: {
       light: NewsLight,
       dark: NewsDark,
     },
     company: 'Google',
     companyLogo: '/assets/logos/google.svg',
-    home_url: 'https://www.google.com/search?q=news',
+    home_url: 'https://news.google.com',
     subRuns: [
       {
-        id: 'news-001-headlines',
-        name: 'Headlines',
+        id: 'news-001-articles',
+        name: 'News Articles',
         icon: FileText,
-        description: 'Extracts current top news headlines',
-        extractionMethod: 'Web scraping - Google News',
+        description: 'Extracts news articles from Google News',
+        extractionMethod: 'Web scraping - Google News page',
         tasks: [
           {
-            id: 'news-001-headlines-task-1',
-            name: 'Extract Top Headlines',
+            id: 'news-001-articles-task-1',
+            name: 'Extract News Articles',
             steps: [
               {
                 id: 'step-1',
@@ -818,43 +799,12 @@ export const platforms: IPlatform[] = [
               },
               {
                 id: 'step-2',
-                name: 'Wait for headlines to load',
+                name: 'Wait for articles to load',
                 status: 'pending',
               },
               {
                 id: 'step-3',
-                name: 'Extract headline data',
-                status: 'pending',
-              },
-            ],
-            status: 'pending',
-          },
-        ],
-      },
-      {
-        id: 'news-001-categories',
-        name: 'News Categories',
-        icon: Folder,
-        description: 'Extracts news from different categories',
-        extractionMethod: 'Web scraping - Google News categories',
-        tasks: [
-          {
-            id: 'news-001-categories-task-1',
-            name: 'Extract Category News',
-            steps: [
-              {
-                id: 'step-1',
-                name: 'Navigate to category sections',
-                status: 'pending',
-              },
-              {
-                id: 'step-2',
-                name: 'Extract news from each category',
-                status: 'pending',
-              },
-              {
-                id: 'step-3',
-                name: 'Compile category news data',
+                name: 'Extract article data',
                 status: 'pending',
               },
             ],
@@ -864,17 +814,6 @@ export const platforms: IPlatform[] = [
       },
     ],
     supportedOS: ['mac', 'windows', 'linux'],
-    // steps: [
-    //   { id: 'step-001', name: 'Go to Google News', status: 'pending' },
-    //   { id: 'step-002', name: 'Wait for page to load', status: 'pending' },
-    //   { id: 'step-003', name: 'Extract top headlines', status: 'pending' },
-    //   {
-    //     id: 'step-004',
-    //     name: 'Navigate through categories',
-    //     status: 'pending',
-    //   },
-    //   { id: 'step-005', name: 'Extract category news', status: 'pending' },
-    //   { id: 'step-006', name: 'Exporting Data', status: 'pending' },
-    // ],
+    exportFunction: exportNews,
   },
 ];
