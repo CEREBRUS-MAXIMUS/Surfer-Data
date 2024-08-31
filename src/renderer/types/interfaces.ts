@@ -71,15 +71,6 @@ export interface ITask {
   logs: string;
 }
 
-export interface ISubRun {
-  id: string;
-  name: string;
-  icon: React.ComponentType;
-  description: string;
-  extractionMethod: string;
-  tasks: ITask[];
-}
-
 export interface IRun {
   id: string;
   platformId: string;
@@ -106,7 +97,6 @@ export interface IPlatform {
   company: string;
   companyLogo: string;
   home_url: string;
-  subRuns: ISubRun[];
   supportedOS: ('mac' | 'windows' | 'linux')[];
   steps: Array<{ id: number; name: string; status: 'pending' | 'running' | 'success' | 'error' }>;
 }
