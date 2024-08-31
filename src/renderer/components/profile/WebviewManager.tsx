@@ -181,24 +181,18 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       // Parse the run ID
       const parsedId = newRun.id.split('-').slice(0, 2).join('-');
 
-      // Find the corresponding platform
-      const platform = platforms.find((p) => p.id === parsedId);
 
-      if (platform) {
         await new Promise((resolve) => setTimeout(resolve, 2000));
         const webviewRef = getWebviewRef(newRun.id);
-        if (webviewRef.current) {
-          console.log('exporting this: ', platform.company, platform.name);
-          webviewRef.current.send(
-            'export-website',
-            platform.company,
-            platform.name,
-            newRun.id,
-          );
-        }
-      } else {
-        console.error('Platform not found for ID:', parsedId);
-      }
+        webviewRef.current.src = 'about:blank'
+        
+    //     if (webviewRef.current) {
+    //       // webviewRef.current.send(
+    //       //   'export-website',
+    //       //   platform.company,
+    //       //   platform.name,
+    //       //   newRun.id,
+    //       // );
     }
   };
 

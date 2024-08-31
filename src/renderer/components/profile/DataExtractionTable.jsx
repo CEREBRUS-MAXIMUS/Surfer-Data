@@ -5,7 +5,7 @@ import { useTheme } from '../ui/theme-provider';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Button } from "../ui/button";
 import { ArrowUpRight, ArrowRight, Check, X, Link, Download, Search, ChevronLeft, ChevronRight, HardDriveDownload, Folder, Eye } from 'lucide-react';
-import { platforms } from '../../../../platforms';
+// import { platforms } from '../../../../platforms';
 import { openDB } from 'idb';
 import { Input } from "../ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
@@ -106,12 +106,38 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     );
   };
 
-  const filteredPlatforms = platforms
-  .filter(platform => platform.steps)
-  .filter(platform =>
-    platform.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    platform.company.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [filteredPlatforms, setFilteredPlatforms] = useState([]);
+  const [allPlatforms, setAllPlatforms] = useState([]);
+
+  useEffect(() => {
+    const loadScrapers = async () => {
+      try {
+        const scrapers = await window.electron.ipcRenderer.invoke('get-scrapers');
+        console.log('SCRAPERS: ', scrapers);
+
+        setAllPlatforms(scrapers);
+      } catch (error) {
+        console.error('Error loading scrapers:', error);
+        setAllPlatforms([]);
+      }
+    };
+
+    loadScrapers();
+  }, []);
+
+  useEffect(() => {
+    setFilteredPlatforms(allPlatforms.filter(scraper =>
+      scraper.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      scraper.company.toLowerCase().includes(searchTerm.toLowerCase())
+    ));
+  }, [searchTerm, allPlatforms]);
+
+  // const filteredPlatforms = platforms
+  // .filter(platform => platform.steps)
+  // .filter(platform =>
+  //   platform.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //   platform.company.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
   const pageCount = Math.ceil(filteredPlatforms.length / itemsPerPage);
   const paginatedPlatforms = filteredPlatforms.slice(
@@ -129,23 +155,23 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   };
 
   const handleExportClick = async (platform) => {
+    console.log('platform: ', platform);
+
+
     const newRun = {
       id: `${platform.id}-${Date.now()}`,
       platformId: platform.id,
-      subRunId: 'export',
       startDate: new Date().toISOString(),
       status: 'running',
-      tasks: [],
-      url: platform.home_url,
       exportSize: null,
-      currentStep: platform.steps[0],
-      logs: ''
     };
 
 
     dispatch(startRun(newRun));
     // dispatch(toggleRunVisibility());
     dispatch(setExportRunning(newRun.id, true));
+
+    await window.electron.ipcRenderer.invoke('start-export', platform.name, platform.id, newRun.id);
   };
 
   const formatLastRunTime = (run) => {
@@ -409,7 +435,7 @@ const showLogs = (platform) => {
                             className="flex items-center space-x-2 cursor-pointer hover:underline"
                             onClick={() => onPlatformClick(platform)}
                           >
-                            {getPlatformLogo(platform)}
+                            {/* {getPlatformLogo(platform)} */}
                             <div className="flex items-center">
                               <p className="flex items-center">
                                 <span className="text-gray-500">{platform.company}/</span>
@@ -421,7 +447,7 @@ const showLogs = (platform) => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <p className="font-medium">{platform.description}</p>
+                        <p className="font-medium">{platform.description || 'No description available'}</p>
                       </TableCell>
                       <TableCell className="w-[600px]">
                         {renderResults(platform)}

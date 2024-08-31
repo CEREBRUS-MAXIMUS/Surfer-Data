@@ -6,8 +6,13 @@ const {
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-async function exportYouTube(company, name, runID) {
+async function exportYouTube() {
+console.log('YouTube opened');
+console.log('sdfsdfgsdfgsfdg');
+
   await wait(5);
+
+  window.location.assign('https://www.youtube.com/');
   if (document.querySelector('a[aria-label="Sign in"]')) {
     customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
@@ -55,8 +60,6 @@ async function exportYouTube(company, name, runID) {
 
   bigStepper(runID);
   ipcRenderer.send('handle-export', company, name, videoData, runID);
-
-  return;
 }
 
-module.exports = exportYouTube;
+exportYouTube();

@@ -184,54 +184,6 @@ export const platforms: IPlatform[] = [
     company: 'Google',
     companyLogo: '/assets/logos/google.svg',
     home_url: 'https://mail.google.com',
-    subRuns: [
-      {
-        id: 'gmail-001-all',
-        name: 'All Email',
-        icon: Mail,
-        description: 'Extracts all emails',
-        extractionMethod:
-          'The general approach here is to use Google Takeout to request a full export of all your emails, then download the MBOX file that gets sent to Gmail and convert the MBOX file to JSON.',
-        tasks: [
-          {
-            id: 'gmail-001-all-task-1',
-            name: 'Google Takeout',
-            steps: [
-              {
-                id: 'step-1',
-                name: 'Navigate to Google Takeout',
-                status: 'pending',
-              },
-              {
-                id: 'step-2',
-                name: 'Wait for export to complete',
-                status: 'pending',
-              },
-              {
-                id: 'step-3',
-                name: 'Download exported file',
-                status: 'pending',
-              },
-            ],
-            status: 'pending',
-          },
-          {
-            id: 'gmail-001-all-task-2',
-            name: 'Convert MBOX to JSON',
-            steps: [
-              { id: 'step-1', name: 'Parse MBOX file', status: 'pending' },
-              {
-                id: 'step-2',
-                name: 'Convert to JSON format',
-                status: 'pending',
-              },
-              { id: 'step-3', name: 'Save JSON file', status: 'pending' },
-            ],
-            status: 'pending',
-          },
-        ],
-      },
-    ],
     supportedOS: ['mac', 'windows', 'linux'],
     steps: [
       { id: 'step-001', name: 'Going to Gmail', status: 'pending' },

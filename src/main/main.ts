@@ -22,15 +22,13 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
 import { createClient } from '@supabase/supabase-js';
-
-
+import fs from 'fs';
+import { fork } from 'child_process';
 
 let appIcon: Tray | null = null;
 
 require('dotenv').config();
 const { download } = require('electron-dl');
-
-import fs from 'fs';
 
 autoUpdater.autoDownload = false; // Prevent auto-download
 autoUpdater.autoInstallOnAppQuit = false;
@@ -53,6 +51,89 @@ try {
 } catch (error) {
   console.error('Error loading config:', error);
 }
+
+ipcMain.handle('get-scrapers', async () => {
+  const scrapersDir = path.join(__dirname, './Scrapers');
+
+  const getAllJsFiles = async (dir: string): Promise<string[]> => {
+    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    const files = await Promise.all(
+      entries.map(async (entry) => {
+        const res = path.resolve(dir, entry.name);
+        return entry.isDirectory() ? getAllJsFiles(res) : res;
+      }),
+    );
+    return files.flat().filter((file) => file.endsWith('.js'));
+  };
+
+  try {
+    const jsFiles = await getAllJsFiles(scrapersDir);
+    
+    const scrapers = jsFiles.map((file) => {
+      const relativePath = path.relative(scrapersDir, file);
+      const parts = relativePath.split(path.sep);
+      const company = parts.length > 1 ? parts[0] : 'Scraper';
+      const name = path.basename(file, '.js')
+
+      return {
+        id: `${name}-001`,
+        company: company,
+        name: name,
+      };
+    });
+
+    console.log('SCRAPERS:', scrapers);
+    return scrapers;
+  } catch (error) {
+    console.error('Error reading scrapers directory:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('start-export', async (event, name, platformId, runId) => {
+  console.log('Starting export for platform:', name, 'with run ID:', runId);
+
+  const scrapersDir = path.join(__dirname, './Scrapers');
+
+  const getAllJsFiles = async (dir: string): Promise<string[]> => {
+    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    const files = await Promise.all(
+      entries.map(async (entry) => {
+        const res = path.resolve(dir, entry.name);
+        return entry.isDirectory() ? getAllJsFiles(res) : res;
+      }),
+    );
+    return files.flat().filter((file) => file.endsWith('.js'));
+  };
+
+  try {
+    const jsFiles = await getAllJsFiles(scrapersDir);
+    const matchingFile = jsFiles.find(file => path.basename(file, '.js') === name);
+
+    if (matchingFile) {
+      console.log(`Found matching scraper: ${matchingFile}`);
+      
+      // Fork a new process to run the scraper
+      const child = fork(matchingFile, [platformId, runId]);
+
+      child.on('message', (message) => {
+        // Forward messages from the child process to the renderer
+        console.log('MESSAGE FROM CHILD: ', message);
+      });
+
+      child.on('exit', (code) => {
+        console.log(`Scraper exited with code ${code}`);
+      });
+
+      console.log('Export started');
+    } else {
+      console.error(`No matching scraper found for: ${name}`);
+    }
+  } catch (error) {
+    console.error('Error starting export:', error);
+  }
+});
+
 // Listen for user data sent from renderer
 ipcMain.on('send-user-data', (event, userID) => {
   console.log('user id from renderer: ', userID);
