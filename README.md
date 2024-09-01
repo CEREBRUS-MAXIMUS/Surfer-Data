@@ -36,7 +36,6 @@ We believe that personal data aggregation is the key to enabling truly useful, u
 - LinkedIn
 - GitHub
 - YouTube
-- Spotify
 - Notion
 - ChatGPT
 - Gmail
