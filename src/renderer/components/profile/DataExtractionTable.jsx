@@ -160,18 +160,21 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
 
     const newRun = {
       id: `${platform.id}-${Date.now()}`,
+      company: platform.company,
+      name: platform.name,
       platformId: platform.id,
       startDate: new Date().toISOString(),
       status: 'running',
-      exportSize: null,
-    };
+      exportSize: null, 
+      url: platform.url
+    }; 
 
 
     dispatch(startRun(newRun));
     // dispatch(toggleRunVisibility());
     dispatch(setExportRunning(newRun.id, true));
 
-    await window.electron.ipcRenderer.invoke('start-export', platform.name, platform.id, newRun.id);
+    //await window.electron.ipcRenderer.invoke('start-export', platform.name, platform.id, newRun.id);
   };
 
   const formatLastRunTime = (run) => {

@@ -1,14 +1,6 @@
 const { ipcRenderer } = require('electron')
-function customConsoleLog(id, ...args) {
-  // Convert arguments to strings to avoid cloning issues
-  const stringArgs = args.map((arg) =>
-    typeof arg === 'object' ? JSON.stringify(arg) : arg,
-  );
-  ipcRenderer.sendToHost('console-log', id, ...stringArgs);
-};
 
 function waitForElement(
-  id,
   selector,
   elementName,
   multipleElements = false,
@@ -16,7 +8,7 @@ function waitForElement(
 ) {
 
   if (!multipleElements){
-    customConsoleLog(id, `Waiting for ${elementName}`);
+    console.log(`Waiting for ${elementName}`);
   }
 
   return new Promise((resolve) => {
@@ -28,11 +20,11 @@ function waitForElement(
         : document.querySelector(selector);
       if (element) {
         if (!multipleElements){
-          customConsoleLog(id, `Found ${elementName}`);
+          console.log(id, `Found ${elementName}`);
         }
         resolve(element);
       } else if (Date.now() - startTime >= timeout) {
-        customConsoleLog(id, `Timeout waiting for ${elementName}`);
+        console.log(id, `Timeout waiting for ${elementName}`);
         resolve(null);
       } else {
         setTimeout(checkElement, 100);
@@ -60,7 +52,7 @@ async function waitForContentToStabilize() {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
         observer.disconnect();
-        customConsoleLog('Content has stabilized');
+        console.log('Content has stabilized');
         resolve();
       }, 100); // Adjust this delay as needed
     });
@@ -74,11 +66,11 @@ async function waitForContentToStabilize() {
     // Fallback in case the page never stabilizes
     setTimeout(() => {
       observer.disconnect();
-      customConsoleLog('Timed out waiting for content to stabilize');
+      console.log('Timed out waiting for content to stabilize');
       resolve();
     }, 5000); // Adjust this timeout as needed
   });
 }
 
 
-module.exports = { customConsoleLog, waitForElement, wait, bigStepper, waitForContentToStabilize }
+module.exports = { waitForElement, wait, bigStepper, waitForContentToStabilize }

@@ -5,7 +5,6 @@ if (window.trustedTypes && window.trustedTypes.createPolicy) {
 }
 
 const { contextBridge, ipcRenderer, BrowserWindow } = require('electron');
-const { customConsoleLog } = require('./preloadFunctions');
 const exportNotion = require('./Scrapers/Notion/notion');
 const {
   exportGithub,
@@ -28,7 +27,7 @@ contextBridge.exposeInMainWorld('electron', {
 });
 
 ipcRenderer.on('export-website', async (event, company, name, runID) => {
-  customConsoleLog(runID, 'Exporting', name);
+  console.log(runID, 'Exporting', name);
 
   const fs = require('fs');
   const path = require('path');
@@ -43,21 +42,21 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
   });
 
   if (matchingFile) {
-    const exportFunction = require(path.join(scrapersDir, matchingFile));
-    if (typeof exportFunction === 'function') {
-      await exportFunction(company, name, runID);
-    } else {
-      customConsoleLog(runID, `Error: ${matchingFile} does not export a function`);
-    }
+    console.log('Matching file:', matchingFile);
+    const exportModule = require(path.join(scrapersDir, matchingFile));
+    console.log('Export module:', exportModule);
+
+      await Promise.resolve(exportModule); // This will run the file without calling a specific function
+
   } else {
-    customConsoleLog(runID, `Error: No matching scraper found for ${name}`);
+    console.log(runID, `Error: No matching scraper found for ${name}`);
   }
 });
 
 
 
 // ipcRenderer.on('export-website', async (event, company, name, runID, exportPath) => {
-//   customConsoleLog(runID, 'Exporting', name);
+//   console.log(runID, 'Exporting', name);
 
 //   switch (name) {
 //     case 'Notion':

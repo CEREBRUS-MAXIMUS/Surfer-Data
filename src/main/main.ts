@@ -53,7 +53,7 @@ try {
 }
 
 ipcMain.handle('get-scrapers', async () => {
-  const scrapersDir = path.join(__dirname, './Scrapers');
+  const scrapersDir = path.join(__dirname, 'Scrapers');
 
   const getAllJsFiles = async (dir: string): Promise<string[]> => {
     const entries = await fs.promises.readdir(dir, { withFileTypes: true });
@@ -73,12 +73,18 @@ ipcMain.handle('get-scrapers', async () => {
       const relativePath = path.relative(scrapersDir, file);
       const parts = relativePath.split(path.sep);
       const company = parts.length > 1 ? parts[0] : 'Scraper';
-      const name = path.basename(file, '.js')
+      const name = path.basename(file, '.js');
+
+      // Read the file content to check for home_url
+      const fileContent = fs.readFileSync(file, 'utf-8');
+      const homeUrlMatch = fileContent.match(/const\s+home_url\s*=\s*['"](.+)['"]/);
+      const homeUrl = homeUrlMatch ? homeUrlMatch[1] : '';
 
       return {
         id: `${name}-001`,
         company: company,
         name: name,
+        url: homeUrl
       };
     });
 
@@ -93,7 +99,7 @@ ipcMain.handle('get-scrapers', async () => {
 ipcMain.handle('start-export', async (event, name, platformId, runId) => {
   console.log('Starting export for platform:', name, 'with run ID:', runId);
 
-  const scrapersDir = path.join(__dirname, './Scrapers');
+  const scrapersDir = path.join(__dirname, 'Scrapers');
 
   const getAllJsFiles = async (dir: string): Promise<string[]> => {
     const entries = await fs.promises.readdir(dir, { withFileTypes: true });
@@ -110,22 +116,16 @@ ipcMain.handle('start-export', async (event, name, platformId, runId) => {
     const jsFiles = await getAllJsFiles(scrapersDir);
     const matchingFile = jsFiles.find(file => path.basename(file, '.js') === name);
 
+    const preloadWebview = path.join(__dirname, 'preloadWebview.js');
+
     if (matchingFile) {
       console.log(`Found matching scraper: ${matchingFile}`);
       
+      console.log('Export started');
       // Fork a new process to run the scraper
       const child = fork(matchingFile, [platformId, runId]);
 
-      child.on('message', (message) => {
-        // Forward messages from the child process to the renderer
-        console.log('MESSAGE FROM CHILD: ', message);
-      });
 
-      child.on('exit', (code) => {
-        console.log(`Scraper exited with code ${code}`);
-      });
-
-      console.log('Export started');
     } else {
       console.error(`No matching scraper found for: ${name}`);
     }

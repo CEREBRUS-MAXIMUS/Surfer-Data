@@ -176,23 +176,21 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     setIsConnected(true);
     const newRun = runs[runs.length - 1];
     if (newRun && newRun.status === 'running') {
-      console.log('Run started:', newRun.id);
+      console.log('Run started:', newRun);
       dispatch(updateRunLogs(newRun.id, null));
-      // Parse the run ID
-      const parsedId = newRun.id.split('-').slice(0, 2).join('-');
-
 
         await new Promise((resolve) => setTimeout(resolve, 2000));
         const webviewRef = getWebviewRef(newRun.id);
-        webviewRef.current.src = 'about:blank'
+        console.log('webviewRef: ', webviewRef.current);
         
-    //     if (webviewRef.current) {
-    //       // webviewRef.current.send(
-    //       //   'export-website',
-    //       //   platform.company,
-    //       //   platform.name,
-    //       //   newRun.id,
-    //       // );
+        if (webviewRef.current) {
+          webviewRef.current.send( // dont hardcode this 
+            'export-website',
+            newRun.company,
+            newRun.name,
+            newRun.id,
+          );
+        }
     }
   };
 
@@ -479,7 +477,7 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
             <RightSection>
               {!isConnected && (
                 <Button onClick={handleNewRun}>I've signed in!</Button>
-              )}
+              )} 
               {isActiveRunStoppable() && (
                 <StopButton onClick={handleStopRun}>
                   <Square size={16} style={{ marginRight: '4px' }} />

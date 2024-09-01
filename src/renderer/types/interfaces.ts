@@ -92,6 +92,8 @@ export interface IRun {
   exportSize?: number;
   exportDate?: string;
   exportPath?: string;
+  company: string;
+  name: string;
   currentStep?: { id: number; name: string; status: 'pending' | 'running' | 'success' | 'error' };
   logs?: string;
 }
