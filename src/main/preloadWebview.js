@@ -5,29 +5,30 @@ if (window.trustedTypes && window.trustedTypes.createPolicy) {
 }
 
 const { contextBridge, ipcRenderer, BrowserWindow } = require('electron');
-const exportNotion = require('./Scrapers/Notion/notion');
-const {
-  exportGithub,
-  continueExportGithub,
-} = require('./Scrapers/Microsoft/github');
-const exportLinkedin = require('./Scrapers/Microsoft/linkedin');
-const exportTwitter = require('./Scrapers/X Corp/twitter');
-const exportXTrending = require('./Scrapers/X Corp/trending');
-const electronHandler = require('./preloadElectron');
-const exportGmail = require('./Scrapers/Google/gmail');
-const exportYouTube = require('./Scrapers/Google/youtube');
-const exportGoogleWeather = require('./Scrapers/Google/weather');
-const exportNews = require('./Scrapers/Google/news');
-const {
-  exportChatgpt,
-  continueExportChatgpt,
-} = require('./Scrapers/OpenAI/chatgpt');
+// const exportNotion = require('./Scrapers/Notion/notion');
+// const {
+//   exportGithub,
+//   continueExportGithub,
+// } = require('./Scrapers/Microsoft/github');
+// const exportLinkedin = require('./Scrapers/Microsoft/linkedin');
+// const exportTwitter = require('./Scrapers/X Corp/twitter');
+// const exportXTrending = require('./Scrapers/X Corp/trending');
+// const electronHandler = require('./preloadElectron');
+// const exportGmail = require('./Scrapers/Google/gmail');
+// const exportYouTube = require('./Scrapers/Google/youtube');
+// const exportGoogleWeather = require('./Scrapers/Google/weather');
+// const exportNews = require('./Scrapers/Google/news');
+// const {
+//   exportChatgpt,
+//   continueExportChatgpt,
+// } = require('./Scrapers/OpenAI/chatgpt');
+const { customConsoleLog } = require('./preloadFunctions');
 contextBridge.exposeInMainWorld('electron', {
   getExportSize: (exportPath) => ipcRenderer.invoke('get-export-size', exportPath),
 });
 
 ipcRenderer.on('export-website', async (event, company, name, runID) => {
-  console.log(runID, 'Exporting', name);
+  customConsoleLog(runID, 'Exporting: ', name);
 
   const fs = require('fs');
   const path = require('path');
@@ -35,28 +36,43 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
   const scrapersDir = path.join(__dirname, 'Scrapers');
   const files = fs.readdirSync(scrapersDir, { recursive: true });
 
-  const jsFiles = files.filter(file => file.endsWith('.js'));
+  const jsFiles = files.filter(file => file.endsWith('.js')); 
   const matchingFile = jsFiles.find(file => {
-    const fileName = path.basename(file, '.js').toLowerCase();
-    return fileName === name.toLowerCase();
+    const fileName = path.basename(file, '.js');
+    return fileName.toLowerCase() === name.toLowerCase();
   });
 
-  if (matchingFile) {
-    console.log('Matching file:', matchingFile);
+  if (matchingFile) { 
+    customConsoleLog(runID, 'Matching file:', matchingFile);
     const exportModule = require(path.join(scrapersDir, matchingFile));
-    console.log('Export module:', exportModule);
+    customConsoleLog(runID, 'exportModule', JSON.stringify(exportModule));
 
-      await Promise.resolve(exportModule); // This will run the file without calling a specific function
+    try { 
+      customConsoleLog(runID, 'Exporting module!'); 
+      if (typeof exportModule === 'function') {
+        await exportModule(company, name, runID);
+      } else if (typeof exportModule === 'object' && exportModule !== null) {
+        const exportFunction = exportModule[name] || exportModule.default;
+        if (typeof exportFunction === 'function') {
+          await exportFunction(company, name, runID);
+        } else {
+          throw new Error(`No valid export function found for ${name}`);
+        }
+      } else {
+        throw new Error(`Invalid module export for ${name}`);
+      }
+      customConsoleLog(runID, `Export completed for ${company}/${name}`);
+    } catch (error) {
+      customConsoleLog(runID, `Error during export of ${company}/${name}:`, error);
+    }
 
   } else {
-    console.log(runID, `Error: No matching scraper found for ${name}`);
+    customConsoleLog(runID, `Error: No matching scraper found for ${company}/${name}`);
   }
 });
 
-
-
 // ipcRenderer.on('export-website', async (event, company, name, runID, exportPath) => {
-//   console.log(runID, 'Exporting', name);
+//   customConsoleLog(runID, 'Exporting', name);
 
 //   switch (name) {
 //     case 'Notion':
@@ -96,14 +112,14 @@ ipcRenderer.on('export-website', async (event, company, name, runID) => {
 //   }
 // });
 
-(async () => {
-  if (window.location.href.includes('?tab=repositories')) {
-    await continueExportGithub();
-  }
-})();
+// (async () => {
+//   if (window.location.href.includes('?tab=repositories')) {
+//     await continueExportGithub();
+//   }
+// })();
 
-ipcRenderer.on('change-url-success', async (event, url, id) => {
-  if (id.includes('chatgpt-001')) {
-    await continueExportChatgpt(id);
-  }
-});
+// ipcRenderer.on('change-url-success', async (event, url, id) => {
+//   if (id.includes('chatgpt-001')) {
+//     await continueExportChatgpt(id);
+//   }
+// });

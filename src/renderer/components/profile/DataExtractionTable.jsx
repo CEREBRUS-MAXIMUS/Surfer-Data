@@ -166,7 +166,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       startDate: new Date().toISOString(),
       status: 'running',
       exportSize: null, 
-      url: platform.url
+      url: 'about:blank'
     }; 
 
 

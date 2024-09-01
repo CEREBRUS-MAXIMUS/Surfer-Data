@@ -1,5 +1,9 @@
 const { ipcRenderer } = require('electron')
 
+function customConsoleLog(id, ...args) {
+  ipcRenderer.sendToHost('console-log', id, args);
+}
+
 function waitForElement(
   selector,
   elementName,
@@ -73,4 +77,4 @@ async function waitForContentToStabilize() {
 }
 
 
-module.exports = { waitForElement, wait, bigStepper, waitForContentToStabilize }
+module.exports = { customConsoleLog,waitForElement, wait, bigStepper, waitForContentToStabilize }

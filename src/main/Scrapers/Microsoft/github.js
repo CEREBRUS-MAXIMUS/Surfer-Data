@@ -1,17 +1,20 @@
-const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../preloadFunctions');
+const { waitForElement, wait, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-async function exportGithub(company, name, runID) {
+(async () => {
+  if (!window.location.href.includes('github.com')) {
+    window.location.assign('https://github.com/');
+  }
   await wait(2);
   if (document.querySelector('a[href="/login"]')) {
-    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
+    console.log(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
   const tabButton = await waitForElement(runID, 'button[aria-label="Open user navigation menu"]', 'User navigation menu');
 
   if (!tabButton) {
-    customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
+    console.log(runID, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
@@ -32,62 +35,62 @@ async function exportGithub(company, name, runID) {
   await wait(2);
 
   return;
-}
+})();
 
-async function continueExportGithub() {
-      ipcRenderer.sendToHost('get-run-id');
-      ipcRenderer.on('got-run-id', async (event, id) => {
-        bigStepper(id);
-        customConsoleLog(id, 'Continuing GitHub export!');
+// async function continueExportGithub() {
+//       ipcRenderer.sendToHost('get-run-id');
+//       ipcRenderer.on('got-run-id', async (event, id) => {
+//         bigStepper(id);
+//         console.log(id, 'Continuing GitHub export!');
         
-        const repos = [];
+//         const repos = [];
 
-        while (true) {
-          customConsoleLog(id, `Waiting for Repositories`);
-          await wait(2);
-          const repoLinks = await waitForElement(id, 'a[itemprop="name codeRepository"]', 'Repositories', true);
-          customConsoleLog(id, 'Adding', repoLinks.length, 'repos!');
-          for (const repoLink of repoLinks) {
-            let desc = '';
+//         while (true) {
+//           console.log(id, `Waiting for Repositories`);
+//           await wait(2);
+//           const repoLinks = await waitForElement(id, 'a[itemprop="name codeRepository"]', 'Repositories', true);
+//           console.log(id, 'Adding', repoLinks.length, 'repos!');
+//           for (const repoLink of repoLinks) {
+//             let desc = '';
 
-            const siblingDiv =
-              repoLink.parentElement.parentElement.nextElementSibling;
-            if (siblingDiv && siblingDiv.childNodes[1]) {
-              desc = siblingDiv.childNodes[1].innerText;
-            }
-            repos.push({
-              name: repoLink.innerText,
-              url: repoLink.href,
-              description: desc,
-            });
-          }
+//             const siblingDiv =
+//               repoLink.parentElement.parentElement.nextElementSibling;
+//             if (siblingDiv && siblingDiv.childNodes[1]) {
+//               desc = siblingDiv.childNodes[1].innerText;
+//             }
+//             repos.push({
+//               name: repoLink.innerText,
+//               url: repoLink.href,
+//               description: desc,
+//             });
+//           }
 
-          await wait(5);
+//           await wait(5);
 
-          const nextPageButton = await waitForElement(id, 'a.next_page', 'Next page button');
-          if (!nextPageButton) {
-            break;
-          }
-          nextPageButton.scrollIntoView({
-            behavior: 'instant',
-            block: 'center',
-          });
-          nextPageButton.click();
+//           const nextPageButton = await waitForElement(id, 'a.next_page', 'Next page button');
+//           if (!nextPageButton) {
+//             break;
+//           }
+//           nextPageButton.scrollIntoView({
+//             behavior: 'instant',
+//             block: 'center',
+//           });
+//           nextPageButton.click();
 
-          await wait(2);
-        }
+//           await wait(2);
+//         }
 
 
-    customConsoleLog(
-        id,
-      'GitHub export completed. Total repositories:',
-      repos.length,
-    );
+//     console.log(
+//         id,
+//       'GitHub export completed. Total repositories:',
+//       repos.length,
+//     );
 
-    bigStepper(id);
-    ipcRenderer.send('handle-export', 'Microsoft', 'GitHub', repos, id);
-    return;
-  });
-}
+//     bigStepper(id);
+//     ipcRenderer.send('handle-export', 'Microsoft', 'GitHub', repos, id);
+//     return;
+//   });
+// }
 
-module.exports = { exportGithub, continueExportGithub };
+// module.exports = { exportGithub, continueExportGithub };

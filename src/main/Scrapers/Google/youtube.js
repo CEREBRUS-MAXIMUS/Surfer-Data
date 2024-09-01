@@ -5,13 +5,12 @@ const {
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-const home_url = 'https://www.youtube.com/';
-
-
 (async () => {
 console.log('YouTube opened');
 console.log('sdfsdfgsdfgsfdg');
-
+if (!window.location.href.includes('youtube.com')) {
+  window.location.assign('https://www.youtube.com/');
+}
 await wait(5);
 
 if (document.querySelector('a[aria-label="Sign in"]')) {
