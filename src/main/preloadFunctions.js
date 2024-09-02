@@ -9,6 +9,7 @@ function customConsoleLog(id, ...args) {
 };
 
 function waitForElement(
+  id,
   selector,
   elementName,
   multipleElements = false,
