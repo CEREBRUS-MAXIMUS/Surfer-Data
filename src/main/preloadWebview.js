@@ -10,8 +10,6 @@ const { customConsoleLog } = require('./preloadFunctions');
 
 ipcRenderer.on('export-website', async (event, company, name, runID) => {
   const scraper = require(`./Scrapers/${company}/${name}.js`);
-
-  customConsoleLog(runID, 'Calling scraper function'); // Add this log
   const data = await scraper(runID, company, name);
   customConsoleLog(runID, 'Got data, need to export now');
 });

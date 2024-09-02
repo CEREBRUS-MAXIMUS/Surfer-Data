@@ -173,12 +173,14 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
   }, [activeRuns, isRunLayerVisible, dispatch]);
 
 
-  const handleNewRun = async () => {
+  const handleNewRun = async (id: string | null = null) => {
     setIsConnected(true);
-    const newRun = runs[runs.length - 1];
+    const newRun = id ? runs.find((run) => run.id === id) : runs[runs.length - 1];
     if (newRun && newRun.status === 'running') {
       console.log('Run started:', newRun);
-      dispatch(updateRunLogs(newRun.id, null));
+      if (!id) {
+        dispatch(updateRunLogs(newRun.id, null));
+      }
 
         await new Promise((resolve) => setTimeout(resolve, 2000));
         const webviewRef = getWebviewRef(newRun.id);
@@ -418,10 +420,6 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
     }
   };
 
-  useEffect(() => {
-    console.log('webviewRefs', webviewRefs);
-  }, [webviewRefs]);
-
   function modifyUserAgent(userAgent) {
     // Regular expression to match the Chrome version
     const chromeVersionRegex = /(Chrome\/)\d+(\.\d+){3}/;
@@ -457,34 +455,33 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
     });
   }, [runs.length]); 
  
-  useEffect(() => {
-    const handleDidNavigate = async (event: Electron.DidNavigateEvent) => {
-      console.log('WEBVIEW NAVIGATED!!!')
-      if (!event.url.includes('about:blank')) {
-      handleNewRun();
+useEffect(() => {
+  const handleDidNavigate = async (event: Electron.DidNavigateEvent, runId: string) => {
+    console.log('WEBVIEW NAVIGATED!!!');
+    if (!event.url.includes('about:blank')) {
+      console.log('Navigating webview for run:', runId);
+      handleNewRun(runId);
       console.log('Webview navigated to:', event.url);
     }
-    };
+  };
 
+  const webviewRefsArray = Object.entries(webviewRefs);
+  webviewRefsArray.forEach(([runId, webviewRef]) => {
+    if (webviewRef.current) {
+      console.log('Adding did-navigate event listener for run:', runId);
+      webviewRef.current.addEventListener('did-navigate', (event) => handleDidNavigate(event, runId));
+    }
+  });
 
-
-    const webviewRefsArray = Object.values(webviewRefs);
-    webviewRefsArray.forEach((webviewRef) => {
+  return () => {
+    webviewRefsArray.forEach(([runId, webviewRef]) => {
       if (webviewRef.current) {
-        console.log('adding did navigate event listener');
-        webviewRef.current.addEventListener('did-navigate', handleDidNavigate);
+        console.log('Removing did-navigate event listener for run:', runId);
+        webviewRef.current.removeEventListener('did-navigate', (event) => handleDidNavigate(event, runId));
       }
     });
-
-    return () => {
-      webviewRefsArray.forEach((webviewRef) => {
-        if (webviewRef.current) {
-          console.log('removing did navigate event listener');
-          webviewRef.current.removeEventListener('did-navigate', handleDidNavigate);
-        }
-      });
-    };
-  }, [runs.length]);
+  };
+}, [runs.length]);
 
 
   return (

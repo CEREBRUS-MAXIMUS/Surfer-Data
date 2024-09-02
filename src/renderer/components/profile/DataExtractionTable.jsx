@@ -272,7 +272,7 @@ const renderResults = (platform) => {
             <div className="flex items-center space-x-2 group">
               <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
               <span className="group-hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
-                {latestRun.currentStep?.name || 'Running...'}
+                {latestRun.currentStep ? latestRun.currentStep : 'Running...'}
               </span>
               <span
                 className="cursor-pointer flex items-center hover:underline"
@@ -442,7 +442,7 @@ const showLogs = (platform) => {
                             <div className="flex items-center">
                               <p className="flex items-center">
                                 <span className="text-gray-500">{platform.company}/</span>
-                                <span className="font-semibold">{platform.name}</span>
+                                <span className="font-semibold">{platform.name.charAt(0).toUpperCase() + platform.name.slice(1)}</span>
                               </p>
                               <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
                             </div>

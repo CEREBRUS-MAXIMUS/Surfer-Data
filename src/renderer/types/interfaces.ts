@@ -94,7 +94,7 @@ export interface IRun {
   exportPath?: string;
   company: string;
   name: string;
-  currentStep?: { id: number; name: string; status: 'pending' | 'running' | 'success' | 'error' };
+  currentStep?: string;
   logs?: string;
 }
 

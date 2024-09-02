@@ -17,7 +17,7 @@ function waitForElement(
 ) {
 
   if (!multipleElements){
-    console.log(`Waiting for ${elementName}`);
+    customConsoleLog(id, `Waiting for ${elementName}`);
   }
 
   return new Promise((resolve) => {
@@ -29,11 +29,11 @@ function waitForElement(
         : document.querySelector(selector);
       if (element) {
         if (!multipleElements){
-          console.log(id, `Found ${elementName}`);
+          customConsoleLog(id, `Found ${elementName}`);
         }
         resolve(element);
       } else if (Date.now() - startTime >= timeout) {
-        console.log(id, `Timeout waiting for ${elementName}`);
+        customConsoleLog(id, `Timeout waiting for ${elementName}`);
         resolve(null);
       } else {
         setTimeout(checkElement, 100);

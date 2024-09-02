@@ -3,6 +3,7 @@ const { ipcRenderer } = require('electron');
 
 async function exportGithub(id, company, name) {
   if (!window.location.href.includes('github.com')) {
+    customConsoleLog(id, 'Navigating to GitHub');
     window.location.assign('https://github.com/');
   }
   await wait(2);
@@ -35,9 +36,9 @@ async function exportGithub(id, company, name) {
   repoTab.click();
 
   await wait(2);
-}
+  }
 
-  else if (window.location.href.includes('tab=repositories')) {
+  if (window.location.href.includes('tab=repositories')) {
             const repos = [];
             while (true) {
               customConsoleLog(id, `Waiting for Repositories`);
@@ -78,10 +79,7 @@ async function exportGithub(id, company, name) {
         return repos;
   }
 
-  else {
-    customConsoleLog(id, 'Unknown URL, debug!!!:', window.location.href);
-    return [];
-  }
+
 }
 
 module.exports = exportGithub;
