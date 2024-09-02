@@ -3,10 +3,13 @@ const { ipcRenderer } = require('electron');
 
 async function exportTwitter(id, company, name) {
   if (!window.location.href.includes('x.com')) {
+    bigStepper(id, 'Navigating to Twitter');
+    customConsoleLog(id, 'Navigating to Twitter');
     window.location.assign('https://x.com/');
   }
   await wait(5);
   if (document.querySelector('h1').innerText === 'Sign in to X') {
+    bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
@@ -27,7 +30,7 @@ async function exportTwitter(id, company, name) {
     return;
   }
 
-  bigStepper(id);
+  bigStepper(id, 'Clicking on Profile Picture');
   profilePics[1].click();
   await wait(2);
 
@@ -36,7 +39,7 @@ async function exportTwitter(id, company, name) {
   let noNewTweetsCount = 0;
   //const scrollArray = ['start', 'center', 'end', 'nearest'];
 
-  bigStepper(id);
+  bigStepper(id, 'Getting tweets...');
   customConsoleLog(id, 'Starting tweet collection');
   while (noNewTweetsCount < 3) {
     const tweets = await waitForElement(
@@ -97,7 +100,7 @@ async function exportTwitter(id, company, name) {
 
   const tweetArray = Array.from(tweetSet);
   customConsoleLog(id, `Exporting ${tweetArray.length} tweets`);
-  bigStepper(id);
+  bigStepper(id, 'Exporting data');
   return tweetArray;
 }
 

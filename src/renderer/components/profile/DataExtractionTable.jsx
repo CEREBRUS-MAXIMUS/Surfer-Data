@@ -163,6 +163,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       company: platform.company,
       name: platform.name,
       platformId: platform.id,
+      tasks: [],
       startDate: new Date().toISOString(),
       status: 'running',
       exportSize: null, 

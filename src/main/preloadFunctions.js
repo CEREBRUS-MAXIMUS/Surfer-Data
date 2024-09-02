@@ -51,7 +51,6 @@ async function wait(seconds) {
 }
 
 function bigStepper(id, step) {
-  customConsoleLog(id, 'BIG STEPPER CALLED!');
   ipcRenderer.sendToHost('big-stepper', id, step);
 }
 

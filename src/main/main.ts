@@ -578,7 +578,7 @@ async function parseConversationsJSON(extractPath: string) {
         fs.mkdirSync(companyPath);
       }
 
-      // Create or clear platform_name folder
+      // Create or clear company folder
       if (!fs.existsSync(platformPath)) {
         fs.mkdirSync(platformPath);
       }
@@ -731,10 +731,10 @@ ipcMain.on('check-for-updates', () => {
                 });
 });
 
-ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
+ipcMain.on('handle-export', (event, company, name, content, runID) => {
   console.log(
     'handling export for: ',
-    platform_name,
+    company,
     ', specific name: ',
     name,
     ', runID: ',
@@ -743,7 +743,7 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
 
   const userData = app.getPath('userData');
   const surferDataPath = path.join(userData, 'surfer_data');
-  const platformPath = path.join(surferDataPath, platform_name);
+  const platformPath = path.join(surferDataPath, company);
   const namePath = path.join(platformPath, name);
   const idPath = path.join(namePath, runID);
 
@@ -760,7 +760,7 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
 
   // Prepare the data object
   const exportData = {
-    platform_name,
+    company,
     name,
     runID,
     timestamp,
@@ -776,7 +776,7 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
 
   mainWindow?.webContents.send(
     'export-complete',
-    platform_name,
+    company,
     name,
     runID,
     idPath,

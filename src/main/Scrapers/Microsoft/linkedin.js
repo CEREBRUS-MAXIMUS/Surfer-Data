@@ -5,6 +5,7 @@ const { ipcRenderer } = require('electron');
 
 async function exportLinkedin(id, company, name) {
   if (!window.location.href.includes('linkedin.com')) {
+    customConsoleLog(id, 'Navigating to LinkedIn');
     window.location.assign('https://linkedin.com/');
   }
   await wait(2);
@@ -21,11 +22,12 @@ async function exportLinkedin(id, company, name) {
   );
   
   if (!profileButton) {
+    bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
-  bigStepper(id);
+  bigStepper(id, 'Clicking on Profile Button');
   profileButton.click();
 
   await wait(2);
@@ -36,7 +38,7 @@ async function exportLinkedin(id, company, name) {
     customConsoleLog(id, 'Contact button not found');
     return;
   }
-  bigStepper(id);
+  bigStepper(id, 'Clicking on Contact Button');
   contactBtn.click();
 
   await wait(2);
@@ -55,7 +57,7 @@ async function exportLinkedin(id, company, name) {
       const mainContent = await waitForElement(id, '.scaffold-layout__main', 'Main Content');
       
       if (mainContent) {
-        bigStepper(id);
+        bigStepper(id, 'Clicking on Contact Button');
         contactBtn.click();
 
         await wait(2);
@@ -97,7 +99,7 @@ async function exportLinkedin(id, company, name) {
 
           customConsoleLog(id, 'sending back profile data!');
           customConsoleLog(id, 'linkedin done!');
-          bigStepper(id);
+          bigStepper(id, 'Exporting data');
           resolve(profileData);
         }
       }

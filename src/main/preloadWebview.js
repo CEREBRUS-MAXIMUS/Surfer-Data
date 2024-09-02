@@ -11,7 +11,12 @@ const { customConsoleLog } = require('./preloadFunctions');
 ipcRenderer.on('export-website', async (event, company, name, runID) => {
   const scraper = require(`./Scrapers/${company}/${name}.js`);
   const data = await scraper(runID, company, name);
-  customConsoleLog(runID, 'Got data, need to export now');
+  if (data) {
+    ipcRenderer.send('handle-export', company, name, data, runID);
+    customConsoleLog(runID, 'Got data, need to export now');
+  } else {
+    customConsoleLog(runID, 'No data, might be downloading file or might be an error');
+  }
 });
 
 // const fs = require('fs');

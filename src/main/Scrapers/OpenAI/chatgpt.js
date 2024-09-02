@@ -11,6 +11,8 @@ async function exportChatgpt(id, company, name) {
     !window.location.href.includes('chatgpt.com/#settings/DataControls') &&
     !window.location.href.includes('mail.google.com')
   ) {
+    bigStepper(id, 'Navigating to ChatGPT');
+    customConsoleLog(id, 'Navigating to ChatGPT');
     window.location.assign('https://chatgpt.com/#settings/DataControls');
   }
   await wait(3);
@@ -19,8 +21,9 @@ async function exportChatgpt(id, company, name) {
   if (window.location.href.includes('chatgpt.com')){
     if (document.querySelector('button[data-testid="login-button"]')) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN!');
-        ipcRenderer.send('connect-website', company);
-        return;
+      bigStepper(id, 'Export stopped, waiting for sign in');
+      ipcRenderer.send('connect-website', company);
+      return;
     }
 
       customConsoleLog(id, `Waiting for Dialog Box`);
@@ -29,6 +32,7 @@ async function exportChatgpt(id, company, name) {
 
   if (!dialogBox) {
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
+    bigStepper(id, 'Export stopped, waiting for sign in');
     ipcRenderer.send('connect-website', company);
     return;
   }
@@ -39,17 +43,16 @@ async function exportChatgpt(id, company, name) {
 
   const exportBtn = buttons.find(button => button.innerText === 'Export');
   
-  bigStepper(id)
+  bigStepper(id, 'Clicking on Export');
   exportBtn.click();
 
   const confirmExport = await waitForElement(id, '.btn.relative.btn-primary', 'Confirm Export');
 
-  bigStepper(id)
   confirmExport.click();
 
     // TODO: automatically go to user's email and download the file
     await wait(3)
-  bigStepper(id)
+  bigStepper(id, 'Going to Gmail');
   }
 
   if (!window.location.href.includes('mail.google.com')) {
@@ -57,8 +60,10 @@ async function exportChatgpt(id, company, name) {
   }
 
   if (window.location.href.includes('mail.google.com')){
+
   if (document.querySelector('h1')) {
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
+    bigStepper(id, 'Export stopped, waiting for sign in');
     ipcRenderer.send('connect-website', company);
     return;
   }
@@ -69,10 +74,11 @@ async function exportChatgpt(id, company, name) {
       'Download Email',
       true,
     );
+    bigStepper(id, 'Checking for email');
     customConsoleLog(id, `Waiting for email from OpenAI`);
     for (const email of emails) {
       if (email.innerText.includes('ChatGPT - Your data export is ready')) {
-        bigStepper(id);
+        bigStepper(id, 'Email found, clicking it');
         email.click();
         return true; // Return true if the email is found
       }
@@ -102,6 +108,7 @@ async function exportChatgpt(id, company, name) {
             });
             refreshButton.dispatchEvent(event);
           });
+          bigStepper(id, 'Refreshing emails');
           customConsoleLog(id, 'Refreshing emails');
           await wait(1); // Wait for refresh to complete
         }
@@ -126,7 +133,7 @@ async function exportChatgpt(id, company, name) {
     }
   }
   customConsoleLog(id, 'Download button found, clicking it!');
-  bigStepper(id);
+  bigStepper(id, 'Downloading data');
   downloadBtns[downloadBtns.length - 1].click();
   }
 }

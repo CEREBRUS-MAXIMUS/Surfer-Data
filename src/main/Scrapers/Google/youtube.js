@@ -8,6 +8,8 @@ const { ipcRenderer } = require('electron');
 
 async function exportYoutube(id, company, name) {
 if (!window.location.href.includes('youtube.com')) {
+  bigStepper(id, 'Navigating to YouTube');
+  customConsoleLog(id, 'Navigating to YouTube');
   window.location.assign('https://www.youtube.com/');
 }
 
@@ -15,13 +17,14 @@ if (!window.location.href.includes('youtube.com')) {
 await wait(5);
 
 if (document.querySelector('a[aria-label="Sign in"]')) {
+  bigStepper(id, 'Export stopped, waiting for sign in');
   customConsoleLog(id, 'YOU NEED TO SIGN IN!');
   ipcRenderer.send('connect-website', company);
   return;
 }
 const videoData = [];
 
-bigStepper(id, 'Waiting for Video elements');
+bigStepper(id, 'Getting videos...');
 
 // Extract video information
 customConsoleLog(id, 'Waiting for Video elements');
@@ -59,7 +62,7 @@ if (videoElements && videoElements.length > 0) {
 
 customConsoleLog(id, 'Video data collected:', videoData.length);
 
-// bigStepper(id);
+bigStepper(id, 'Exporting data');
 return videoData;
 }
 

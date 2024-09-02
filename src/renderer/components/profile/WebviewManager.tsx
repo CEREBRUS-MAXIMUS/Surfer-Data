@@ -265,7 +265,7 @@ if (channel === 'console-log') {
         }
       });
     };
-  }, [runs, getWebviewRef]);
+  }, [runs.length]);
 
   useEffect(() => {
     if (runs.length > 0) {
