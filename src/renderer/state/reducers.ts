@@ -155,14 +155,9 @@ const appReducer = (state = initialAppState.app, action: any) => {
         ...state,
         runs: state.runs.map(run => {
           if (run.id === action.payload.runId) {
-            const platform = platforms.find(p => p.id === run.platformId);
-            if (platform) {
-              const currentStepIndex = platform.steps.findIndex(step => step.id === action.payload.step.id);
-              const nextStep = platform.steps[currentStepIndex + 1] || null;
-              console.log('current step: ', action.payload.step);
-              console.log('next step: ', nextStep);
-              return { ...run, currentStep: nextStep || action.payload.step };
-            }
+
+              return { ...run, currentStep: action.payload.step };
+            
           }
           return run;
         })

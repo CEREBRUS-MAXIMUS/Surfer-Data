@@ -172,6 +172,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     }
   }, [activeRuns, isRunLayerVisible, dispatch]);
 
+
   const handleNewRun = async () => {
     setIsConnected(true);
     const newRun = runs[runs.length - 1];
@@ -195,11 +196,11 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     }
   };
 
-  const handleBigStepper = useCallback((runId: string) => {
+  const handleBigStepper = useCallback((runId: string, step: string) => {
     const runToStep = runs.find((run) => run.id === runId);
     if (!runToStep) return;
     console.log('go to next step for run id: ', runId);
-    dispatch(bigStepper(runToStep.id, runToStep.currentStep));
+    dispatch(bigStepper(runToStep.id, step));
   }, [dispatch, runs]);
 
 const handleLogs = useCallback((runId: string, ...logs: any[]) => {
@@ -214,7 +215,8 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
     const webviewRef = getWebviewRef(id);
     console.log('SENDING TO THIS WEBVIEW REF!!! ', webviewRef.current);
-    webviewRef.current?.send('change-url-success', url, id);
+    handleNewRun();
+    //webviewRef.current?.send('change-url-success', url, id);
   }, [dispatch, runs, getWebviewRef]);
 
   useEffect(() => {
@@ -222,11 +224,11 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
       const { channel, args } = event;
 
       if (channel === 'get-run-id') { 
-        const githubRun = runs.find((run) => run.status === 'running' && run.platformId.includes('github'));
-        if (githubRun) {
+        const run = runs.find((run) => run.status === 'running' && run.name === args[0]);
+        if (run) {
           console.log('sent run id');
-          const webviewRef = getWebviewRef(githubRun.id);
-          webviewRef.current?.send('got-run-id', githubRun.id);
+          const webviewRef = getWebviewRef(run.id);
+          webviewRef.current?.send('got-run-id', run.id);
         }
       }
 
@@ -239,7 +241,7 @@ if (channel === 'console-log') {
       }
 
       if (channel === 'big-stepper') {
-        handleBigStepper(args[0]);
+        handleBigStepper(args[0], args[1]);
       }
 
       if (channel === 'change-url') {
@@ -416,6 +418,10 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
     }
   };
 
+  useEffect(() => {
+    console.log('webviewRefs', webviewRefs);
+  }, [webviewRefs]);
+
   function modifyUserAgent(userAgent) {
     // Regular expression to match the Chrome version
     const chromeVersionRegex = /(Chrome\/)\d+(\.\d+){3}/;
@@ -436,6 +442,8 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
           webviewRef.current.setZoomFactor(0.8);
         };
 
+
+
         webviewRef.current.addEventListener('dom-ready', setWebview);
         webviewRef.current.addEventListener('did-navigate', setWebview);
         webviewRef.current.addEventListener('did-navigate-in-page', setWebview);
@@ -447,8 +455,37 @@ await trackRun('stopped', platform.company, platform.name, activeRun.currentStep
         };
       }
     });
-  }, [webviewRefs]);
+  }, [runs.length]); 
  
+  useEffect(() => {
+    const handleDidNavigate = async (event: Electron.DidNavigateEvent) => {
+      console.log('WEBVIEW NAVIGATED!!!')
+      if (!event.url.includes('about:blank')) {
+      handleNewRun();
+      console.log('Webview navigated to:', event.url);
+    }
+    };
+
+
+
+    const webviewRefsArray = Object.values(webviewRefs);
+    webviewRefsArray.forEach((webviewRef) => {
+      if (webviewRef.current) {
+        console.log('adding did navigate event listener');
+        webviewRef.current.addEventListener('did-navigate', handleDidNavigate);
+      }
+    });
+
+    return () => {
+      webviewRefsArray.forEach((webviewRef) => {
+        if (webviewRef.current) {
+          console.log('removing did navigate event listener');
+          webviewRef.current.removeEventListener('did-navigate', handleDidNavigate);
+        }
+      });
+    };
+  }, [runs.length]);
+
 
   return (
     <FullScreenOverlay isVisible={isRunLayerVisible}>

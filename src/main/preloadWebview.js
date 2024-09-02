@@ -4,72 +4,89 @@ if (window.trustedTypes && window.trustedTypes.createPolicy) {
   });
 }
 
-const { contextBridge, ipcRenderer, BrowserWindow } = require('electron');
-// const exportNotion = require('./Scrapers/Notion/notion');
-// const {
-//   exportGithub,
-//   continueExportGithub,
-// } = require('./Scrapers/Microsoft/github');
-// const exportLinkedin = require('./Scrapers/Microsoft/linkedin');
-// const exportTwitter = require('./Scrapers/X Corp/twitter');
-// const exportXTrending = require('./Scrapers/X Corp/trending');
-// const electronHandler = require('./preloadElectron');
-// const exportGmail = require('./Scrapers/Google/gmail');
-// const exportYouTube = require('./Scrapers/Google/youtube');
-// const exportGoogleWeather = require('./Scrapers/Google/weather');
-// const exportNews = require('./Scrapers/Google/news');
-// const {
-//   exportChatgpt,
-//   continueExportChatgpt,
-// } = require('./Scrapers/OpenAI/chatgpt');
+const { ipcRenderer } = require('electron');
 const { customConsoleLog } = require('./preloadFunctions');
-contextBridge.exposeInMainWorld('electron', {
-  getExportSize: (exportPath) => ipcRenderer.invoke('get-export-size', exportPath),
-});
+
 
 ipcRenderer.on('export-website', async (event, company, name, runID) => {
-  customConsoleLog(runID, 'Exporting: ', name);
+  const scraper = require(`./Scrapers/${company}/${name}.js`);
 
-  const fs = require('fs');
-  const path = require('path');
-
-  const scrapersDir = path.join(__dirname, 'Scrapers');
-  const files = fs.readdirSync(scrapersDir, { recursive: true });
-
-  const jsFiles = files.filter(file => file.endsWith('.js')); 
-  const matchingFile = jsFiles.find(file => {
-    const fileName = path.basename(file, '.js');
-    return fileName.toLowerCase() === name.toLowerCase();
-  });
-
-  if (matchingFile) { 
-    customConsoleLog(runID, 'Matching file:', matchingFile);
-    const exportModule = require(path.join(scrapersDir, matchingFile));
-    customConsoleLog(runID, 'exportModule', JSON.stringify(exportModule));
-
-    try { 
-      customConsoleLog(runID, 'Exporting module!'); 
-      if (typeof exportModule === 'function') {
-        await exportModule(company, name, runID);
-      } else if (typeof exportModule === 'object' && exportModule !== null) {
-        const exportFunction = exportModule[name] || exportModule.default;
-        if (typeof exportFunction === 'function') {
-          await exportFunction(company, name, runID);
-        } else {
-          throw new Error(`No valid export function found for ${name}`);
-        }
-      } else {
-        throw new Error(`Invalid module export for ${name}`);
-      }
-      customConsoleLog(runID, `Export completed for ${company}/${name}`);
-    } catch (error) {
-      customConsoleLog(runID, `Error during export of ${company}/${name}:`, error);
-    }
-
-  } else {
-    customConsoleLog(runID, `Error: No matching scraper found for ${company}/${name}`);
-  }
+  customConsoleLog(runID, 'Calling scraper function'); // Add this log
+  const data = await scraper(runID, company, name);
+  customConsoleLog(runID, 'Got data, need to export now');
 });
+
+// const fs = require('fs');
+// const path = require('path');
+
+// // Recursive function to get all JS files
+// const getAllJsFiles = (dir) => {
+//   const files = fs.readdirSync(dir, { withFileTypes: true });
+//   return files
+//     .flatMap((file) => {
+//       const filePath = path.join(dir, file.name);
+//       return file.isDirectory() ? getAllJsFiles(filePath) : filePath;
+//     })
+//     .filter((file) => file.endsWith('.js'));
+// };
+
+  // const isProduction = process.env.NODE_ENV === 'production';
+  // const scrapersDir = isProduction
+  //   ? path.join(__dirname)
+  //   : path.join(__dirname, 'Scrapers');
+  
+  // console.log("Contents of scrapersDir:");
+  // fs.readdirSync(scrapersDir).forEach(file => {
+  //   console.log(file);
+  // });
+  // const allFiles = getAllJsFiles(scrapersDir);
+  // console.log("allFiles", allFiles)
+  // const lowerCaseName = name.toLowerCase();
+  // const matchingFile = allFiles.find(
+  //   (file) => path.basename(file).toLowerCase() === `${lowerCaseName}.js`,
+  // );
+  // customConsoleLog(runID, 'Matching file:', matchingFile);
+
+  // if (!matchingFile) {
+  //   customConsoleLog(
+  //     runID,
+  //     `Error: No matching scraper found for ${company}/${name}`,
+  //   );
+  //   return; // Exit early if no matching file is found
+  // }
+
+  // const relativePath = path.relative(scrapersDir, matchingFile);
+  // const modulePath = `./${relativePath.replace(/\\/g, '/')}`;
+
+  // //customConsoleLog(runID, 'Attempting to require module:', modulePath);
+  //        const youtube2 = require(`./Scrapers/${company}/${name}`);
+  //        customConsoleLog(runID, 'youtube2', JSON.stringify(youtube2)); 
+
+  // try { 
+  //   // const youtube1 = require(`./Scrapers/Google/youtube`)
+  //   // customConsoleLog(runID, 'youtube1', JSON.stringify(youtube1));
+  //       // const youtube2 = require(`./Scrapers/${company}/${name}`)
+  //       // customConsoleLog(runID, 'youtube2', JSON.stringify(youtube2));
+  //   const scraperModule = require(modulePath)
+
+  //   customConsoleLog(runID, 'Scraper module loaded successfully');
+
+  //   // Check if the module has a default export or a named export
+  //   const exportFunction = scraperModule.default || scraperModule[name];
+
+  //   if (typeof exportFunction === 'function') {
+  //     await exportFunction(company, name, runID);
+  //     customConsoleLog(runID, `Script executed for ${company}/${name}`);
+  //   } else {
+  //     throw new Error(`No valid export found in ${modulePath}`);
+  //   }
+  // } catch (error) {
+  //   customConsoleLog(
+  //     runID,
+  //     `Error during execution of ${company}/${name}:`,
+  //     error.message,
+  //   );
+  // }
 
 // ipcRenderer.on('export-website', async (event, company, name, runID, exportPath) => {
 //   customConsoleLog(runID, 'Exporting', name);

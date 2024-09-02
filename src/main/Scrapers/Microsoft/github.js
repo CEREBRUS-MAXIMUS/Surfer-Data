@@ -1,25 +1,25 @@
 const { waitForElement, wait, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-(async () => {
+async function exportGithub(runID, company, name) {
   if (!window.location.href.includes('github.com')) {
     window.location.assign('https://github.com/');
   }
   await wait(2);
   if (document.querySelector('a[href="/login"]')) {
-    console.log(runID, 'YOU NEED TO SIGN IN!');
+    console.log('YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
-  const tabButton = await waitForElement(runID, 'button[aria-label="Open user navigation menu"]', 'User navigation menu');
+  const tabButton = await waitForElement('button[aria-label="Open user navigation menu"]', 'User navigation menu');
 
   if (!tabButton) {
-    console.log(runID, 'YOU NEED TO SIGN IN!');
+    console.log('YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', company);
     return;
   }
 
-  bigStepper(runID);
+  // bigStepper(runID);
   tabButton.click();
 
   await wait(2);
@@ -29,13 +29,15 @@ const { ipcRenderer } = require('electron');
     'Repository link',
   );
 
-  bigStepper(runID);
+  // bigStepper(runID);
   repoTab.click();
 
   await wait(2);
 
   return;
-})();
+}
+
+module.exports = exportGithub;
 
 // async function continueExportGithub() {
 //       ipcRenderer.sendToHost('get-run-id');

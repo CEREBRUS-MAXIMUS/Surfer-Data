@@ -1,8 +1,12 @@
 const { ipcRenderer } = require('electron')
 
 function customConsoleLog(id, ...args) {
-  ipcRenderer.sendToHost('console-log', id, args);
-}
+  // Convert arguments to strings to avoid cloning issues
+  const stringArgs = args.map((arg) =>
+    typeof arg === 'object' ? JSON.stringify(arg) : arg,
+  );
+  ipcRenderer.sendToHost('console-log', id, ...stringArgs);
+};
 
 function waitForElement(
   selector,
@@ -45,8 +49,9 @@ async function wait(seconds) {
   });
 }
 
-function bigStepper(id) {
-  ipcRenderer.sendToHost('big-stepper', id);
+function bigStepper(id, step) {
+  customConsoleLog(id, 'BIG STEPPER CALLED!');
+  ipcRenderer.sendToHost('big-stepper', id, step);
 }
 
 async function waitForContentToStabilize() {

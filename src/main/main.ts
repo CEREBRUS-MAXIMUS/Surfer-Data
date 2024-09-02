@@ -55,7 +55,7 @@ try {
 ipcMain.handle('get-scrapers', async () => {
   let scrapersDir;
   if (app.isPackaged) {
-    scrapersDir = path.join(process.resourcesPath, 'src', 'main', 'Scrapers');
+    scrapersDir = path.join(__dirname);
   } else {
     scrapersDir = path.join(__dirname, 'Scrapers');
   }
@@ -63,6 +63,15 @@ ipcMain.handle('get-scrapers', async () => {
   console.log('Scrapers directory:', scrapersDir);
 
   const getAllJsFiles = async (dir: string): Promise<string[]> => {
+    const excludedFiles = [
+      '248.js',
+      'main.js',
+      'preload.js',
+      'preloadElectron.js',
+      'preloadFunctions.js',
+      'preloadWebview.js',
+    ];
+
     const entries = await fs.promises.readdir(dir, { withFileTypes: true });
     const files = await Promise.all(
       entries.map(async (entry) => {
@@ -70,7 +79,12 @@ ipcMain.handle('get-scrapers', async () => {
         return entry.isDirectory() ? getAllJsFiles(res) : res;
       }),
     );
-    return files.flat().filter((file) => file.endsWith('.js'));
+    return files
+      .flat()
+      .filter(
+        (file) =>
+          file.endsWith('.js') && !excludedFiles.includes(path.basename(file)),
+      );
   };
 
   try {
@@ -80,17 +94,11 @@ ipcMain.handle('get-scrapers', async () => {
     }
 
     const jsFiles = await getAllJsFiles(scrapersDir);
-    
     const scrapers = jsFiles.map((file) => {
       const relativePath = path.relative(scrapersDir, file);
-      const parts = relativePath.split(path.sep);
-      const company = parts.length > 1 ? parts[0] : 'Scraper';
       const name = path.basename(file, '.js');
-
-      // // Read the file content to check for home_url
-      // const fileContent = fs.readFileSync(file, 'utf-8');
-      // const homeUrlMatch = fileContent.match(/const\s+home_url\s*=\s*['"](.+)['"]/);
-      // const homeUrl = homeUrlMatch ? homeUrlMatch[1] : '';
+      const companyMatch = relativePath.split(path.sep);
+      const company = companyMatch.length > 1 ? companyMatch[0] : 'Scraper';
 
       return {
         id: `${name}-001`,

@@ -1,29 +1,30 @@
-const {  
+const { 
+  customConsoleLog ,
   wait,
   waitForElement,
   bigStepper,
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-(async () => {
-console.log('YouTube opened');
-console.log('sdfsdfgsdfgsfdg');
+async function exportYoutube(runID, company, name) {
+customConsoleLog(runID, 'YouTube opened');
+
 if (!window.location.href.includes('youtube.com')) {
   window.location.assign('https://www.youtube.com/');
 }
 await wait(5);
 
 if (document.querySelector('a[aria-label="Sign in"]')) {
-  console.log('YOU NEED TO SIGN IN!');
+  customConsoleLog(runID, 'YOU NEED TO SIGN IN!');
   ipcRenderer.send('connect-website', company);
   return;
 }
 const videoData = [];
 
-// bigStepper(runID);
+bigStepper(runID, 'Waiting for Video elements');
 
 // Extract video information
-console.log('Waiting for Video elements');
+customConsoleLog(runID, 'Waiting for Video elements');
 const videoElements = await waitForElement(
   'ytd-rich-grid-media',
   'Video elements',
@@ -31,7 +32,7 @@ const videoElements = await waitForElement(
 );
 
 if (videoElements && videoElements.length > 0) {
-  console.log('Got Video elements');
+  customConsoleLog(runID, 'Got Video elements');
   for (const videoElement of videoElements) {
     const titleElement = videoElement.querySelector(
       'yt-formatted-string#video-title',
@@ -52,11 +53,15 @@ if (videoElements && videoElements.length > 0) {
     }
   }
 } else {
-  console.log('No video elements found');
+  customConsoleLog(runID, 'No video elements found');
 }
 
-console.log('Video data collected:', videoData.length);
+customConsoleLog(runID, 'Video data collected:', videoData.length);
 
 // bigStepper(runID);
-})();
+return videoData;
+}
+
+module.exports = exportYoutube;
+
 
