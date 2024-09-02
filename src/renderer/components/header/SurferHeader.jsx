@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Eye, Home } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -15,7 +15,6 @@ import { Button } from '../ui/button';
 import SettingsButton from './SettingsButton';
 import { setIsRunLayerVisible } from '../../state/actions';
 import SupportButton from './SupportButton';
-import { platforms } from '../../../../platforms';
 
 const getStyleHorizontalLock = (style) =>
   style?.transform
@@ -563,6 +562,75 @@ export const SurferHeader = () => {
   const isMac = useSelector((state) => state.app.isMac);
   const { theme } = useTheme();
   const activeRuns = runs.filter((run) => run.status === 'running').length;
+  const [allPlatforms, setAllPlatforms] = useState([]); 
+  const [platformLogos, setPlatformLogos] = useState({});
+  const LOGO_SIZE = 18; // Set a consistent size for all logos
+
+  useEffect(() => {
+    const loadScrapers = async () => {
+      try {
+        const scrapers = await window.electron.ipcRenderer.invoke('get-scrapers');
+        console.log('SCRAPERS: ', scrapers);
+
+        setAllPlatforms(scrapers);
+      } catch (error) {
+        console.error('Error loading scrapers:', error);
+        setAllPlatforms([]);
+      }
+    };
+
+    loadScrapers();
+  }, []);
+
+  const getPlatformLogo = async (platform) => {
+    try {
+      const response = await fetch(`https://logo.clearbit.com/${platform.name}.com`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const logoUrl = URL.createObjectURL(blob);
+        setPlatformLogos(prev => ({ ...prev, [platform.id]: logoUrl }));
+      } else {
+        const response = await fetch(`https://logo.clearbit.com/${platform.company}.com`);
+        if (response.ok) {
+          const blob = await response.blob();
+          const logoUrl = URL.createObjectURL(blob);
+          setPlatformLogos(prev => ({ ...prev, [platform.id]: logoUrl }));
+        }
+      }
+    } catch (error) {
+      console.error(`Error fetching logo for ${platform.name}:`, error);
+    }
+  };
+
+  const getIconForBreadcrumb = (item) => {
+    if (item.text === 'Home') {
+      return <Home size={16} className="mr-2" color={theme === 'dark' ? '#ffffff' : '#000000'} />;
+    }
+    if (item.link.startsWith('/platform/')) {
+      const platformId = item.link.split('/')[2];
+      const platform = allPlatforms.find(p => p.id === platformId);
+      if (platform) {
+        if (platformLogos[platform.id]) {
+          return (
+            <img
+              src={platformLogos[platform.id]}
+              alt={platform.name}
+              className="mr-2"
+              style={{ width: `${LOGO_SIZE}px`, height: `${LOGO_SIZE}px` }}
+            />
+          );
+        } else {
+          // Trigger logo fetch if not available
+          getPlatformLogo(platform);
+          return null; // Return null or a placeholder while loading
+        }
+      }
+    }
+    if (item.link.startsWith('/subrun/')) {
+      return null;
+    }
+    return null;
+  };
 
   useEffect(() => {
     const handlePlatformReply = (platform) => {
@@ -598,11 +666,11 @@ export const SurferHeader = () => {
     if (parts.length > 1) {
       view = parts[1];
       if (view === 'platform' && parts.length > 2) {
-        const platform = platforms.find(p => p.id === parts[2]);
+        const platform = allPlatforms.find(p => p.id === parts[2]);
       } else if (view === 'subrun' && parts.length > 3) {
         const platformId = parts[2];
         const subRunId = parts[3];
-        const platform = platforms.find(p => p.id === platformId);
+        const platform = allPlatforms.find(p => p.id === platformId);
         const subRun = platform?.subRuns.find(sr => sr.id === subRunId);
       }
     }
@@ -613,32 +681,6 @@ export const SurferHeader = () => {
 
   const handleViewRuns = () => {
     dispatch(toggleRunVisibility());
-  };
-
-  const LOGO_SIZE = 18; // Set a consistent size for all logos
-
-  const getPlatformLogo = (platform) => {
-    const Logo = theme === 'dark' ? platform.logo.dark : platform.logo.light;
-    return Logo ? (
-      <div style={{ width: `${LOGO_SIZE}px`, height: `${LOGO_SIZE}px`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '8px' }}>
-        <Logo style={{ width: '100%', height: '100%' }} />
-      </div>
-    ) : null;
-  };
-
-  const getIconForBreadcrumb = (item) => {
-    if(item.text === 'Home') {
-      return <Home size={16} className="mr-2" color={theme === 'dark' ? '#ffffff' : '#000000'} />;
-    }
-    if(item.link.startsWith('/platform/')) {
-      const platformId = item.link.split('/')[2];
-      const platform = platforms.find(p => p.id === platformId);
-      return getPlatformLogo(platform);
-    }
-    if(item.link.startsWith('/subrun/')) {
-      return null;
-    }
-    return null;
   };
 
   return (
@@ -662,7 +704,7 @@ export const SurferHeader = () => {
                         {getIconForBreadcrumb(item)}
                         {item.text}
                       </Button>
-                    </BreadcrumbItem>
+                    </BreadcrumbItem>  
                   </React.Fragment>
                 ))}
               </BreadcrumbList>

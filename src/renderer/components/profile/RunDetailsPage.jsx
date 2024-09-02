@@ -12,7 +12,6 @@ import MonacoEditor from '@monaco-editor/react';
 import { stopRun, closeRun } from '../../state/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { trackRun } from '../../../../analytics.js'
-import { platforms } from '../../../../platforms';
 
 const StatusIndicator = ({ status }) => {
   switch (status) {
@@ -121,12 +120,7 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   const handleStopRun = async () => {
     const activeRun = run;
     if (activeRun && (activeRun.status === 'pending' || activeRun.status === 'running')) {
-
-      const platformId = activeRun.id.split('-').slice(0, 2).join('-');
-
-      const platform = platforms.find((p) => p.id === platformId);
-
-await trackRun('stopped', platform.company, platform.name, activeRun.currentStep) 
+      await trackRun('stopped', activeRun.company, activeRun.name, activeRun.currentStep) 
       dispatch(stopRun(activeRun.id));
       console.log("Stopping run:", activeRun.id);
 

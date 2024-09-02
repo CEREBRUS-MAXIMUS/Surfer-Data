@@ -5,6 +5,7 @@ const { ipcRenderer } = require('electron');
 
 async function exportLinkedin(id, company, name) {
   if (!window.location.href.includes('linkedin.com')) {
+    bigStepper(id, 'Navigating to LinkedIn');
     customConsoleLog(id, 'Navigating to LinkedIn');
     window.location.assign('https://linkedin.com/');
   }

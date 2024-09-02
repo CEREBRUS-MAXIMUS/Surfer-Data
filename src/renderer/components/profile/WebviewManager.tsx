@@ -14,7 +14,6 @@ import {
   bigStepper,
   updateRunLogs
 } from '../../state/actions';
-import { platforms } from '../../../../platforms';
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
@@ -333,33 +332,6 @@ if (channel === 'console-log') {
     dispatch(setActiveRunIndex(activeRunIndex + 1));
   };
 
-  const getPlatformLogo = (platform) => {
-    if (!platform || !platform.logo) return null;
-    const Logo = theme === 'dark' ? platform.logo.dark : platform.logo.light;
-    return Logo ? (
-      <div
-        style={{
-          width: `${LOGO_SIZE}px`,
-          height: `${LOGO_SIZE}px`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Logo style={{ width: '100%', height: '100%' }} />
-      </div>
-    ) : null;
-  };
-
-  // const handleRunDetails = () => {
-  //   // Implement run details functionality
-  //   console.log('Run details clicked');
-  // };
-
-  // const handleLearnMode = () => {
-  //   // Implement learn mode functionality
-  //   console.log('Learn mode clicked');
-  // };
 
   const handleStopRun = async () => {
     const activeRun = activeRuns[activeRunIndex];
@@ -368,11 +340,8 @@ if (channel === 'console-log') {
       (activeRun.status === 'pending' || activeRun.status === 'running')
     ) {
 
-      const platformId = activeRun.id.split('-').slice(0, 2).join('-');
 
-      const platform = platforms.find((p) => p.id === platformId);
-
-await trackRun('stopped', platform.company, platform.name, activeRun.currentStep) 
+await trackRun('stopped', activeRun.company, activeRun.name, activeRun.currentStep) 
 
 
       dispatch(stopRun(activeRun.id));

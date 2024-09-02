@@ -99,11 +99,13 @@ ipcMain.handle('get-scrapers', async () => {
       const name = path.basename(file, '.js');
       const companyMatch = relativePath.split(path.sep);
       const company = companyMatch.length > 1 ? companyMatch[0] : 'Scraper';
+      //const description = require(file).description;
 
       return {
         id: `${name}-001`,
         company: company,
         name: name,
+        //description: description,
       };
     });
 

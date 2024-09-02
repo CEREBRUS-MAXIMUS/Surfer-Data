@@ -6,6 +6,7 @@ const {
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
+
 async function exportGmail(id, company, name) {
     if (!window.location.href.includes('mail.google.com')) {
       customConsoleLog(id, 'Navigating to Gmail');
@@ -34,7 +35,7 @@ async function exportGmail(id, company, name) {
   mailLink.click();
   await wait(2);
 
-  bigStepper(id, 'Getting rest of emails');
+  bigStepper(id, 'Getting emails...');
   while (true) {
     const email = await waitForElement(id, '#\\:3', 'Current email content');
     if (email) {

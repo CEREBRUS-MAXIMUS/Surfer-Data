@@ -127,7 +127,6 @@ const Platform = ({ platform }) => {
             </TableHeader>
             <TableBody>
               {runs.map((run) => {
-                const subRun = platform.subRuns.find(sr => sr.id === run.subRunId);
                 return (
                   <React.Fragment key={run.id}>
                     <TableRow>

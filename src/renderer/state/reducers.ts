@@ -5,8 +5,6 @@ import {
   IRun,
 } from '../types/interfaces';
 import { initialAppState } from '../config/initialStates';
-import { platforms } from '../../../platforms';
-
 
 const preferencesReducer = (
   state: IPreferences = initialAppState.preferences,
@@ -113,14 +111,6 @@ const appReducer = (state = initialAppState.app, action: any) => {
         )
       };
     case 'STOP_RUN':
-      // filter part of run id to get company and name from platforms.ts
-      const runIdParts = action.payload.runID.split('-');
-      const platformId = runIdParts[0] + '-' + runIdParts[1];
-      const platform = platforms.find(p => p.id === platformId);
-      const company = platform ? platform.company : '';
-      const name = platform ? platform.name : '';
-
-
       return {
         ...state,
         runs: state.runs.map(run =>

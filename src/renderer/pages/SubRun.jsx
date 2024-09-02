@@ -7,11 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { ChevronRight, ChevronDown, ArrowLeft } from 'lucide-react';
 import { openDB } from 'idb';
 import RunDetailsPage from '../components/profile/RunDetailsPage';
-import { platforms } from '../../../platforms';
 import { trackRun } from '../../../analytics'
 
 const SubRun = ({ platform, subRun }) => {
   const dispatch = useDispatch();
+
   const [runs, setRuns] = useState([]);
   const [expandedRuns, setExpandedRuns] = useState({});
   const [selectedRunId, setSelectedRunId] = useState(null);
@@ -77,10 +77,9 @@ const SubRun = ({ platform, subRun }) => {
   };
 
   const handleStopRun = async (runId) => {
-      const platformId = runId.split('-')[0];
-      const platform = platforms.find((p) => p.id === platformId);
+      const activeRun = runs.find((r) => r.id === runId);
 
-    await trackRun('stopped', platform.company, platform.name, activeRun.currentStep)
+    await trackRun('stopped', activeRun.company, activeRun.name, activeRun.currentStep)
 
     dispatch(stopRun(runId));
 

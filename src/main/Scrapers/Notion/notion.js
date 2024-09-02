@@ -22,7 +22,7 @@ async function exportNotion(id, company, name) {
     return;
   }
 
-  bigStepper(id, 'Clicking on Notion');
+  bigStepper(id, 'Clicking on dropdown');
   dropdown.scrollIntoView({ behavior: 'instant', block: 'center' });
   dropdown.click();
   await wait(5);
