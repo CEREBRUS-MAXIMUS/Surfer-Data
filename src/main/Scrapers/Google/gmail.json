@@ -1,4 +1,5 @@
 {
     "name": "Gmail",
-    "description": "Exports all emails."
+    "description": "Exports all emails.",
+    "dailyExport": true
 }

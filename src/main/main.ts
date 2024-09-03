@@ -115,6 +115,7 @@ ipcMain.handle('get-scrapers', async () => {
           company: metadata && metadata.company ? metadata.company : company,
           name: metadata && metadata.name ? metadata.name : name,
           description: metadata && metadata.description ? metadata.description : 'No description available',
+          dailyExport: metadata && metadata.dailyExport ? metadata.dailyExport : false,
         };
       }),
     );

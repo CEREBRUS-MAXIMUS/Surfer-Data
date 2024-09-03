@@ -132,12 +132,25 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     ));
   }, [searchTerm, allPlatforms]);
 
-  // const filteredPlatforms = platforms
-  // .filter(platform => platform.steps)
-  // .filter(platform =>
-  //   platform.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //   platform.company.toLowerCase().includes(searchTerm.toLowerCase())
-  // );
+
+  // useEffect(() => {
+  //   const runDailyExports = async () => {
+  //     for (const platform of filteredPlatforms) {
+  //       if (platform.dailyExport) {
+  //         // find runs that match the platform.id, status success, and date for today
+  //         const today = new Date().toISOString().split('T')[0];
+  //         const runsForToday = runs.filter(run => run.platformId === platform.id && (run.status === 'success' || run.status === 'running') && run.startDate.split('T')[0] === today);
+  //         console.log('runsForToday: ', runsForToday);
+  //         if (runsForToday.length === 0) {
+  //           await handleExportClick(platform);
+  //           await new Promise(resolve => setTimeout(resolve, 5000));
+  //         }
+  //       }
+  //     }
+  //   };
+
+  //   runDailyExports();
+  // }, [filteredPlatforms]);
 
   const pageCount = Math.ceil(filteredPlatforms.length / itemsPerPage);
   const paginatedPlatforms = filteredPlatforms.slice(
