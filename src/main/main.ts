@@ -159,6 +159,41 @@ ipcMain.on('get-version-number', (event) => {
   event.reply('version-number', app.getVersion());
 });
 
+ipcMain.handle('get-imessage-data', async () => {
+  if (process.platform === 'win32') { 
+    const username = process.env.USERNAME || process.env.USER;
+    const defaultPath = path.join('C:', 'Users', username, 'Apple', 'MobileSync', 'Backup');
+
+    if (!fs.existsSync(defaultPath)) {
+      console.log('NEED TO BACKUP YOUR IMESSAGE FOLDER!');
+      return null;
+    }
+
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      title: 'Select iMessages Folder',
+      buttonLabel: 'Select',
+      defaultPath: defaultPath
+    });
+
+    if (result.filePaths.length > 0) {
+      const selectedFolder = result.filePaths[0];
+      console.log('Selected folder:', selectedFolder);
+      return selectedFolder;
+    }
+  }
+
+  else if (process.platform === 'darwin') {
+    console.log('Mac is being added soon!')
+    return null;
+  }
+
+  else {
+    console.log('Unsupported platform:', process.platform);
+    return null;
+  }
+});
+
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
