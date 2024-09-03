@@ -68,15 +68,6 @@ const configuration: webpack.Configuration = {
     },
   },
 
-  module: {
-    rules: [
-      {
-        test: /\.json$/,
-        type: 'asset/resource',
-      },
-    ],
-  },
-
   optimization: {
     minimizer: [
       new TerserPlugin({
@@ -106,7 +97,7 @@ const configuration: webpack.Configuration = {
         {
           from: path.join(webpackPaths.srcMainPath, 'Scrapers'),
           globOptions: {
-            ignore: ['**/*.js', '**/*.md', '**/config.json', '**/db.json'],
+            ignore: ['**/*.js', '**/*.md'],
           },
           to: path.join(webpackPaths.distMainPath),
           noErrorOnMissing: true,
