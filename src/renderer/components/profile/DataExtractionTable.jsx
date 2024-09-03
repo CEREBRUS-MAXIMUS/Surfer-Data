@@ -133,24 +133,31 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   }, [searchTerm, allPlatforms]);
 
 
-  // useEffect(() => {
-  //   const runDailyExports = async () => {
-  //     for (const platform of filteredPlatforms) {
-  //       if (platform.dailyExport) {
-  //         // find runs that match the platform.id, status success, and date for today
-  //         const today = new Date().toISOString().split('T')[0];
-  //         const runsForToday = runs.filter(run => run.platformId === platform.id && (run.status === 'success' || run.status === 'running') && run.startDate.split('T')[0] === today);
-  //         console.log('runsForToday: ', runsForToday);
-  //         if (runsForToday.length === 0) {
-  //           await handleExportClick(platform);
-  //           await new Promise(resolve => setTimeout(resolve, 5000));
-  //         }
-  //       }
-  //     }
-  //   };
+  useEffect(() => {
+    const runDailyExports = async () => {
+      if (runs.length === 0) return;
 
-  //   runDailyExports();
-  // }, [filteredPlatforms]);
+      for (const platform of filteredPlatforms) {
+        if (platform.dailyExport) {
+          const platformRuns = runs.filter(run => run.platformId === platform.id);
+          if (platformRuns.length > 0) {
+            const today = new Date().toISOString().split('T')[0];
+            const runsForToday = platformRuns.filter(run => 
+              (run.status === 'success' || run.status === 'running') && 
+              run.startDate.split('T')[0] === today
+            );
+            console.log('runsForToday: ', runsForToday);
+            if (runsForToday.length === 0) {
+              await handleExportClick(platform);
+              await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+          }
+        }
+      }
+    };
+
+    runDailyExports();
+  }, [filteredPlatforms]);
 
   const pageCount = Math.ceil(filteredPlatforms.length / itemsPerPage);
   const paginatedPlatforms = filteredPlatforms.slice(
@@ -179,6 +186,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       tasks: [],
       startDate: new Date().toISOString(),
       status: 'running',
+      dailyExport: platform.dailyExport,
       exportSize: null, 
       url: 'about:blank'
     }; 

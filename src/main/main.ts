@@ -60,7 +60,6 @@ ipcMain.handle('get-scrapers', async () => {
     scrapersDir = path.join(__dirname, 'Scrapers');
   }
 
-  console.log('Scrapers directory:', scrapersDir);
 
   const getAllJsFiles = async (dir: string): Promise<string[]> => {
     const excludedFiles = [

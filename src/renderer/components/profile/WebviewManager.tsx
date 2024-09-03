@@ -192,6 +192,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
             newRun.company,
             newRun.name,
             newRun.id,
+            newRun.dailyExport
           );
         }
     }

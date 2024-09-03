@@ -95,6 +95,7 @@ export interface IRun {
   company: string;
   name: string;
   currentStep?: string;
+  dailyExport?: boolean;
   logs?: string;
 }
 
