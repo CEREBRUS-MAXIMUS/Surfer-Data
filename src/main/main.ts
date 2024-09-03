@@ -23,7 +23,10 @@ import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
-import { fork } from 'child_process';
+import { PythonUtils } from './utils/python';
+
+
+const pythonUtils = new PythonUtils();
 
 let appIcon: Tray | null = null;
 
@@ -159,10 +162,17 @@ ipcMain.on('get-version-number', (event) => {
   event.reply('version-number', app.getVersion());
 });
 
-ipcMain.handle('get-imessage-data', async () => {
-  if (process.platform === 'win32') { 
+ipcMain.handle('get-imessage-data', async (event, company: string, name: string, id: string) => {
+  if (process.platform === 'win32') {
     const username = process.env.USERNAME || process.env.USER;
-    const defaultPath = path.join('C:', 'Users', username, 'Apple', 'MobileSync', 'Backup');
+    const defaultPath = path.join(
+      'C:',
+      'Users',
+      username,
+      'Apple',
+      'MobileSync',
+      'Backup',
+    );
 
     if (!fs.existsSync(defaultPath)) {
       console.log('NEED TO BACKUP YOUR IMESSAGE FOLDER!');
@@ -173,26 +183,58 @@ ipcMain.handle('get-imessage-data', async () => {
       properties: ['openDirectory'],
       title: 'Select iMessages Folder',
       buttonLabel: 'Select',
-      defaultPath: defaultPath
+      defaultPath: defaultPath,
     });
 
     if (result.filePaths.length > 0) {
       const selectedFolder = result.filePaths[0];
-      console.log('Selected folder:', selectedFolder);
-      return selectedFolder;
+      console.log('Got folder, now running python script');
+
+      try {
+        const scriptOutput = await pythonUtils.iMessageScript(
+          process.platform,
+          selectedFolder,
+          company,
+          name,
+          id,
+        );
+        console.log('iMessage script completed. Output:', scriptOutput);
+        // Assuming the last line of the output is the JSON file path
+        const folderPath = scriptOutput.split('\n').pop()?.trim();
+        console.log('JSON file path:', folderPath);
+        mainWindow?.webContents.send('export-complete', company, name, id, folderPath, getTotalFolderSize(folderPath));
+        return folderPath;
+      } catch (error) {
+        console.error('Error running iMessage script:', error);
+        return null;
+      }
     }
-  }
-
-  else if (process.platform === 'darwin') {
-    console.log('Mac is being added soon!')
+  } else if (process.platform === 'darwin') {
+    console.log('Mac is being added soon!');
     return null;
-  }
-
-  else {
+  } else {
     console.log('Unsupported platform:', process.platform);
     return null;
   }
 });
+
+function getTotalFolderSize(folderPath: string): number {
+  let totalSize = 0;
+  const files = fs.readdirSync(folderPath);
+
+  for (const file of files) {
+    const filePath = path.join(folderPath, file);
+    const stats = fs.statSync(filePath);
+
+    if (stats.isFile()) {
+      totalSize += stats.size;
+    } else if (stats.isDirectory()) {
+      totalSize += getTotalFolderSize(filePath);
+    }
+  }
+
+  return totalSize;
+}
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -628,8 +670,6 @@ async function parseConversationsJSON(extractPath: string) {
         .then(async (dl: Electron.DownloadItem) => {
           console.log('Download completed:', dl.getSavePath());
           const filePath = dl.getSavePath();
-          const exportSize = fs.statSync(filePath).size;
-
           if (filePath.toLowerCase().endsWith('.zip')) {
 
             const extractPath = path.join(idPath, 'extracted');
@@ -665,7 +705,7 @@ async function parseConversationsJSON(extractPath: string) {
                 path.basename(platformPath),
                 platformId,
                 extractPath,
-                exportSize
+                getTotalFolderSize(extractPath)
               );
             } catch (error) {
               console.error('Error extracting ZIP:', error);
@@ -682,7 +722,7 @@ async function parseConversationsJSON(extractPath: string) {
               path.basename(platformPath),
               platformId,
               idPath,
-              exportSize
+              getTotalFolderSize(idPath)
             );
           }
         })
@@ -790,7 +830,6 @@ ipcMain.on('handle-export', (event, runID, platformId, company, name, content, d
 
   console.log(`Export saved to: ${filePath}`);
   //get the size of the export
-  const exportSize = fs.statSync(filePath).size;
 
   mainWindow?.webContents.send(
     'export-complete',
@@ -798,7 +837,7 @@ ipcMain.on('handle-export', (event, runID, platformId, company, name, content, d
     name,
     runID,
     idPath,
-    exportSize,
+    getTotalFolderSize(idPath),
   );
 });
 
