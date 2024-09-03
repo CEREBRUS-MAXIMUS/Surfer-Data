@@ -55,6 +55,7 @@ src/models
 languages/Mac/python
 languages/Windows/python
 
+unpacked-app
 #Any .pyc files
 *.pyc
 *.cpython-311.pyc

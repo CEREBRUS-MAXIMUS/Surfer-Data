@@ -87,6 +87,16 @@ ipcMain.handle('get-scrapers', async () => {
       );
   };
 
+  const getMetadataFile = async (company: string, name: string) => {
+    const metadataFilePath = path.join(scrapersDir, company, `${name}.json`);
+    if (fs.existsSync(metadataFilePath)) {
+      console.log('METADATA FILE PATH: ', metadataFilePath);
+      return JSON.parse(fs.readFileSync(metadataFilePath, 'utf-8'));
+    }
+    console.log('METADATA FILE PATH DOES NOT EXIST: ', metadataFilePath);
+    return null;
+  };
+
   try {
     if (!fs.existsSync(scrapersDir)) {
       console.error('Scrapers directory does not exist:', scrapersDir);
@@ -94,20 +104,23 @@ ipcMain.handle('get-scrapers', async () => {
     }
 
     const jsFiles = await getAllJsFiles(scrapersDir);
-    const scrapers = jsFiles.map((file) => {
-      const relativePath = path.relative(scrapersDir, file);
-      const name = path.basename(file, '.js');
-      const companyMatch = relativePath.split(path.sep);
-      const company = companyMatch.length > 1 ? companyMatch[0] : 'Scraper';
-      //const description = require(file).description;
+    const scrapers = await Promise.all(
+      jsFiles.map(async (file) => {
+        const relativePath = path.relative(scrapersDir, file);
+        const name = path.basename(file, '.js');
+        const companyMatch = relativePath.split(path.sep);
+        const company = companyMatch.length > 1 ? companyMatch[0] : 'Scraper';
+        const metadata = await getMetadataFile(company, name);
+        const description = metadata ? metadata.description : '';
 
-      return {
-        id: `${name}-001`,
-        company: company,
-        name: name,
-        //description: description,
-      };
-    });
+        return {
+          id: `${name}-001`,
+          company: company,
+          name: name,
+          description: description,
+        };
+      }),
+    );
 
     return scrapers;
   } catch (error) {
@@ -115,45 +128,6 @@ ipcMain.handle('get-scrapers', async () => {
     return [];
   }
 });
-
-// ipcMain.handle('start-export', async (event, name, platformId, runId) => {
-//   console.log('Starting export for platform:', name, 'with run ID:', runId);
-
-//   const scrapersDir = path.join(__dirname, 'Scrapers');
-
-//   const getAllJsFiles = async (dir: string): Promise<string[]> => {
-//     const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-//     const files = await Promise.all(
-//       entries.map(async (entry) => {
-//         const res = path.resolve(dir, entry.name);
-//         return entry.isDirectory() ? getAllJsFiles(res) : res;
-//       }),
-//     );
-//     return files.flat().filter((file) => file.endsWith('.js'));
-//   };
-
-//   try {
-//     const jsFiles = await getAllJsFiles(scrapersDir);
-//     const matchingFile = jsFiles.find(file => path.basename(file, '.js') === name);
-
-//     const preloadWebview = path.join(__dirname, 'preloadWebview.js');
-
-//     if (matchingFile) {
-//       console.log(`Found matching scraper: ${matchingFile}`);
-      
-//       console.log('Export started');
-//       // Fork a new process to run the scraper
-//       const child = fork(matchingFile, [platformId, runId]);
-
-
-//     } else {
-//       console.error(`No matching scraper found for: ${name}`);
-//     }
-//   } catch (error) {
-//     console.error('Error starting export:', error);
-//   }
-// });
-
 // Listen for user data sent from renderer
 ipcMain.on('send-user-data', (event, userID) => {
   console.log('user id from renderer: ', userID);
