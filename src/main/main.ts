@@ -90,10 +90,8 @@ ipcMain.handle('get-scrapers', async () => {
   const getMetadataFile = async (company: string, name: string) => {
     const metadataFilePath = path.join(scrapersDir, company, `${name}.json`);
     if (fs.existsSync(metadataFilePath)) {
-      console.log('METADATA FILE PATH: ', metadataFilePath);
       return JSON.parse(fs.readFileSync(metadataFilePath, 'utf-8'));
     }
-    console.log('METADATA FILE PATH DOES NOT EXIST: ', metadataFilePath);
     return null;
   };
 
@@ -111,13 +109,12 @@ ipcMain.handle('get-scrapers', async () => {
         const companyMatch = relativePath.split(path.sep);
         const company = companyMatch.length > 1 ? companyMatch[0] : 'Scraper';
         const metadata = await getMetadataFile(company, name);
-        const description = metadata ? metadata.description : '';
 
         return {
-          id: `${name}-001`,
-          company: company,
-          name: name,
-          description: description,
+          id: metadata && metadata.id ? metadata.id : `${name}-001`,
+          company: metadata && metadata.company ? metadata.company : company,
+          name: metadata && metadata.name ? metadata.name : name,
+          description: metadata && metadata.description ? metadata.description : 'No description available',
         };
       }),
     );

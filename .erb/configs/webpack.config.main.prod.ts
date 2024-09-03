@@ -3,6 +3,7 @@ import webpack from 'webpack';
 import { merge } from 'webpack-merge';
 import TerserPlugin from 'terser-webpack-plugin';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
 import checkNodeEnv from '../scripts/check-node-env';
@@ -20,24 +21,21 @@ const configuration: webpack.Configuration = {
 
   entry: async () => {
     const fs = require('fs');
-    const getAllFiles = async (
-      dir: string,
-      extensions: string[],
-    ): Promise<string[]> => {
+    const getAllFiles = async (dir: string): Promise<string[]> => {
       const entries = await fs.promises.readdir(dir, { withFileTypes: true });
       const files = await Promise.all(
         entries.map(async (entry) => {
           const res = path.resolve(dir, entry.name);
-          return entry.isDirectory() ? getAllFiles(res, extensions) : res;
+          return entry.isDirectory() ? getAllFiles(res) : res;
         }),
       );
       return files
         .flat()
-        .filter((file) => extensions.some((ext) => file.endsWith(ext)));
+        .filter((file) => file.endsWith('.js') || file.endsWith('.json'));
     };
 
     const scrapersDir = path.join(webpackPaths.srcMainPath, 'Scrapers');
-    const files = await getAllFiles(scrapersDir, ['.js', '.json']);
+    const files = await getAllFiles(scrapersDir);
 
     const entry = {
       main: path.join(webpackPaths.srcMainPath, 'main.ts'),
@@ -52,13 +50,11 @@ const configuration: webpack.Configuration = {
         'preloadElectron.js',
       ),
     };
- 
+
     files.forEach((file) => {
       const relativePath = path.relative(scrapersDir, file);
       const name = relativePath.replace(/\.(js|json)$/, '').replace(/\\/g, '/');
-      if (file.endsWith('.js')) {
-        entry[name] = file;
-      }
+      entry[name] = file;
     });
 
     return entry;
@@ -76,20 +72,7 @@ const configuration: webpack.Configuration = {
     rules: [
       {
         test: /\.json$/,
-        include: path.join(webpackPaths.srcMainPath, 'Scrapers', 'Google'),
-        type: 'javascript/auto',
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              name(resourcePath, resourceQuery) {
-                const relativePath = path.relative(webpackPaths.srcMainPath, resourcePath);
-                console.log('this relative path', relativePath);
-                return `${relativePath}`;
-              },
-            },
-          },
-        ],
+        type: 'asset/resource',
       },
     ],
   },
@@ -116,6 +99,19 @@ const configuration: webpack.Configuration = {
 
     new webpack.DefinePlugin({
       'process.type': '"browser"',
+    }),
+
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.join(webpackPaths.srcMainPath, 'Scrapers'),
+          globOptions: {
+            ignore: ['**/*.js', '**/*.md', '**/config.json', '**/db.json'],
+          },
+          to: path.join(webpackPaths.distMainPath),
+          noErrorOnMissing: true,
+        },
+      ],
     }),
   ],
 

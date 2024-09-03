@@ -54,8 +54,10 @@ src/models
 
 languages/Mac/python
 languages/Windows/python
+[0-9a-f]{10}*.json
 
 unpacked-app
+unpacked_asar
 #Any .pyc files
 *.pyc
 *.cpython-311.pyc
