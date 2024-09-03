@@ -6,7 +6,7 @@ const {
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-async function exportYoutube(id, company, name) {
+async function exportYoutube(id, platformId, company, name) {
 if (!window.location.href.includes('youtube.com')) {
   bigStepper(id, 'Navigating to YouTube');
   customConsoleLog(id, 'Navigating to YouTube');

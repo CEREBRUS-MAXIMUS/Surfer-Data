@@ -1,7 +1,7 @@
 const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-async function exportNotion(id, company, name) {
+async function exportNotion(id, platformId, company, name) {
   if (!window.location.href.includes('notion.so')) {
     bigStepper(id, 'Navigating to Notion');
   customConsoleLog(id, 'Navigating to Notion');

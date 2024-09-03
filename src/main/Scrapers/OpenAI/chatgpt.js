@@ -6,7 +6,7 @@ const {
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-async function exportChatgpt(id, company, name) {
+async function exportChatgpt(id, platformId, company, name) {
   if (
     !window.location.href.includes('chatgpt.com/#settings/DataControls') &&
     !window.location.href.includes('mail.google.com')

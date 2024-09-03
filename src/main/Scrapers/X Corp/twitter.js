@@ -1,7 +1,12 @@
 const { customConsoleLog, wait, waitForElement, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-async function exportTwitter(id, company, name) {
+async function checkIfTweetExists(id, platformId, company, name, tweet) {
+  const userData = await ipcRenderer.invoke('get-user-data-path');
+  const filePath = path.join(userData, company, name, `${platformId}.json`);
+}
+
+async function exportTwitter(id, platformId, company, name) {
   if (!window.location.href.includes('x.com')) {
     bigStepper(id, 'Navigating to Twitter');
     customConsoleLog(id, 'Navigating to Twitter');
@@ -59,7 +64,7 @@ async function exportTwitter(id, company, name) {
 
     customConsoleLog(id, 'Processing new tweets');
     const initialSize = tweetSet.size;
-    tweets.forEach((tweet) => {
+    tweets.forEach(async (tweet) => {
         tweet.scrollIntoView({
           behavior: 'instant',
           block: 'end',
@@ -72,7 +77,16 @@ async function exportTwitter(id, company, name) {
         timestamp: tweet.querySelector('time').getAttribute('datetime'),
         }
 
-        tweetSet.add(JSON.stringify(jsonTweet));
+
+        const tweetExists = await checkIfTweetExists(id, platformId, company, name, jsonTweet);
+        if (!tweetExists) {
+          tweetSet.add(JSON.stringify(jsonTweet));
+        }
+
+        else {
+          customConsoleLog(id, 'Tweet already exists');
+          return;
+        }
       }
       
 

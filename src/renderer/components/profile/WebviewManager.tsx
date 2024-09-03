@@ -189,9 +189,10 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           console.log('sending to webviewRef!');
           webviewRef.current.send( // dont hardcode this 
             'export-website',
+            newRun.id,
+            newRun.platformId,
             newRun.company,
             newRun.name,
-            newRun.id,
             newRun.dailyExport
           );
         }

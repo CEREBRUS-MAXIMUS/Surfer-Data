@@ -6,8 +6,11 @@ const {
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
+async function checkIfEmailExists(id, email) {
+  // finish this function later when we have takeout
+}
 
-async function exportGmail(id, company, name) {
+async function exportGmail(id, platformId, company, name) {
     if (!window.location.href.includes('mail.google.com')) {
       customConsoleLog(id, 'Navigating to Gmail');
       bigStepper(id, 'Navigating to Gmail');
@@ -83,9 +86,15 @@ async function exportGmail(id, company, name) {
                 body: email.innerText || '',
               };
 
+              const emailExists = await checkIfEmailExists(id, emailJSON);
+              if (!emailExists) {
+                emails.push(emailJSON);
+              }
 
-              console.log('pushing: ', emailJSON);
-              emails.push(emailJSON);
+              else {
+                return;
+              }
+              
     }
 
     const nextParent = await waitForElement(id, '.h0', 'Next email button');

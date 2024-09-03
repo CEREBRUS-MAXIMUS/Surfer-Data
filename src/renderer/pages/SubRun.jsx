@@ -48,20 +48,18 @@ const SubRun = ({ platform, subRun }) => {
 
     const startTime = new Date().toISOString();
     const newRun = {
-      id: Date.now().toString(),
+      id: `${platform.id}-${Date.now()}`,
+      company: platform.company,
+      name: platform.name,
       platformId: platform.id,
-      subRunId: subRun.id,
-      startDate: startTime,
-      status: 'pending',
-      tasks: subRun.tasks.map(task => ({
-        ...task,
-        startTime,
-        steps: task.steps.map(step => ({ ...step, status: 'pending', startTime })),
-        status: 'pending'
-      })),
-      currentStep: platform.steps[0],
-      logs: ''
-    };
+      tasks: [],
+      startDate: new Date().toISOString(),
+      status: 'running',
+      dailyExport: platform.dailyExport,
+      exportSize: null, 
+      url: 'about:blank'
+    }; 
+
 
     dispatch(addRun(newRun));
 

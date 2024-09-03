@@ -1,7 +1,7 @@
 const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-async function exportGithub(id, company, name) {
+async function exportGithub(id, platformId, company, name) {
   if (!window.location.href.includes('github.com')) {
     customConsoleLog(id, 'Navigating to GitHub');
     bigStepper(id, 'Navigating to GitHub');

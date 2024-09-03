@@ -50,7 +50,7 @@ try {
   }
 } catch (error) {
   console.error('Error loading config:', error);
-}
+} 
 
 ipcMain.handle('get-scrapers', async () => {
   let scrapersDir;
@@ -125,6 +125,10 @@ ipcMain.handle('get-scrapers', async () => {
     return [];
   }
 });
+
+ipcMain.handle('get-user-data-path', () => {
+  return app.getPath('userData');
+})
 // Listen for user data sent from renderer
 ipcMain.on('send-user-data', (event, userID) => {
   console.log('user id from renderer: ', userID);
@@ -704,7 +708,7 @@ ipcMain.on('check-for-updates', () => {
                 });
 });
 
-ipcMain.on('handle-export', (event, company, name, content, runID) => {
+ipcMain.on('handle-export', (event, runID, platformId, company, name, content, dailyExport) => {
   console.log(
     'handling export for: ',
     company,
@@ -718,7 +722,13 @@ ipcMain.on('handle-export', (event, company, name, content, runID) => {
   const surferDataPath = path.join(userData, 'surfer_data');
   const platformPath = path.join(surferDataPath, company);
   const namePath = path.join(platformPath, name);
-  const idPath = path.join(namePath, runID);
+  let idPath;
+  if (dailyExport) {
+    idPath = path.join(namePath, platformId);
+  }
+  else {
+    idPath = path.join(namePath, runID);
+  }
 
   // Create necessary folders
   [surferDataPath, platformPath, namePath, idPath].forEach((dir) => {
