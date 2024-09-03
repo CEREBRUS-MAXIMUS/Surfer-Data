@@ -5,6 +5,7 @@ import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
 import checkNodeEnv from '../scripts/check-node-env';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 
 // When an ESLint server is running, we can't set the NODE_ENV so we'll check if it's
 // at the dev webpack config is not accidentally run in a production environment
@@ -19,16 +20,46 @@ const configuration: webpack.Configuration = {
 
   target: 'electron-preload',
 
-  entry: {
-    preload: path.join(webpackPaths.srcMainPath, 'preload.ts'),
-    preloadWebview: path.join(webpackPaths.srcMainPath, 'preloadWebview.js'),
-    preloadFunctions: path.join(
-      webpackPaths.srcMainPath,
-      'preloadFunctions.js',
-    ),
-    preloadElectron: path.join(webpackPaths.srcMainPath, 'preloadElectron.js'),
-  },
+  entry: async () => {
+    const fs = require('fs');
+    const getAllFiles = async (dir: string): Promise<string[]> => {
+      const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+      const files = await Promise.all(
+        entries.map(async (entry) => {
+          const res = path.resolve(dir, entry.name);
+          return entry.isDirectory() ? getAllFiles(res) : res;
+        }),
+      );
+      return files
+        .flat()
+        .filter((file) => file.endsWith('.js') || file.endsWith('.json'));
+    };
 
+    const scrapersDir = path.join(webpackPaths.srcMainPath, 'Scrapers');
+    const files = await getAllFiles(scrapersDir);
+
+    const entry = {
+      main: path.join(webpackPaths.srcMainPath, 'main.ts'),
+      preload: path.join(webpackPaths.srcMainPath, 'preload.ts'),
+      preloadWebview: path.join(webpackPaths.srcMainPath, 'preloadWebview.js'),
+      preloadFunctions: path.join(
+        webpackPaths.srcMainPath,
+        'preloadFunctions.js',
+      ),
+      preloadElectron: path.join(
+        webpackPaths.srcMainPath,
+        'preloadElectron.js',
+      ),
+    };
+
+    files.forEach((file) => {
+      const relativePath = path.relative(scrapersDir, file);
+      const name = relativePath.replace(/\.(js|json)$/, '').replace(/\\/g, '/');
+      entry[name] = file;
+    });
+
+    return entry;
+  },
   output: {
     path: webpackPaths.dllPath,
     filename: '[name].js',
@@ -48,6 +79,18 @@ const configuration: webpack.Configuration = {
 
     new webpack.LoaderOptionsPlugin({
       debug: true,
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.join(webpackPaths.srcMainPath, 'Scrapers'),
+          globOptions: {
+            ignore: ['**/*.js', '**/*.md'],
+          },
+          to: path.join(webpackPaths.distMainPath),
+          noErrorOnMissing: true,
+        },
+      ],
     }),
   ],
 

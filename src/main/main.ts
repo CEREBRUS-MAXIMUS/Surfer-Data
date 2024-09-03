@@ -22,15 +22,16 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
 import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import { PythonUtils } from './utils/python';
 
 
+const pythonUtils = new PythonUtils();
 
 let appIcon: Tray | null = null;
 
 require('dotenv').config();
 const { download } = require('electron-dl');
-
-import fs from 'fs';
 
 autoUpdater.autoDownload = false; // Prevent auto-download
 autoUpdater.autoInstallOnAppQuit = false;
@@ -40,7 +41,7 @@ let downloadingItems = new Map();
 
 let config;
 let supabase;
-
+ 
 try {
   const configPath = path.join(__dirname, '../../config.json');
   if (fs.existsSync(configPath)) {
@@ -52,7 +53,85 @@ try {
   }
 } catch (error) {
   console.error('Error loading config:', error);
-}
+} 
+
+ipcMain.handle('get-scrapers', async () => {
+  let scrapersDir;
+  if (app.isPackaged) {
+    scrapersDir = path.join(__dirname);
+  } else {
+    scrapersDir = path.join(__dirname, 'Scrapers');
+  }
+
+
+  const getAllJsFiles = async (dir: string): Promise<string[]> => {
+    const excludedFiles = [
+      '248.js',
+      'main.js',
+      'preload.js',
+      'preloadElectron.js',
+      'preloadFunctions.js',
+      'preloadWebview.js',
+    ];
+
+    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    const files = await Promise.all(
+      entries.map(async (entry) => {
+        const res = path.resolve(dir, entry.name);
+        return entry.isDirectory() ? getAllJsFiles(res) : res;
+      }),
+    );
+    return files
+      .flat()
+      .filter(
+        (file) =>
+          file.endsWith('.js') && !excludedFiles.includes(path.basename(file)),
+      );
+  };
+
+  const getMetadataFile = async (company: string, name: string) => {
+    const metadataFilePath = path.join(scrapersDir, company, `${name}.json`);
+    if (fs.existsSync(metadataFilePath)) {
+      return JSON.parse(fs.readFileSync(metadataFilePath, 'utf-8'));
+    }
+    return null;
+  };
+
+  try {
+    if (!fs.existsSync(scrapersDir)) {
+      console.error('Scrapers directory does not exist:', scrapersDir);
+      return [];
+    }
+
+    const jsFiles = await getAllJsFiles(scrapersDir);
+    const scrapers = await Promise.all(
+      jsFiles.map(async (file) => {
+        const relativePath = path.relative(scrapersDir, file);
+        const name = path.basename(file, '.js');
+        const companyMatch = relativePath.split(path.sep);
+        const company = companyMatch.length > 1 ? companyMatch[0] : 'Scraper';
+        const metadata = await getMetadataFile(company, name);
+
+        return {
+          id: metadata && metadata.id ? metadata.id : `${name}-001`,
+          company: metadata && metadata.company ? metadata.company : company,
+          name: metadata && metadata.name ? metadata.name : name,
+          description: metadata && metadata.description ? metadata.description : 'No description available',
+          dailyExport: metadata && metadata.dailyExport ? metadata.dailyExport : false,
+        };
+      }),
+    );
+
+    return scrapers;
+  } catch (error) {
+    console.error('Error reading scrapers directory:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('get-user-data-path', () => {
+  return app.getPath('userData');
+})
 // Listen for user data sent from renderer
 ipcMain.on('send-user-data', (event, userID) => {
   console.log('user id from renderer: ', userID);
@@ -82,6 +161,80 @@ ipcMain.on('open-external', (event, url) => {
 ipcMain.on('get-version-number', (event) => {
   event.reply('version-number', app.getVersion());
 });
+
+ipcMain.handle('get-imessage-data', async (event, company: string, name: string, id: string) => {
+  if (process.platform === 'win32') {
+    const username = process.env.USERNAME || process.env.USER;
+    const defaultPath = path.join(
+      'C:',
+      'Users',
+      username,
+      'Apple',
+      'MobileSync',
+      'Backup',
+    );
+
+    if (!fs.existsSync(defaultPath)) {
+      console.log('NEED TO BACKUP YOUR IMESSAGE FOLDER!');
+      return null;
+    }
+
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      title: 'Select iMessages Folder',
+      buttonLabel: 'Select',
+      defaultPath: defaultPath,
+    });
+
+    if (result.filePaths.length > 0) {
+      const selectedFolder = result.filePaths[0];
+      console.log('Got folder, now running python script');
+
+      try {
+        const scriptOutput = await pythonUtils.iMessageScript(
+          process.platform,
+          selectedFolder,
+          company,
+          name,
+          id,
+        );
+        console.log('iMessage script completed. Output:', scriptOutput);
+        // Assuming the last line of the output is the JSON file path
+        const folderPath = scriptOutput.split('\n').pop()?.trim();
+        console.log('JSON file path:', folderPath);
+        mainWindow?.webContents.send('export-complete', company, name, id, folderPath, getTotalFolderSize(folderPath));
+        return folderPath;
+      } catch (error) {
+        console.error('Error running iMessage script:', error);
+        return null;
+      }
+    }
+  } else if (process.platform === 'darwin') {
+    console.log('Mac is being added soon!');
+    return null;
+  } else {
+    console.log('Unsupported platform:', process.platform);
+    return null;
+  }
+});
+
+function getTotalFolderSize(folderPath: string): number {
+  let totalSize = 0;
+  const files = fs.readdirSync(folderPath);
+
+  for (const file of files) {
+    const filePath = path.join(folderPath, file);
+    const stats = fs.statSync(filePath);
+
+    if (stats.isFile()) {
+      totalSize += stats.size;
+    } else if (stats.isDirectory()) {
+      totalSize += getTotalFolderSize(filePath);
+    }
+  }
+
+  return totalSize;
+}
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -479,7 +632,7 @@ async function parseConversationsJSON(extractPath: string) {
         fs.mkdirSync(companyPath);
       }
 
-      // Create or clear platform_name folder
+      // Create or clear company folder
       if (!fs.existsSync(platformPath)) {
         fs.mkdirSync(platformPath);
       }
@@ -517,8 +670,6 @@ async function parseConversationsJSON(extractPath: string) {
         .then(async (dl: Electron.DownloadItem) => {
           console.log('Download completed:', dl.getSavePath());
           const filePath = dl.getSavePath();
-          const exportSize = fs.statSync(filePath).size;
-
           if (filePath.toLowerCase().endsWith('.zip')) {
 
             const extractPath = path.join(idPath, 'extracted');
@@ -554,7 +705,7 @@ async function parseConversationsJSON(extractPath: string) {
                 path.basename(platformPath),
                 platformId,
                 extractPath,
-                exportSize
+                getTotalFolderSize(extractPath)
               );
             } catch (error) {
               console.error('Error extracting ZIP:', error);
@@ -571,7 +722,7 @@ async function parseConversationsJSON(extractPath: string) {
               path.basename(platformPath),
               platformId,
               idPath,
-              exportSize
+              getTotalFolderSize(idPath)
             );
           }
         })
@@ -632,10 +783,10 @@ ipcMain.on('check-for-updates', () => {
                 });
 });
 
-ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
+ipcMain.on('handle-export', (event, runID, platformId, company, name, content, dailyExport) => {
   console.log(
     'handling export for: ',
-    platform_name,
+    company,
     ', specific name: ',
     name,
     ', runID: ',
@@ -644,9 +795,15 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
 
   const userData = app.getPath('userData');
   const surferDataPath = path.join(userData, 'surfer_data');
-  const platformPath = path.join(surferDataPath, platform_name);
+  const platformPath = path.join(surferDataPath, company);
   const namePath = path.join(platformPath, name);
-  const idPath = path.join(namePath, runID);
+  let idPath;
+  if (dailyExport) {
+    idPath = path.join(namePath, platformId);
+  }
+  else {
+    idPath = path.join(namePath, runID);
+  }
 
   // Create necessary folders
   [surferDataPath, platformPath, namePath, idPath].forEach((dir) => {
@@ -661,7 +818,7 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
 
   // Prepare the data object
   const exportData = {
-    platform_name,
+    company,
     name,
     runID,
     timestamp,
@@ -673,15 +830,14 @@ ipcMain.on('handle-export', (event, platform_name, name, content, runID) => {
 
   console.log(`Export saved to: ${filePath}`);
   //get the size of the export
-  const exportSize = fs.statSync(filePath).size;
 
   mainWindow?.webContents.send(
     'export-complete',
-    platform_name,
+    company,
     name,
     runID,
     idPath,
-    exportSize,
+    getTotalFolderSize(idPath),
   );
 });
 

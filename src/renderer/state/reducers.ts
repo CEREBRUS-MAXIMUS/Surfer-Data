@@ -5,8 +5,6 @@ import {
   IRun,
 } from '../types/interfaces';
 import { initialAppState } from '../config/initialStates';
-import { platforms } from '../../../platforms';
-
 
 const preferencesReducer = (
   state: IPreferences = initialAppState.preferences,
@@ -113,14 +111,6 @@ const appReducer = (state = initialAppState.app, action: any) => {
         )
       };
     case 'STOP_RUN':
-      // filter part of run id to get company and name from platforms.ts
-      const runIdParts = action.payload.runID.split('-');
-      const platformId = runIdParts[0] + '-' + runIdParts[1];
-      const platform = platforms.find(p => p.id === platformId);
-      const company = platform ? platform.company : '';
-      const name = platform ? platform.name : '';
-
-
       return {
         ...state,
         runs: state.runs.map(run =>
@@ -155,14 +145,9 @@ const appReducer = (state = initialAppState.app, action: any) => {
         ...state,
         runs: state.runs.map(run => {
           if (run.id === action.payload.runId) {
-            const platform = platforms.find(p => p.id === run.platformId);
-            if (platform) {
-              const currentStepIndex = platform.steps.findIndex(step => step.id === action.payload.step.id);
-              const nextStep = platform.steps[currentStepIndex + 1] || null;
-              console.log('current step: ', action.payload.step);
-              console.log('next step: ', nextStep);
-              return { ...run, currentStep: nextStep || action.payload.step };
-            }
+
+              return { ...run, currentStep: action.payload.step };
+            
           }
           return run;
         })

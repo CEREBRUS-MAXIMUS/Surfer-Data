@@ -1,4 +1,5 @@
 const { ipcRenderer } = require('electron')
+
 function customConsoleLog(id, ...args) {
   // Convert arguments to strings to avoid cloning issues
   const stringArgs = args.map((arg) =>
@@ -49,8 +50,8 @@ async function wait(seconds) {
   });
 }
 
-function bigStepper(id) {
-  ipcRenderer.sendToHost('big-stepper', id);
+function bigStepper(id, step) {
+  ipcRenderer.sendToHost('big-stepper', id, step);
 }
 
 async function waitForContentToStabilize() {
@@ -60,7 +61,7 @@ async function waitForContentToStabilize() {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
         observer.disconnect();
-        customConsoleLog('Content has stabilized');
+        console.log('Content has stabilized');
         resolve();
       }, 100); // Adjust this delay as needed
     });
@@ -74,11 +75,11 @@ async function waitForContentToStabilize() {
     // Fallback in case the page never stabilizes
     setTimeout(() => {
       observer.disconnect();
-      customConsoleLog('Timed out waiting for content to stabilize');
+      console.log('Timed out waiting for content to stabilize');
       resolve();
     }, 5000); // Adjust this timeout as needed
   });
 }
 
 
-module.exports = { customConsoleLog, waitForElement, wait, bigStepper, waitForContentToStabilize }
+module.exports = { customConsoleLog,waitForElement, wait, bigStepper, waitForContentToStabilize }

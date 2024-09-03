@@ -106,7 +106,7 @@ export const stopRun = (runID: string) => ({
   payload: { runID },
 });
 
-export const bigStepper = (runId: string, step: Array<{ id: number; name: string; status: 'pending' | 'running' | 'success' | 'error' }>) => ({
+export const bigStepper = (runId: string, step: string) => ({
   type: 'BIG_STEPPER',
   payload: { runId, step },
 });

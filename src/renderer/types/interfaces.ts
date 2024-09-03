@@ -83,7 +83,10 @@ export interface IRun {
   exportSize?: number;
   exportDate?: string;
   exportPath?: string;
-  currentStep?: { id: number; name: string; status: 'pending' | 'running' | 'success' | 'error' };
+  company: string;
+  name: string;
+  currentStep?: string;
+  dailyExport?: boolean;
   logs?: string;
 }
 

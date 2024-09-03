@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IAppState } from './types/interfaces';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
-import Platform from './pages/Platform';
+import Platform from './pages/Platform'; 
 import SubRun from './pages/SubRun';
 import Settings from './pages/Settings';
 import RunDetailsPage from './components/profile/RunDetailsPage';
@@ -12,7 +12,6 @@ import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs } from 
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
 import { Progress } from './components/ui/progress';
-import { platforms } from '../../platforms';
 
 function Surfer() {
   const dispatch = useDispatch();
@@ -27,6 +26,7 @@ function Surfer() {
   const [showNotConnectedAlert, setShowNotConnectedAlert] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
   const [updateProgress, setUpdateProgress] = useState<number | null>(null);
+  const [content, setContent] = useState<React.ReactNode | null>(null);
 
   useEffect(() => {
     const handleUpdateDownloadProgress = (progress: number) => {
@@ -99,51 +99,66 @@ function Surfer() {
 
   const safeContentScale = isNaN(contentScale) ? 1 : contentScale;
 
-  const renderContent = () => {
+  const renderContent = useCallback(async () => {
     const currentRoute = route || '/home';
     const routeParts = currentRoute.split('/').filter(Boolean);
 
+    let newContent: React.ReactNode;
+
     switch (routeParts[0]) {
       case 'home':
-        return <Home />;
+        newContent = <Home />;
+        break;
       case 'settings':
-        return <Settings />;
+        newContent = <Settings />;
+        break;
       case 'platform':
         if (routeParts.length > 1) {
           const platformId = routeParts[1];
-          const platform = platforms.find(p => p.id === platformId);
+          const scrapers = await window.electron.ipcRenderer.invoke('get-scrapers');
+          const platform = scrapers.find((p: any) => p.id === platformId);
           if (platform) {
-            return <Platform platform={platform} />;
+            newContent = <Platform platform={platform} />;
           } else {
             console.warn(`Platform not found for id: ${platformId}`);
-            return <Home />;
+            newContent = <Home />;
           }
+        } else {
+          newContent = <Home />;
         }
-        return <Home />;
+        break;
       case 'subrun':
         if (routeParts.length > 2) {
           const platformId = routeParts[1];
           const subRunId = routeParts[2];
-          const platform = platforms.find(p => p.id === platformId);
+          const scrapers = await window.electron.ipcRenderer.invoke('get-scrapers');
+          const platform = scrapers.find((p: any) => p.id === platformId);
           if (platform) {
             const subRun = platform.subRuns.find(sr => sr.id === subRunId);
             if (subRun) {
-              return <SubRun platform={platform} subRun={subRun} />
+              newContent = <SubRun platform={platform} subRun={subRun} />;
             } else {
               console.warn(`SubRun not found for id: ${subRunId}`);
-              return <Platform platform={platform} />
+              newContent = <Platform platform={platform} />;
             }
           } else {
             console.warn(`Platform not found for id: ${platformId}`);
-            return <Home />;
+            newContent = <Home />;
           }
         }
-        return <Home />;
+        newContent = <Home />;
+        break;
       default:
         console.warn('Unknown route:', currentRoute);
-        return <Home />;
+        newContent = <Home />;
     }
-  };
+
+    setContent(newContent);
+  }, [route]);
+
+  useEffect(() => {
+    renderContent();
+  }, [renderContent]);
 
   const handleHomeClick = () => {
     console.log('Home clicked');
@@ -173,7 +188,7 @@ function Surfer() {
               contentScale={safeContentScale}
               onHomeClick={handleHomeClick}
             >
-              {renderContent()}
+              {content}
             </Layout>
           )}
           <Toaster />

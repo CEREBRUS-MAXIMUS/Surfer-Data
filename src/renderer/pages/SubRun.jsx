@@ -7,11 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { ChevronRight, ChevronDown, ArrowLeft } from 'lucide-react';
 import { openDB } from 'idb';
 import RunDetailsPage from '../components/profile/RunDetailsPage';
-import { platforms } from '../../../platforms';
 import { trackRun } from '../../../analytics'
 
 const SubRun = ({ platform, subRun }) => {
   const dispatch = useDispatch();
+
   const [runs, setRuns] = useState([]);
   const [expandedRuns, setExpandedRuns] = useState({});
   const [selectedRunId, setSelectedRunId] = useState(null);
@@ -48,20 +48,18 @@ const SubRun = ({ platform, subRun }) => {
 
     const startTime = new Date().toISOString();
     const newRun = {
-      id: Date.now().toString(),
+      id: `${platform.id}-${Date.now()}`,
+      company: platform.company,
+      name: platform.name,
       platformId: platform.id,
-      subRunId: subRun.id,
-      startDate: startTime,
-      status: 'pending',
-      tasks: subRun.tasks.map(task => ({
-        ...task,
-        startTime,
-        steps: task.steps.map(step => ({ ...step, status: 'pending', startTime })),
-        status: 'pending'
-      })),
-      currentStep: platform.steps[0],
-      logs: ''
-    };
+      tasks: [],
+      startDate: new Date().toISOString(),
+      status: 'running',
+      dailyExport: platform.dailyExport,
+      exportSize: null, 
+      url: 'about:blank'
+    }; 
+
 
     dispatch(addRun(newRun));
 
@@ -77,10 +75,9 @@ const SubRun = ({ platform, subRun }) => {
   };
 
   const handleStopRun = async (runId) => {
-      const platformId = runId.split('-')[0];
-      const platform = platforms.find((p) => p.id === platformId);
+      const activeRun = runs.find((r) => r.id === runId);
 
-    await trackRun('stopped', platform.company, platform.name, activeRun.currentStep)
+    await trackRun('stopped', activeRun.company, activeRun.name, activeRun.currentStep)
 
     dispatch(stopRun(runId));
 

@@ -1,0 +1,5 @@
+{
+    "name": "Twitter",
+    "description": "Exports all your tweets.",
+    "dailyExport": true
+}

@@ -5,7 +5,6 @@ import { useTheme } from '../ui/theme-provider';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Button } from "../ui/button";
 import { ArrowUpRight, ArrowRight, Check, X, Link, Download, Search, ChevronLeft, ChevronRight, HardDriveDownload, Folder, Eye } from 'lucide-react';
-import { platforms } from '../../../../platforms';
 import { openDB } from 'idb';
 import { Input } from "../ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
@@ -34,6 +33,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const [completedRuns, setCompletedRuns] = useState({});
   const prevRunsRef = useRef({});
   const [hoveredPlatformId, setHoveredPlatformId] = useState(null);
+  const [platformLogos, setPlatformLogos] = useState({});
 
   const LOGO_SIZE = 24; // Set a consistent size for all logos
 
@@ -106,12 +106,58 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     );
   };
 
-  const filteredPlatforms = platforms
-  .filter(platform => platform.steps)
-  .filter(platform =>
-    platform.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    platform.company.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [filteredPlatforms, setFilteredPlatforms] = useState([]);
+  const [allPlatforms, setAllPlatforms] = useState([]);
+
+  useEffect(() => {
+    const loadScrapers = async () => {
+      try {
+        const scrapers = await window.electron.ipcRenderer.invoke('get-scrapers');
+        console.log('SCRAPERS: ', scrapers);
+
+        setAllPlatforms(scrapers);
+      } catch (error) {
+        console.error('Error loading scrapers:', error);
+        setAllPlatforms([]);
+      }
+    };
+
+    loadScrapers();
+  }, []);
+
+  useEffect(() => {
+    setFilteredPlatforms(allPlatforms.filter(scraper =>
+      scraper.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      scraper.company.toLowerCase().includes(searchTerm.toLowerCase())
+    ));
+  }, [searchTerm, allPlatforms]);
+
+
+  useEffect(() => {
+    const runDailyExports = async () => {
+      if (runs.length === 0) return;
+
+      for (const platform of filteredPlatforms) {
+        if (platform.dailyExport) {
+          const platformRuns = runs.filter(run => run.platformId === platform.id);
+          if (platformRuns.length > 0) {
+            const today = new Date().toISOString().split('T')[0];
+            const runsForToday = platformRuns.filter(run => 
+              (run.status === 'success' || run.status === 'running') && 
+              run.startDate.split('T')[0] === today
+            );
+            console.log('runsForToday: ', runsForToday);
+            if (runsForToday.length === 0) {
+              await handleExportClick(platform);
+              await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+          }
+        }
+      }
+    };
+
+    runDailyExports();
+  }, [filteredPlatforms]);
 
   const pageCount = Math.ceil(filteredPlatforms.length / itemsPerPage);
   const paginatedPlatforms = filteredPlatforms.slice(
@@ -129,23 +175,28 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   };
 
   const handleExportClick = async (platform) => {
+    console.log('platform: ', platform);
+
+
     const newRun = {
       id: `${platform.id}-${Date.now()}`,
+      company: platform.company,
+      name: platform.name,
       platformId: platform.id,
-      subRunId: 'export',
+      tasks: [],
       startDate: new Date().toISOString(),
       status: 'running',
-      tasks: [],
-      url: platform.home_url,
-      exportSize: null,
-      currentStep: platform.steps[0],
-      logs: ''
-    };
+      dailyExport: platform.dailyExport,
+      exportSize: null, 
+      url: 'about:blank'
+    }; 
 
 
     dispatch(startRun(newRun));
     // dispatch(toggleRunVisibility());
     dispatch(setExportRunning(newRun.id, true));
+
+    //await window.electron.ipcRenderer.invoke('start-export', platform.name, platform.id, newRun.id);
   };
 
   const formatLastRunTime = (run) => {
@@ -161,15 +212,35 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     }
   };
 
-  const getPlatformLogo = (platform) => {
-    const Logo = theme === 'dark' ? platform.logo.dark : platform.logo.light;
-    return Logo ? (
-      <div style={{ width: `${LOGO_SIZE}px`, height: `${LOGO_SIZE}px`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Logo style={{ width: '100%', height: '100%' }} />
-      </div>
-    ) : null;
+  const getPlatformLogo = async (platform) => {
+    try {
+      const response = await fetch(`https://logo.clearbit.com/${platform.name}.com`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const logoUrl = URL.createObjectURL(blob);
+        setPlatformLogos(prev => ({ ...prev, [platform.id]: logoUrl }));
+      }
+
+      else {
+        const response = await fetch(`https://logo.clearbit.com/${platform.company}.com`);
+        if (response.ok) {
+          const blob = await response.blob();
+          const logoUrl = URL.createObjectURL(blob);
+          setPlatformLogos(prev => ({ ...prev, [platform.id]: logoUrl }));
+        }
+      }
+    } catch (error) {
+      console.error(`Error fetching logo for ${platform.name}:`, error);
+    }
   };
 
+  useEffect(() => {
+    filteredPlatforms.forEach(platform => {
+      if (!platformLogos[platform.id]) {
+        getPlatformLogo(platform);
+      }
+    });
+  }, [filteredPlatforms]);
   const isExportRunning = useCallback((platformId) => {
     return runs.some(run => run.platformId === platformId && run.status === 'running');
   }, [runs]);
@@ -243,7 +314,7 @@ const renderResults = (platform) => {
             <div className="flex items-center space-x-2 group">
               <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
               <span className="group-hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
-                {latestRun.currentStep?.name || 'Running...'}
+                {latestRun.currentStep ? latestRun.currentStep : 'Running...'}
               </span>
               <span
                 className="cursor-pointer flex items-center hover:underline"
@@ -409,7 +480,9 @@ const showLogs = (platform) => {
                             className="flex items-center space-x-2 cursor-pointer hover:underline"
                             onClick={() => onPlatformClick(platform)}
                           >
-                            {getPlatformLogo(platform)}
+                 {platformLogos[platform.id] && (
+                  <img src={platformLogos[platform.id]} alt={platform.name} className="w-4 h-4" style={{ width: `${LOGO_SIZE}px`, height: `${LOGO_SIZE}px` }}/>
+                )}
                             <div className="flex items-center">
                               <p className="flex items-center">
                                 <span className="text-gray-500">{platform.company}/</span>
@@ -421,7 +494,7 @@ const showLogs = (platform) => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <p className="font-medium">{platform.description}</p>
+                        <p className="font-medium">{platform.description || 'No description available'}</p>
                       </TableCell>
                       <TableCell className="w-[600px]">
                         {renderResults(platform)}
