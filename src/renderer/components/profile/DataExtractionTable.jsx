@@ -465,7 +465,7 @@ const showLogs = (platform) => {
                             <div className="flex items-center">
                               <p className="flex items-center">
                                 <span className="text-gray-500">{platform.company}/</span>
-                                <span className="font-semibold">{platform.name.charAt(0).toUpperCase() + platform.name.slice(1)}</span>
+                                <span className="font-semibold">{platform.name}</span>
                               </p>
                               <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
                             </div>

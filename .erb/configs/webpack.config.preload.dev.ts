@@ -5,6 +5,7 @@ import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
 import checkNodeEnv from '../scripts/check-node-env';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 
 // When an ESLint server is running, we can't set the NODE_ENV so we'll check if it's
 // at the dev webpack config is not accidentally run in a production environment
@@ -21,24 +22,21 @@ const configuration: webpack.Configuration = {
 
   entry: async () => {
     const fs = require('fs');
-    const getAllFiles = async (
-      dir: string,
-      extensions: string[],
-    ): Promise<string[]> => {
+    const getAllFiles = async (dir: string): Promise<string[]> => {
       const entries = await fs.promises.readdir(dir, { withFileTypes: true });
       const files = await Promise.all(
         entries.map(async (entry) => {
           const res = path.resolve(dir, entry.name);
-          return entry.isDirectory() ? getAllFiles(res, extensions) : res;
+          return entry.isDirectory() ? getAllFiles(res) : res;
         }),
       );
       return files
         .flat()
-        .filter((file) => extensions.some((ext) => file.endsWith(ext)));
+        .filter((file) => file.endsWith('.js') || file.endsWith('.json'));
     };
 
     const scrapersDir = path.join(webpackPaths.srcMainPath, 'Scrapers');
-    const files = await getAllFiles(scrapersDir, ['.js', '.json']);
+    const files = await getAllFiles(scrapersDir);
 
     const entry = {
       main: path.join(webpackPaths.srcMainPath, 'main.ts'),
@@ -62,7 +60,6 @@ const configuration: webpack.Configuration = {
 
     return entry;
   },
-
   output: {
     path: webpackPaths.dllPath,
     filename: '[name].js',
@@ -82,6 +79,18 @@ const configuration: webpack.Configuration = {
 
     new webpack.LoaderOptionsPlugin({
       debug: true,
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.join(webpackPaths.srcMainPath, 'Scrapers'),
+          globOptions: {
+            ignore: ['**/*.js', '**/*.md'],
+          },
+          to: path.join(webpackPaths.distMainPath),
+          noErrorOnMissing: true,
+        },
+      ],
     }),
   ],
 
