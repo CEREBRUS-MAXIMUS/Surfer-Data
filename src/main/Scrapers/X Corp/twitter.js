@@ -1,12 +1,37 @@
 const { customConsoleLog, wait, waitForElement, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
+const fs = require('fs');
+const path = require('path');
 
-async function checkIfTweetExists(id, platformId, company, name, tweet) {
+async function getCurrentTweets(id, platformId, company, name) {
   const userData = await ipcRenderer.invoke('get-user-data-path');
-  const filePath = path.join(userData, company, name, `${platformId}.json`);
+  const filePath = path.join(
+    userData,
+    'surfer_data',
+    company,
+    name,
+    platformId,
+    `${platformId}.json`,
+  );
+  console.log(id, `Checking if file exists at ${filePath}`);
+  const fileExists = await fs.existsSync(filePath);
+  if (fileExists) {
+    console.log(id, `File exists, reading file`);
+    const fileData = await fs.readFileSync(filePath, 'utf8');
+    const fileJson = JSON.parse(fileData);
+    console.log(id, `File data:`, fileJson);
+    if (fileJson && fileJson.content) {
+      console.log(id, `JSON contains ${fileJson.content.length} tweets`);
+      return JSON.stringify(fileJson['content']);
+    } else {
+      console.log(id, `JSON structure is unexpected:`, fileJson);
+      return [];
+    }
+  }
+  return [];
 }
 
-async function exportTwitter(id, platformId, company, name) {
+async function exportTwitter(id, platformId, filename, company, name) {
   if (!window.location.href.includes('x.com')) {
     bigStepper(id, 'Navigating to Twitter');
     customConsoleLog(id, 'Navigating to Twitter');
@@ -24,7 +49,7 @@ async function exportTwitter(id, platformId, company, name) {
     id,
     'img.css-9pa8cd',
     'Your profile picture',
-    true
+    true,
   );
 
   customConsoleLog(id, 'Got profile picture!');
@@ -37,15 +62,16 @@ async function exportTwitter(id, platformId, company, name) {
 
   bigStepper(id, 'Clicking on Profile Picture');
   profilePics[1].click();
-  await wait(2);
+  await wait(2); 
 
-  const tweetSet = new Set();
-  let lastProcessedTweet = null;
+  const tweetArray = [];
   let noNewTweetsCount = 0;
   //const scrollArray = ['start', 'center', 'end', 'nearest'];
 
   bigStepper(id, 'Getting tweets...');
   customConsoleLog(id, 'Starting tweet collection');
+  const currentTweets = await getCurrentTweets(id, platformId, company, name);
+  console.log(id, `Current tweets: ${currentTweets}`);
   while (noNewTweetsCount < 3) {
     const tweets = await waitForElement(
       id,
@@ -63,56 +89,48 @@ async function exportTwitter(id, platformId, company, name) {
     }
 
     customConsoleLog(id, 'Processing new tweets');
-    const initialSize = tweetSet.size;
-    tweets.forEach(async (tweet) => {
-        tweet.scrollIntoView({
-          behavior: 'instant',
-          block: 'end',
-        });
-
+    const initialSize = tweetArray.length;
+    tweets.forEach((tweet) => {
+      tweet.scrollIntoView({
+        behavior: 'instant',
+        block: 'end',
+      });
 
       if (tweet.querySelector('time')) {
         const jsonTweet = {
-        text: tweet.innerText.replace(/\n/g, ' '),
-        timestamp: tweet.querySelector('time').getAttribute('datetime'),
-        }
+          text: tweet.innerText.replace(/\n/g, ' '),
+          timestamp: tweet.querySelector('time').getAttribute('datetime'),
+        };
 
 
-        const tweetExists = await checkIfTweetExists(id, platformId, company, name, jsonTweet);
-        if (!tweetExists) {
-          tweetSet.add(JSON.stringify(jsonTweet));
-        }
+          console.log(id, 'Tweet does not exist, adding to array: ', jsonTweet);
+          tweetArray.push(jsonTweet);
 
-        else {
-          customConsoleLog(id, 'Tweet already exists');
-          return;
-        }
       }
-      
-
     });
 
-    const newTweetsAdded = tweetSet.size - initialSize;
-    customConsoleLog(id, `Added ${newTweetsAdded} new unique tweets. Total: ${tweetSet.size}`);
+    const newTweetsAdded = tweetArray.length - initialSize;
+    customConsoleLog(
+      id,
+      `Added ${newTweetsAdded} new unique tweets. Total: ${tweetArray.length}`,
+    );
 
     if (newTweetsAdded === 0) {
       customConsoleLog(id, 'NO NEW TWEETS ADDED, TRYING AGAIN!');
-      //window.scrollBy(0, 10000);
       noNewTweetsCount++;
     } else {
       noNewTweetsCount = 0;
     }
-  
+
     customConsoleLog(id, 'Waiting 2 seconds before getting more tweets');
     await wait(2);
   }
 
-  if (tweetSet.size === 0) {
+  if (tweetArray.length === 0) {
     customConsoleLog(id, 'No tweets were collected');
     return;
   }
 
-  const tweetArray = Array.from(tweetSet);
   customConsoleLog(id, `Exporting ${tweetArray.length} tweets`);
   bigStepper(id, 'Exporting data');
   return tweetArray;

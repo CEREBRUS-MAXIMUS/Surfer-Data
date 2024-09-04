@@ -1,19 +1,25 @@
 const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
-async function exportNotion(id, platformId, company, name) {
+async function exportNotion(id, platformId, filename, company, name) {
   if (!window.location.href.includes('notion.so')) {
     bigStepper(id, 'Navigating to Notion');
-  customConsoleLog(id, 'Navigating to Notion');
+    customConsoleLog(id, 'Navigating to Notion');
     window.location.assign('https://notion.so/');
   }
   await wait(5);
-  if (document.querySelector('input[aria-label="Enter your email address..."]')) {
+  if (
+    document.querySelector('input[aria-label="Enter your email address..."]')
+  ) {
     bigStepper(id, 'Export stopped, waiting for sign in');
     ipcRenderer.send('connect-website', company);
     return;
   }
-  const dropdown = await waitForElement(id, '.notion-sidebar-switcher', 'Dropdown');
+  const dropdown = await waitForElement(
+    id,
+    '.notion-sidebar-switcher',
+    'Dropdown',
+  );
 
   if (!dropdown) {
     bigStepper(id, 'Export stopped, waiting for sign in');
@@ -29,7 +35,12 @@ async function exportNotion(id, platformId, company, name) {
 
   // First Settings button
   bigStepper(id, 'Waiting for First settings button');
-  const settingsButton = await waitForElement(id, 'div[role="button"]', 'First settings button', true);
+  const settingsButton = await waitForElement(
+    id,
+    'div[role="button"]',
+    'First settings button',
+    true,
+  );
   let foundSettings = false;
   if (settingsButton) {
     customConsoleLog(id, 'Got first settings button');
@@ -43,10 +54,15 @@ async function exportNotion(id, platformId, company, name) {
       }
     }
   }
-        await wait(4);
+  await wait(4);
   // Second Settings button
   bigStepper(id, 'Waiting for Second settings button');
-  const newButtons = await waitForElement(id, 'div[role="button"]', 'Second settings button', true);
+  const newButtons = await waitForElement(
+    id,
+    'div[role="button"]',
+    'Second settings button',
+    true,
+  );
   foundSettings = false;
   if (newButtons) {
     for (const newBtn of newButtons) {
@@ -56,7 +72,10 @@ async function exportNotion(id, platformId, company, name) {
         for (const grandchildDiv of grandchildDivs) {
           if (grandchildDiv.textContent === 'Settings') {
             customConsoleLog(id, 'Got second settings button');
-            grandchildDiv.scrollIntoView({ behavior: 'instant', block: 'center' });
+            grandchildDiv.scrollIntoView({
+              behavior: 'instant',
+              block: 'center',
+            });
             bigStepper(id, 'Clicking on Second settings button');
             grandchildDiv.click();
             await wait(2);
@@ -72,7 +91,12 @@ async function exportNotion(id, platformId, company, name) {
 
   // Export all workspace content button
   bigStepper(id, 'Waiting for Export all workspace content button');
-  const exportButton = await waitForElement(id, 'div[role="button"]', 'Export all workspace content button', true);
+  const exportButton = await waitForElement(
+    id,
+    'div[role="button"]',
+    'Export all workspace content button',
+    true,
+  );
   let foundExport = false;
   if (exportButton) {
     for (const btn of exportButton) {
@@ -90,7 +114,12 @@ async function exportNotion(id, platformId, company, name) {
 
   // Final Export button
   bigStepper(id, 'Waiting for Final Export button');
-  const finalExportButton = await waitForElement(id, 'div[role="button"]', 'Final Export button', true);
+  const finalExportButton = await waitForElement(
+    id,
+    'div[role="button"]',
+    'Final Export button',
+    true,
+  );
   let foundFinalExport = false;
   if (finalExportButton) {
     for (const btn of finalExportButton) {
@@ -99,7 +128,7 @@ async function exportNotion(id, platformId, company, name) {
         bigStepper(id, 'Downloading data');
         customConsoleLog(id, 'Got final export button');
         btn.click();
-        await wait(2);  
+        await wait(2);
         foundFinalExport = true;
         break;
       }

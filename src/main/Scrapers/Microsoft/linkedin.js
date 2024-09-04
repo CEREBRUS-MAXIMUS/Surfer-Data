@@ -3,7 +3,7 @@ const { ipcRenderer } = require('electron');
 
 
 
-async function exportLinkedin(id, platformId, company, name) {
+async function exportLinkedin(id, platformId, filename, company, name) {
   if (!window.location.href.includes('linkedin.com')) {
     bigStepper(id, 'Navigating to LinkedIn');
     customConsoleLog(id, 'Navigating to LinkedIn');
@@ -21,7 +21,7 @@ async function exportLinkedin(id, platformId, company, name) {
     'img[alt*="Photo of"]',
     'Profile Button',
   );
-  
+
   if (!profileButton) {
     bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
@@ -32,9 +32,13 @@ async function exportLinkedin(id, platformId, company, name) {
   profileButton.click();
 
   await wait(2);
-  
-  const contactBtn = await waitForElement(id, '#top-card-text-details-contact-info', 'Contact Info Button');
-  
+
+  const contactBtn = await waitForElement(
+    id,
+    '#top-card-text-details-contact-info',
+    'Contact Info Button',
+  );
+
   if (!contactBtn) {
     customConsoleLog(id, 'Contact button not found');
     return;
@@ -44,19 +48,36 @@ async function exportLinkedin(id, platformId, company, name) {
 
   await wait(2);
 
-  const contactInfoElement = await waitForElement(id, '.pv-contact-info__contact-type', 'Contact Info Card');
+  const contactInfoElement = await waitForElement(
+    id,
+    '.pv-contact-info__contact-type',
+    'Contact Info Card',
+  );
 
   if (!contactInfoElement) {
     customConsoleLog(id, 'Contact info not found');
     return;
   }
-  
+
   return new Promise(async (resolve) => {
-    const sections = await waitForElement(id, "section[data-view-name='profile-card']", 'Profile Card Sections', true);
-    const contactBtn = await waitForElement(id, '#top-card-text-details-contact-info', 'Contact Button');
+    const sections = await waitForElement(
+      id,
+      "section[data-view-name='profile-card']",
+      'Profile Card Sections',
+      true,
+    );
+    const contactBtn = await waitForElement(
+      id,
+      '#top-card-text-details-contact-info',
+      'Contact Button',
+    );
     if (sections && sections.length > 5 && contactBtn) {
-      const mainContent = await waitForElement(id, '.scaffold-layout__main', 'Main Content');
-      
+      const mainContent = await waitForElement(
+        id,
+        '.scaffold-layout__main',
+        'Main Content',
+      );
+
       if (mainContent) {
         bigStepper(id, 'Clicking on Contact Button');
         contactBtn.click();
@@ -64,7 +85,12 @@ async function exportLinkedin(id, platformId, company, name) {
         await wait(2);
 
         customConsoleLog(id, 'Waiting for Contact Info');
-        const contactInfoElements = await waitForElement(id, '.pv-contact-info__contact-type', 'Contact Info Elements', true);
+        const contactInfoElements = await waitForElement(
+          id,
+          '.pv-contact-info__contact-type',
+          'Contact Info Elements',
+          true,
+        );
 
         if (contactInfoElements) {
           customConsoleLog(id, 'Trying to get contact info (if any)');
@@ -85,15 +111,32 @@ async function exportLinkedin(id, platformId, company, name) {
 
           const profileData = {
             name: (await waitForElement(id, 'h1', 'Name'))?.innerText || '',
-            subheading: (await waitForElement(id, '.text-body-medium.break-words', 'Subheading'))?.innerText || '',
+            subheading:
+              (
+                await waitForElement(
+                  id,
+                  '.text-body-medium.break-words',
+                  'Subheading',
+                )
+              )?.innerText || '',
             about: (
-              (await waitForElement(id, "section[data-view-name='profile-card'] div#about", 'About Section'))
-                ?.closest('section')?.innerText || ''
+              (
+                await waitForElement(
+                  id,
+                  "section[data-view-name='profile-card'] div#about",
+                  'About Section',
+                )
+              )?.closest('section')?.innerText || ''
             ).replace(/^About\nAbout\n/, ''),
             profile_url: window.location.href,
             experience: (
-              (await waitForElement(id, "section[data-view-name='profile-card'] div#experience", 'Experience Section'))
-                ?.closest('section')?.innerText || ''
+              (
+                await waitForElement(
+                  id,
+                  "section[data-view-name='profile-card'] div#experience",
+                  'Experience Section',
+                )
+              )?.closest('section')?.innerText || ''
             ).replace(/^Experience\nExperience\n/, ''),
             email: email || '',
           };

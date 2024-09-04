@@ -788,7 +788,7 @@ ipcMain.on('check-for-updates', () => {
                 });
 });
 
-ipcMain.on('handle-export', (event, runID, platformId, company, name, content, dailyExport) => {
+ipcMain.on('handle-export', (event, runID, platformId, filename, company, name, content, dailyExport) => {
   console.log(
     'handling export for: ',
     company,
@@ -818,7 +818,13 @@ ipcMain.on('handle-export', (event, runID, platformId, company, name, content, d
   });
 
   const timestamp = Date.now();
-  const fileName = `${name}_${timestamp}.json`;
+  let fileName;
+  if (dailyExport) {
+    fileName = `${platformId}.json`;
+  }
+  else {
+    fileName = `${platformId}_${timestamp}.json`;
+  }
   const filePath = path.join(idPath, fileName);
 
   // Prepare the data object
