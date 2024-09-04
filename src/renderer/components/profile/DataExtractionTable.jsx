@@ -69,10 +69,10 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   console.log('opening dev tools')
-  //   window.electron.ipcRenderer.send('show-dev-tools')
-  // }, [])
+  useEffect(() => {
+    console.log('opening dev tools')
+    window.electron.ipcRenderer.send('show-dev-tools')
+  }, [])
 
 
 
@@ -133,31 +133,31 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   }, [searchTerm, allPlatforms]);
 
 
-  useEffect(() => {
-    const runDailyExports = async () => {
-      if (runs.length === 0) return;
+  // useEffect(() => {
+  //   const runDailyExports = async () => {
+  //     if (runs.length === 0) return;
 
-      for (const platform of filteredPlatforms) {
-        if (platform.dailyExport) {
-          const platformRuns = runs.filter(run => run.platformId === platform.id);
-          if (platformRuns.length > 0) {
-            const today = new Date().toISOString().split('T')[0];
-            const runsForToday = platformRuns.filter(run => 
-              (run.status === 'success' || run.status === 'running') && 
-              run.startDate.split('T')[0] === today
-            );
-            console.log('runsForToday: ', runsForToday);
-            if (runsForToday.length === 0) {
-              await handleExportClick(platform);
-              await new Promise(resolve => setTimeout(resolve, 5000));
-            }
-          }
-        }
-      }
-    };
+  //     for (const platform of filteredPlatforms) {
+  //       if (platform.dailyExport) {
+  //         const platformRuns = runs.filter(run => run.platformId === platform.id);
+  //         if (platformRuns.length > 0) {
+  //           const today = new Date().toISOString().split('T')[0];
+  //           const runsForToday = platformRuns.filter(run => 
+  //             (run.status === 'success' || run.status === 'running') && 
+  //             run.startDate.split('T')[0] === today
+  //           );
+  //           console.log('runsForToday: ', runsForToday);
+  //           if (runsForToday.length === 0) {
+  //             await handleExportClick(platform);
+  //             await new Promise(resolve => setTimeout(resolve, 5000));
+  //           }
+  //         }
+  //       }
+  //     }
+  //   };
 
-    runDailyExports();
-  }, [filteredPlatforms]);
+  //   runDailyExports();
+  // }, [filteredPlatforms]);
 
   const pageCount = Math.ceil(filteredPlatforms.length / itemsPerPage);
   const paginatedPlatforms = filteredPlatforms.slice(
@@ -180,6 +180,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
 
     const newRun = {
       id: `${platform.id}-${Date.now()}`,
+      filename: platform.filename,
       company: platform.company,
       name: platform.name,
       platformId: platform.id,

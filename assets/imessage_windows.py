@@ -13,7 +13,7 @@ if len(sys.argv) < 7:
 folder_path = sys.argv[1]
 company = sys.argv[2]
 name = sys.argv[3]
-passphrase = sys.argv[4]
+password = sys.argv[4]
 app_data_path = sys.argv[5]  # New argument for the app's data path
 id = sys.argv[6]
 
@@ -32,9 +32,10 @@ def apple_time_to_iso(apple_timestamp):
 
     return iso_string
 
-try:
-    backup = EncryptedBackup(backup_directory=folder_path, passphrase=passphrase)
-    print('Got backup')
+try: 
+    print('Decrypting backup')
+    backup = EncryptedBackup(backup_directory=folder_path, passphrase=password)
+    print('Backup decrypted successfully')
     # Define the output directory using the provided app data path
     output_dir = os.path.join(app_data_path, 'surfer_data', company, name, id)
  
@@ -150,7 +151,10 @@ try:
 
     sys.exit(0)
 except Exception as e:
-    print(f"Error: {str(e)}", file=sys.stderr)
+    if "Invalid password" in str(e):
+        print('INVALID_PASSWORD')
+    else:
+        print(f"ERROR: {str(e)}")
     sys.exit(1)
 
 

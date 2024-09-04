@@ -112,7 +112,6 @@
     "cmdk": "^1.0.0",
     "crypto-browserify": "^3.12.0",
     "css-loader": "^6.10.0",
-    "custom-electron-prompt": "^1.5.8",
     "date-fns": "^3.6.0",
     "dexie": "^4.0.1",
     "dotenv": "^16.4.5",

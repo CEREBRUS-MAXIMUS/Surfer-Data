@@ -3,10 +3,18 @@ const { promisify } = require('util');
 const execAsync = promisify(exec);
 import path from 'path';
 import fs from 'fs';
-import { BrowserWindow, app } from 'electron';
-import prompt from 'custom-electron-prompt';
+import { BrowserWindow, app, ipcMain } from 'electron';
 import { dialog } from 'electron';
 import { spawn, ChildProcess, fork } from 'child_process';
+
+    const RESOURCES_PATH = app.isPackaged
+      ? path.join(process.resourcesPath, 'assets')
+      : path.join(__dirname, '../../../assets');
+
+    const getAssetPath = (...paths: string[]): string => {
+      return path.join(RESOURCES_PATH, ...paths);
+};
+
 
 export class PythonUtils {
   private SurferPythonPath: string | null = null;
@@ -206,13 +214,6 @@ export class PythonUtils {
 
   async hackBrowserScript(platform: string): Promise<ChildProcess> {
     const pythonPath = `"${this.SurferPythonPath}"`;
-    const RESOURCES_PATH = app.isPackaged
-      ? path.join(process.resourcesPath, 'assets')
-      : path.join(__dirname, '../../../assets');
-
-    const getAssetPath = (...paths: string[]): string => {
-      return path.join(RESOURCES_PATH, ...paths);
-    };
 
     let scriptPath: string;
     if (platform === 'edge') {
@@ -261,13 +262,7 @@ export class PythonUtils {
     id: string,
   ) {
     const pythonPath = `"${this.SurferPythonPath}"`;
-    const RESOURCES_PATH = app.isPackaged
-      ? path.join(process.resourcesPath, 'assets')
-      : path.join(__dirname, '../../../assets');
 
-    const getAssetPath = (...paths: string[]): string => {
-      return path.join(RESOURCES_PATH, ...paths);
-    };
 
     if (platform === 'win32') {
       const requirementsPath = getAssetPath('imessage_windows_reqs.txt');
@@ -302,67 +297,76 @@ export class PythonUtils {
         console.log(`Created directory: ${imessagePath}`);
       }
 
-      let passphrase: string | null = null;
-      let isValidPassphrase = false;
+      let isValidPassword = false;
       let pythonProcess: ChildProcess;
 
-      while (!isValidPassphrase) {
-        passphrase = await prompt({
-          title: 'Enter Passphrase',
-          label: 'Enter the passphrase for your iPhone backup:',
-          inputAttrs: {
-            type: 'password',
-            placeholder: 'password',
-          },
-          alwaysOnTop: true,
-        });
+      while (!isValidPassword) {
+        const password = await this.showPasswordPrompt();
 
-        if (passphrase === null) {
-          throw new Error('Passphrase input cancelled');
+        if (password === null) {
+          throw new Error('Password input cancelled');
         }
 
         const scriptPath = getAssetPath('imessage_windows.py');
 
-        return new Promise((resolve, reject) => {
-          pythonProcess = spawn(
-            'python.exe',
-            [
-              scriptPath,
-              folderPath,
-              company,
-              name,
-              passphrase,
-              app.getPath('userData'),
-              id,
-            ],
-            {
-              shell: true,
-            },
-          );
+        try {
+          const output = await new Promise<string>((resolve, reject) => {
+            pythonProcess = spawn(
+              'python.exe',
+              [
+                scriptPath,
+                folderPath,
+                company,
+                name,
+                password,
+                app.getPath('userData'),
+                id,
+              ],
+              { shell: true }
+            );
 
-          let output = '';
+            let output = '';
 
-          pythonProcess.stdout.on('data', (data) => {
-            const dataStr = data.toString();
-            output += dataStr;
-            console.log('Python script output:', dataStr);
+            pythonProcess.stdout.on('data', (data) => {
+              const dataStr = data.toString();
+              output += dataStr;
+              console.log('Python script output:', dataStr);
+            });
+
+            pythonProcess.stderr.on('data', (data) => {
+              console.error('Python script error:', data.toString());
+            });
+
+            pythonProcess.on('close', (code) => {
+              console.log('Python script exited with code', code);
+              if (code === 0) {
+                resolve(output.trim());
+              } else {
+                reject(new Error(`Python script exited with code ${code}`));
+              }
+            });
           });
 
-          pythonProcess.stderr.on('data', (data) => {
-            console.error('Python script error:', data.toString());
+          if (output.includes('Backup decrypted successfully')) {
+            isValidPassword = true;
+            return output;
+          } else if (output.includes('INVALID_PASSWORD')) {
+            await dialog.showMessageBox({
+              type: 'error',
+              title: 'Invalid Password',
+              message: 'The entered password is incorrect. Please try again.',
+            });
+          } else {
+            throw new Error('Unexpected output from Python script');
+          }
+        } catch (error) {
+          console.error('Error running Python script:', error);
+          await dialog.showMessageBox({
+            type: 'error',
+            title: 'Invalid Password',
+            message: `The entered password is incorrect. Please try again.`,
           });
-
-          pythonProcess.on('close', (code) => {
-            console.log('Python script exited with code', code);
-            if (code === 0) {
-              isValidPassphrase = true;
-              resolve(output.trim());
-            } else {
-              isValidPassphrase = false;
-              reject(new Error(`Python script exited with code ${code}`));
-            }
-          });
-        });
+        }
       }
     } else if (platform === 'darwin') {
       const scriptPath = getAssetPath('imessage_mac.py');
@@ -372,6 +376,38 @@ export class PythonUtils {
     } else {
       throw new Error('Platform not supported');
     }
+  }
+
+  private showPasswordPrompt(): Promise<string | null> {
+    return new Promise((resolve) => {
+      const promptWindow = new BrowserWindow({
+        width: 500,
+        height: 300,
+        show: false,
+        alwaysOnTop: true,
+        webPreferences: {
+          nodeIntegration: true,
+          contextIsolation: false,
+        },
+      });
+
+      promptWindow.loadURL(
+        getAssetPath('password-prompt.html'),
+      );
+
+      promptWindow.once('ready-to-show', () => {
+        promptWindow.show();
+      });
+
+      ipcMain.once('submit-password', (event, password) => {
+        promptWindow.close();
+        resolve(password);
+      });
+
+      promptWindow.on('closed', () => {
+        resolve(null);
+      });
+    });
   }
 
   private async installDependencies(dataFolderPath: string) {

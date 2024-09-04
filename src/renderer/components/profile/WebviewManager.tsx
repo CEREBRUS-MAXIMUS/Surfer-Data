@@ -191,6 +191,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
             'export-website',
             newRun.id,
             newRun.platformId,
+            newRun.filename,
             newRun.company,
             newRun.name,
             newRun.dailyExport
@@ -221,6 +222,15 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
     handleNewRun();
     //webviewRef.current?.send('change-url-success', url, id);
   }, [dispatch, runs, getWebviewRef]);
+
+  useEffect(() => {
+
+  window.electron.ipcRenderer.on('console-log', handleLogs);
+
+  return () => {
+    window.electron.ipcRenderer.removeAllListeners('console-log', handleLogs);
+  };
+  }, [runs.length])
 
   useEffect(() => {
     const ipcMessageHandler = async (event) => {

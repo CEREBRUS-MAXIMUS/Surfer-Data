@@ -111,11 +111,12 @@ ipcMain.handle('get-scrapers', async () => {
         const companyMatch = relativePath.split(path.sep);
         const company = companyMatch.length > 1 ? companyMatch[0] : 'Scraper';
         const metadata = await getMetadataFile(company, name);
-
+ 
         return {
           id: metadata && metadata.id ? metadata.id : `${name}-001`,
           company: metadata && metadata.company ? metadata.company : company,
           name: metadata && metadata.name ? metadata.name : name,
+          filename: name,
           description: metadata && metadata.description ? metadata.description : 'No description available',
           dailyExport: metadata && metadata.dailyExport ? metadata.dailyExport : false,
         };
@@ -188,7 +189,7 @@ ipcMain.handle('get-imessage-data', async (event, company: string, name: string,
 
     if (result.filePaths.length > 0) {
       const selectedFolder = result.filePaths[0];
-      console.log('Got folder, now running python script');
+      mainWindow?.webContents.send('console-log', id, 'Got folder, now exporting iMessages (will take a few minutes)');
 
       try {
         const scriptOutput = await pythonUtils.iMessageScript(
@@ -198,7 +199,11 @@ ipcMain.handle('get-imessage-data', async (event, company: string, name: string,
           name,
           id,
         );
-        console.log('iMessage script completed. Output:', scriptOutput);
+        mainWindow?.webContents.send(
+          'console-log',
+          id,
+          'iMessage export complete!'
+        );
         // Assuming the last line of the output is the JSON file path
         const folderPath = scriptOutput.split('\n').pop()?.trim();
         console.log('JSON file path:', folderPath);

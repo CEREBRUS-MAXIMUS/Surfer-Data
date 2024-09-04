@@ -74,6 +74,7 @@ export interface ITask {
 export interface IRun {
   id: string;
   platformId: string;
+  filename: string;
   subRunId: string;
   startDate: string;
   endDate?: string;
