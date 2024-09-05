@@ -181,7 +181,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
         await new Promise((resolve) => setTimeout(resolve, 2000));
         const webviewRef = getWebviewRef(newRun.id);
-        console.log('webviewRef: ', webviewRef.current);
+        
         
         if (webviewRef.current) {
           console.log('sending to webviewRef!');

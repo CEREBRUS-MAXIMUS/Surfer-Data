@@ -18,7 +18,7 @@ ipcRenderer.on('export-website', async (event, runID, platformId, filename, comp
     console.log('CONNECT_WEBSITE');
   }
 
-  if (data === 'DOWNLOADING') {
+  else if (data === 'DOWNLOADING') {
     customConsoleLog(runID, 'Downloading export (will take some time!');
   }
 
