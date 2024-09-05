@@ -460,87 +460,86 @@ useEffect(() => {
 }, [runs.length]);
 
 
-  return (
-    <FullScreenOverlay isVisible={isRunLayerVisible}>
-      <WebviewContainer>
-        <FakeBrowser>
-          <BrowserHeader>
-            <LeftSection>
-              <NavButtons>
-                <IconButton onClick={handleOpenDevTools}>
-                  <Bug size={18} color="#ffffffb3" />
-                </IconButton>
-                <IconButton
-                  onClick={handlePrevRun}
-                  disabled={activeRunIndex === 0}
-                >
-                  <ChevronLeft size={16} />
-                </IconButton>
-                <RunCounter>{`${currentRunIndex + 1}/${activeRuns.length}`}</RunCounter>
-                <IconButton
-                  onClick={() => handleNextRun()}
-                  disabled={activeRunIndex === activeRuns.length - 1}
-                >
-                  <ChevronRight size={16} />
-                </IconButton>
-              </NavButtons>
-            </LeftSection>
-            <RightSection>
-              {isActiveRunStoppable() && (
-                <StopButton onClick={handleStopRun}>
-                  <Square size={16} style={{ marginRight: '4px' }} />
-                  Stop Run
-                </StopButton>  
-              )}
-              <TrafficLights>
-                <TrafficLight color="#ff5f56" />
-                <TrafficLight color="#ffbd2e" />
-                <TrafficLight color="#27c93f" />
-              </TrafficLights>
-            </RightSection>
-          </BrowserHeader>
-          <div style={{ position: 'relative', height: 'calc(100% - 40px)' }}>
-            {activeRuns.map((run, index) => (
-              <div key={run.id} style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                display: index === activeRunIndex ? 'block' : 'none',
-              }}>
-                <webview
-                  src={run.url}
-                  ref={getWebviewRef(run.id)}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                  }}
-                  id={`webview-${run.id}`}
-                  allowpopups=""
-                  nodeintegration="true"
-                  crossOrigin="anonymous"
-                />
-                {!run.isConnected && (
-                  <Button
-                    onClick={() => handleNewRun(run.id)}
-                    style={{
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px',
-                      zIndex: 1000,
-                    }}
-                  >
-                    I've signed in to {run.name}!
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        </FakeBrowser>
-      </WebviewContainer>
-    </FullScreenOverlay>
-  );
+// ... existing code ...
+
+return (
+  <FullScreenOverlay isVisible={isRunLayerVisible}>
+    <WebviewContainer>
+      <FakeBrowser>
+        <BrowserHeader>
+          <LeftSection>
+            <NavButtons>
+              <IconButton onClick={handleOpenDevTools}>
+                <Bug size={18} color="#ffffffb3" />
+              </IconButton>
+              <IconButton
+                onClick={handlePrevRun}
+                disabled={activeRunIndex === 0}
+              >
+                <ChevronLeft size={16} />
+              </IconButton>
+              <RunCounter>{`${currentRunIndex + 1}/${activeRuns.length}`}</RunCounter>
+              <IconButton
+                onClick={() => handleNextRun()}
+                disabled={activeRunIndex === activeRuns.length - 1}
+              >
+                <ChevronRight size={16} />
+              </IconButton>
+            </NavButtons>
+          </LeftSection>
+          <RightSection>
+            {activeRuns[activeRunIndex] && !activeRuns[activeRunIndex].isConnected && (
+              <Button
+                onClick={() => handleNewRun(activeRuns[activeRunIndex].id)}
+                style={{ marginRight: '8px' }}
+              >
+                I've signed in to {activeRuns[activeRunIndex].name}!
+              </Button>
+            )}
+            {isActiveRunStoppable() && (
+              <StopButton onClick={handleStopRun}>
+                <Square size={16} style={{ marginRight: '4px' }} />
+                Stop Run
+              </StopButton>  
+            )}
+            <TrafficLights>
+              <TrafficLight color="#ff5f56" />
+              <TrafficLight color="#ffbd2e" />
+              <TrafficLight color="#27c93f" />
+            </TrafficLights>
+          </RightSection>
+        </BrowserHeader>
+        <div style={{ position: 'relative', height: 'calc(100% - 40px)' }}>
+          {activeRuns.map((run, index) => (
+            <div key={run.id} style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              display: index === activeRunIndex ? 'block' : 'none',
+            }}>
+              <webview
+                src={run.url}
+                ref={getWebviewRef(run.id)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                }}
+                id={`webview-${run.id}`}
+                allowpopups=""
+                nodeintegration="true"
+                crossOrigin="anonymous"
+              />
+            </div>
+          ))}
+        </div>
+      </FakeBrowser>
+    </WebviewContainer>
+  </FullScreenOverlay>
+);
+
+// ... rest of the code ...
 };
 
 export default WebviewManager;
