@@ -40,6 +40,10 @@ async function exportYoutube(id, platformId, filename, company, name) {
       const titleElement = videoElement.querySelector(
         'yt-formatted-string#video-title',
       );
+
+      const linkElement = videoElement.querySelector(
+        '#video-title-link'
+      )
       const channelElement = videoElement.querySelector(
         'a.yt-simple-endpoint.style-scope.yt-formatted-string[href^="/@"]',
       );
@@ -50,6 +54,7 @@ async function exportYoutube(id, platformId, filename, company, name) {
       if (titleElement && channelElement && viewCountElement) {
         videoData.push({
           title: titleElement.textContent.trim(),
+          url: linkElement.href,
           channel: channelElement.textContent.trim(),
           viewCount: viewCountElement.textContent.trim(),
         });

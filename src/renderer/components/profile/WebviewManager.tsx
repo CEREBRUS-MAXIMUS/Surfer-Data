@@ -167,12 +167,12 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
   }, [activeRuns, isRunLayerVisible, dispatch]);
 
 
-  const handleNewRun = async (id: string | null = null) => {
+  const handleNewRun = async (id: string | null = null, isSignIn: boolean = false) => {
     const newRun = id ? runs.find((run) => run.id === id) : runs[runs.length - 1];
-    dispatch(updateRunConnected(newRun.id, true));
-    console.log('this id: ', id)
-    console.log('this runs: ', runs)
-    console.log('this new run: ', newRun)
+    if (isSignIn) {
+      dispatch(updateRunConnected(newRun.id, true));
+    }
+
     if (newRun && newRun.status === 'running') {
       console.log('Run started:', newRun);
       if (!id) {
@@ -184,8 +184,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
         
         
         if (webviewRef.current) {
-          console.log('sending to webviewRef!');
-          webviewRef.current.send( // dont hardcode this 
+          webviewRef.current.send(  
             'export-website',
             newRun.id,
             newRun.platformId,
@@ -201,7 +200,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
   const handleBigStepper = useCallback((runId: string, step: string) => {
     const runToStep = runs.find((run) => run.id === runId);
     if (!runToStep) return;
-    console.log('go to next step for run id: ', runId);
     dispatch(bigStepper(runToStep.id, step));
   }, [dispatch, runs]);
 
@@ -279,7 +277,6 @@ if (channel === 'console-log') {
 
   useEffect(() => {
     if (runs.length > 0) {
-      console.log('THIS RUNS ', runs);
       handleNewRun();
     }
   }, [runs.length]);
@@ -292,7 +289,6 @@ if (channel === 'console-log') {
       namePath: string,
       exportSize: number
     ) => {
-      console.log('export complete: ', company, name, runID, namePath, exportSize);
 
        if (name === 'Notion' || name === 'ChatGPT'){
         
@@ -432,7 +428,6 @@ if (channel === 'console-log') {
  
 useEffect(() => {
   const handleDidNavigate = async (event: Electron.DidNavigateEvent, runId: string) => {
-    console.log('WEBVIEW NAVIGATED!!!');
     if (!event.url.includes('about:blank')) {
       console.log('Navigating webview for run:', runId);
       handleNewRun(runId);
@@ -458,9 +453,6 @@ useEffect(() => {
     });
   };
 }, [runs.length]);
-
-
-// ... existing code ...
 
 return (
   <FullScreenOverlay isVisible={isRunLayerVisible}>
@@ -490,7 +482,7 @@ return (
           <RightSection>
             {activeRuns[activeRunIndex] && !activeRuns[activeRunIndex].isConnected && (
               <Button
-                onClick={() => handleNewRun(activeRuns[activeRunIndex].id)}
+                onClick={() => handleNewRun(activeRuns[activeRunIndex].id, true)}
                 style={{ marginRight: '8px' }}
               >
                 I've signed in to {activeRuns[activeRunIndex].name}!

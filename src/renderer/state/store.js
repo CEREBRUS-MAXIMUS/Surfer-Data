@@ -14,7 +14,6 @@ if (preloadedState) {
 
 // Create a custom middleware to log actions
 const loggerMiddleware = (store) => (next) => (action) => {
-  console.log('Action dispatched:', action);
   return next(action);
 };
 
