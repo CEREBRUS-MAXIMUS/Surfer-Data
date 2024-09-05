@@ -80,10 +80,6 @@ For instructions on setting up the app locally and contributing to the project, 
 
 See the [open issues](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues) for a full list of proposed features (and known issues).
 
-## Analytics 
-
-We use Supabase to collect analytics. We ONLY collect the number of installs, the number of updates, and the success or failures of runs in Surfer. All data is anonymized.
-
 ## Roadmap
 
 ### Short-Term

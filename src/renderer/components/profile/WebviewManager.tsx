@@ -17,8 +17,6 @@ import {
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
-import { trackRun } from '../../../../analytics'
-
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
   position: fixed;
@@ -301,9 +299,7 @@ if (channel === 'console-log') {
           (run) => run.platformId === `${name.toLowerCase()}-001`,
         )[0];
 
-        console.log('stopping download run: ', downloadRun);
-
-        await trackRun('success', company, name) 
+        console.log('stopping download run: ', downloadRun); 
      
         dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
        }
@@ -316,7 +312,6 @@ if (channel === 'console-log') {
           ', and runID: ',
           runID,
         );
-        await trackRun('success', company, name) 
      
         dispatch(updateExportStatus(company, name, runID.toString(), namePath, exportSize));
        }
@@ -352,8 +347,6 @@ if (channel === 'console-log') {
       (activeRun.status === 'pending' || activeRun.status === 'running')
     ) {
 
-
-await trackRun('stopped', activeRun.company, activeRun.name, activeRun.currentStep) 
 
 
       dispatch(stopRun(activeRun.id));
