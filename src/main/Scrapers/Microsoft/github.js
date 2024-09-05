@@ -17,28 +17,35 @@ async function checkIfRepoExists(id, platformId, company, name, currentRepo) {
   const fileExists = await fs.existsSync(filePath);
   if (fileExists) {
     console.log(id, `File exists, reading file`);
-    const repos = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    console.log(id, 'Repos: ', repos);
-    if (repos.content && repos.content.length > 0) {
-      for (const repo of repos.content) {
-        if (
-          repo.name === currentRepo.name &&
-          repo.url === currentRepo.url &&
-          repo.description === currentRepo.description
-        ) {
-          console.log(id, 'Repo already exists, skipping');
-          return true;
-        }
+    try {
+      const fileContent = fs.readFileSync(filePath, 'utf-8');
+      if (fileContent.trim() === '') {
+        console.log(id, 'File is empty');
+        return false;
       }
-    } else {
-      console.log('returned false, should be appending here!')
-      return false;
+      const repos = JSON.parse(fileContent);
+      console.log(id, 'Repos: ', repos);
+      if (repos && repos.content && Array.isArray(repos.content)) {
+        for (const repo of repos.content) {
+          if (
+            repo.name === currentRepo.name &&
+            repo.url === currentRepo.url &&
+            repo.description === currentRepo.description
+          ) {
+            console.log(id, 'Repo already exists, skipping');
+            return true;
+          }
+        }
+      } else {
+        console.log(id, 'Invalid or empty repos structure');
+      }
+    } catch (error) {
+      console.error(id, `Error reading or parsing file: ${error.message}`);
     }
   }
 
   return false;
 }
-
 
 async function exportGithub(id, platformId, filename, company, name) {
   if (!window.location.href.includes('github.com')) {
@@ -56,7 +63,7 @@ async function exportGithub(id, platformId, filename, company, name) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN!');
       bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
-      return;
+      return 'CONNECT_WEBSITE';
     }
     const tabButton = await waitForElement(
       id,
@@ -68,7 +75,7 @@ async function exportGithub(id, platformId, filename, company, name) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN!');
       bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
-      return;
+      return 'CONNECT_WEBSITE';
     }
 
     bigStepper(id, 'Clicking on User navigation menu');
@@ -121,7 +128,7 @@ async function exportGithub(id, platformId, filename, company, name) {
               company,
               name,
             );
-          return;
+          return 'HANDLE_UPDATE_COMPLETE';
         }
 
         else {
@@ -165,7 +172,7 @@ async function exportGithub(id, platformId, filename, company, name) {
       company,
       name,
     );
-    return;
+    return 'HANDLE_UPDATE_COMPLETE';
   }
 }
 

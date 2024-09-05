@@ -13,7 +13,7 @@ async function exportNotion(id, platformId, filename, company, name) {
   ) {
     bigStepper(id, 'Export stopped, waiting for sign in');
     ipcRenderer.send('connect-website', id);
-    return;
+    return 'CONNECT_WEBSITE';
   }
   const dropdown = await waitForElement(
     id,
@@ -25,7 +25,7 @@ async function exportNotion(id, platformId, filename, company, name) {
     bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', id);
-    return;
+    return 'CONNECT_WEBSITE';
   }
 
   bigStepper(id, 'Clicking on dropdown');
@@ -130,7 +130,7 @@ async function exportNotion(id, platformId, filename, company, name) {
         btn.click();
         await wait(2);
         foundFinalExport = true;
-        break;
+        return 'DOWNLOADING';
       }
     }
   }

@@ -14,7 +14,7 @@ async function exportLinkedin(id, platformId, filename, company, name) {
   if (document.querySelector('input[aria-label="Email or phone"]')) {
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', id);
-    return;
+    return 'CONNECT_WEBSITE';
   }
   const profileButton = await waitForElement(
     id,
@@ -26,7 +26,7 @@ async function exportLinkedin(id, platformId, filename, company, name) {
     bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', id);
-    return;
+    return 'CONNECT_WEBSITE';
   }
   bigStepper(id, 'Clicking on Profile Button');
   profileButton.click();

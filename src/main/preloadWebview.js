@@ -13,10 +13,37 @@ ipcRenderer.on('export-website', async (event, runID, platformId, filename, comp
 
     const data = await scraper(runID, platformId, filename, company, name);
     console.log('data', data);
-    if (data) {
-    ipcRenderer.send('handle-export', runID, platformId, filename, company, name, data, isUpdated);
+
+  if (data === 'CONNECT_WEBSITE') {
+    console.log('CONNECT_WEBSITE');
+  }
+
+  if (data === 'DOWNLOADING') {
+    customConsoleLog(runID, 'Downloading export (will take some time!');
+  }
+
+  else if (data === 'HANDLE_UPDATE_COMPLETE') {
+    customConsoleLog(runID, 'Finishing updating data!');
+  }
+
+  else if (data) {
+    ipcRenderer.send(
+      'handle-export',
+      runID,
+      platformId,
+      filename,
+      company,
+      name,
+      data,
+      isUpdated,
+    );
     customConsoleLog(runID, 'Got data, need to export now');
-  } else {
-    customConsoleLog(runID, 'No data, might be going to next step, downloading file, or might be an error');
+  }
+
+  else {
+ customConsoleLog(
+   runID,
+   'No data, might be going to next step, downloading file, or might be an error',
+ );
   }
 });

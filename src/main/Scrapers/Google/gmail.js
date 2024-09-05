@@ -24,7 +24,7 @@ async function exportGmail(id, platformId, filename, company, name) {
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     bigStepper(id, 'Export stopped, waiting for sign in');
     ipcRenderer.send('connect-website', id);
-    return;
+    return 'CONNECT_WEBSITE';
   }
   const emails = []; // will add JSON structure later + handle multiple emails in same thread!
   bigStepper(id, 'Getting first email');
@@ -33,7 +33,7 @@ async function exportGmail(id, platformId, filename, company, name) {
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     bigStepper(id, 'Export stopped, waiting for sign in');
     ipcRenderer.send('connect-website', id);
-    return;
+    return 'CONNECT_WEBSITE';
   }
 
   bigStepper(id, 'Clicking first email');

@@ -19,7 +19,7 @@ async function exportYoutube(id, platformId, filename, company, name) {
     bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', id);
-    return;
+    return 'CONNECT_WEBSITE';
   }
   const videoData = [];
 

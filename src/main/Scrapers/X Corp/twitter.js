@@ -17,27 +17,33 @@ async function checkIfTweetExists(id, platformId, company, name, currentTweet) {
   const fileExists = await fs.existsSync(filePath);
   if (fileExists) {
     console.log(id, `File exists, reading file`);
-    const tweets = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    console.log(id, 'Tweets: ', tweets)
-    if (tweets.content && tweets.content.length > 0) {
-      for (const tweet of tweets.content) {
-        if (
-          tweet.timestamp === currentTweet.timestamp &&
-          tweet.text === currentTweet.text
-        ) {
-          console.log(id, 'Tweet already exists, skipping');
-          return true;
-        }
+    try {
+      const fileContent = fs.readFileSync(filePath, 'utf-8');
+      if (fileContent.trim() === '') {
+        console.log(id, 'File is empty');
+        return false;
       }
+      const tweets = JSON.parse(fileContent);
+      console.log(id, 'Tweets: ', tweets);
+      if (tweets && tweets.content && Array.isArray(tweets.content)) {
+        for (const tweet of tweets.content) {
+          if (
+            tweet.timestamp === currentTweet.timestamp &&
+            tweet.text === currentTweet.text
+          ) {
+            console.log(id, 'Tweet already exists, skipping');
+            return true;
+          }
+        }
+      } else {
+        console.log(id, 'Invalid or empty tweets structure');
+      }
+    } catch (error) {
+      console.error(id, `Error reading or parsing file: ${error.message}`);
     }
-
-    else {
-      return false;
-    }
-
   }
-    
-    return false;
+
+  return false;
 }
 
 async function exportTwitter(id, platformId, filename, company, name) {
@@ -51,7 +57,7 @@ async function exportTwitter(id, platformId, filename, company, name) {
     bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', id);
-    return;
+    return 'CONNECT_WEBSITE';
   }
   customConsoleLog(id, 'Waiting for profile pictures');
   const profilePics = await waitForElement(
@@ -66,7 +72,7 @@ async function exportTwitter(id, platformId, filename, company, name) {
   if (!profilePics) {
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', id);
-    return;
+    return 'CONNECT_WEBSITE';
   }
 
   bigStepper(id, 'Clicking on Profile Picture');
@@ -117,7 +123,7 @@ async function exportTwitter(id, platformId, filename, company, name) {
           if (tweetExists) { 
             customConsoleLog(id, 'Tweet already exists, skipping');
   ipcRenderer.send('handle-update-complete', id, platformId, company, name);
-            return;
+            return 'HANDLE_UPDATE_COMPLETE';
           } else {
             ipcRenderer.send(
               'handle-update',
@@ -159,7 +165,7 @@ async function exportTwitter(id, platformId, filename, company, name) {
     company,
     name,
   );
-  return;
+  return 'HANDLE_UPDATE_COMPLETE';
 }
 
 module.exports = exportTwitter;
