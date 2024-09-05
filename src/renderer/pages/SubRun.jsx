@@ -46,8 +46,11 @@ const SubRun = ({ platform, subRun }) => {
     if (!platform || !subRun) return;
 
     const startTime = new Date().toISOString();
+    
     const newRun = {
       id: `${platform.id}-${Date.now()}`,
+      filename: platform.filename,
+      isConnected: true,
       company: platform.company,
       name: platform.name,
       platformId: platform.id,

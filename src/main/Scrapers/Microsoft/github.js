@@ -55,7 +55,7 @@ async function exportGithub(id, platformId, filename, company, name) {
     if (document.querySelector('a[href="/login"]')) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN!');
       bigStepper(id, 'Export stopped, waiting for sign in');
-      ipcRenderer.send('connect-website', company);
+      ipcRenderer.send('connect-website', id);
       return;
     }
     const tabButton = await waitForElement(
@@ -67,7 +67,7 @@ async function exportGithub(id, platformId, filename, company, name) {
     if (!tabButton) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN!');
       bigStepper(id, 'Export stopped, waiting for sign in');
-      ipcRenderer.send('connect-website', company);
+      ipcRenderer.send('connect-website', id);
       return;
     }
 

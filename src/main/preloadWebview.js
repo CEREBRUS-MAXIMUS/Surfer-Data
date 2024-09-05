@@ -12,6 +12,7 @@ ipcRenderer.on('export-website', async (event, runID, platformId, filename, comp
   const scraper = require(`./Scrapers/${company}/${filename}.js`);
 
     const data = await scraper(runID, platformId, filename, company, name);
+    console.log('data', data);
     if (data) {
     ipcRenderer.send('handle-export', runID, platformId, filename, company, name, data, isUpdated);
     customConsoleLog(runID, 'Got data, need to export now');

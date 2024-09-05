@@ -181,6 +181,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     const newRun = {
       id: `${platform.id}-${Date.now()}`,
       filename: platform.filename,
+      isConnected: true,
       company: platform.company,
       name: platform.name,
       platformId: platform.id,

@@ -169,3 +169,8 @@ export const updateExportSize = (runId: string, size: string) => ({
   type: 'UPDATE_EXPORT_SIZE',
   payload: { runId, size }
 });
+
+export const updateRunConnected = (runId: string, isConnected: boolean) => ({
+  type: 'UPDATE_RUN_CONNECTED',
+  payload: {runId, isConnected}
+})

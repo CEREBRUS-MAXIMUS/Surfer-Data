@@ -8,7 +8,7 @@ import Platform from './pages/Platform';
 import SubRun from './pages/SubRun';
 import Settings from './pages/Settings';
 import RunDetailsPage from './components/profile/RunDetailsPage';
-import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs } from './state/actions';
+import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs, updateRunConnected } from './state/actions';
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
 import { Progress } from './components/ui/progress';
@@ -24,7 +24,6 @@ function Surfer() {
   const webviewRefs = useRef<{ [key: string]: React.RefObject<HTMLWebViewElement> }>({});
 
   const [showNotConnectedAlert, setShowNotConnectedAlert] = useState(false);
-  const [isConnected, setIsConnected] = useState(true);
   const [updateProgress, setUpdateProgress] = useState<number | null>(null);
   const [content, setContent] = useState<React.ReactNode | null>(null);
 
@@ -60,15 +59,7 @@ function Surfer() {
 
     window.addEventListener('keydown', handleKeyDown);
 
-    const handleConnect = async (company: string) => {
-      console.log('CALLING HANDLE CONNECT!!');
-      setIsConnected(false);
-      setShowNotConnectedAlert(true);
-      setTimeout(() => setShowNotConnectedAlert(false), 3000);
-      console.log('need to connect for: ', company);
-    };
 
-    window.electron.ipcRenderer.on('connect-website', handleConnect);
 
     // Listen for route changes from the main process
     window.electron.ipcRenderer.on('route-change', (route: string) => {
@@ -87,11 +78,33 @@ function Surfer() {
     // Cleanup
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.electron.ipcRenderer.removeAllListeners('connect-website');
       window.electron.ipcRenderer.removeAllListeners('route-change');
       window.electron.ipcRenderer.removeListener('stop-all-jobs', handleStopAllJobs);
     };
   }, [dispatch, contentScale]);
+
+  useEffect(() => {
+    const handleConnect = async (runID: string) => {
+      console.log('CALLING HANDLE CONNECT!!');
+      const runToConnect = activeRuns.find(run => run.id === runID);
+      if (runToConnect) {
+        dispatch(updateRunConnected(runID, false));
+        setShowNotConnectedAlert(true);
+        setTimeout(() => setShowNotConnectedAlert(false), 3000);
+        console.log('need to connect for: ', runToConnect.company);
+      }
+
+      else {
+        console.log('no run to connect!')
+      }
+    };
+
+    window.electron.ipcRenderer.on('connect-website', handleConnect);
+
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('connect-website', handleConnect)
+    }
+  }, [activeRuns.length])
 
   useEffect(() => {
     console.log('Current route:', route);
@@ -183,8 +196,6 @@ function Surfer() {
             <Layout
               webviewRefs={webviewRefs.current}
               getWebviewRef={getWebviewRef}
-              isConnected={isConnected}
-              setIsConnected={setIsConnected}
               contentScale={safeContentScale}
               onHomeClick={handleHomeClick}
             >

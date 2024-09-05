@@ -21,7 +21,7 @@ async function exportChatgpt(id, platformId, filename, company, name) {
     if (document.querySelector('button[data-testid="login-button"]')) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN!');
       bigStepper(id, 'Export stopped, waiting for sign in');
-      ipcRenderer.send('connect-website', company);
+      ipcRenderer.send('connect-website', id);
       return;
     }
 
@@ -37,7 +37,7 @@ async function exportChatgpt(id, platformId, filename, company, name) {
     if (!dialogBox) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN!');
       bigStepper(id, 'Export stopped, waiting for sign in');
-      ipcRenderer.send('connect-website', company);
+      ipcRenderer.send('connect-website', id);
       return;
     }
 
@@ -71,7 +71,7 @@ async function exportChatgpt(id, platformId, filename, company, name) {
     if (document.querySelector('h1')) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN!');
       bigStepper(id, 'Export stopped, waiting for sign in');
-      ipcRenderer.send('connect-website', company);
+      ipcRenderer.send('connect-website', id);
       return;
     }
     const checkEmails = async () => {

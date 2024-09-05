@@ -6,8 +6,6 @@ import WebviewManager from './profile/WebviewManager';
 interface LayoutProps {
   webviewRefs: { [key: string]: React.RefObject<HTMLWebViewElement> };
   getWebviewRef: (runId: string) => React.RefObject<HTMLWebViewElement>;
-  isConnected: boolean;
-  setIsConnected: (connected: boolean) => void;
   contentScale: number; 
   onHomeClick: () => void;
   children: React.ReactNode;
@@ -16,8 +14,6 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({
   webviewRefs,
   getWebviewRef,
-  isConnected,
-  setIsConnected,
   contentScale,
   onHomeClick,
   children
@@ -40,8 +36,6 @@ const Layout: React.FC<LayoutProps> = ({
             <WebviewManager
               webviewRefs={webviewRefs}
               getWebviewRef={getWebviewRef}
-              isConnected={isConnected}
-              setIsConnected={setIsConnected}
             />
           </div>
         </div>

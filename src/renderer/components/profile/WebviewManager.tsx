@@ -12,7 +12,8 @@ import {
   updateRunURL,
   updateExportStatus,
   bigStepper,
-  updateRunLogs
+  updateRunLogs,
+  updateRunConnected
 } from '../../state/actions';
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
@@ -139,15 +140,11 @@ const LOGO_SIZE = 24;
 interface WebviewManagerProps {
   webviewRefs: { [key: string]: React.RefObject<HTMLIFrameElement> };
   getWebviewRef: (runId: string) => React.RefObject<HTMLIFrameElement>;
-  isConnected: boolean;
-  setIsConnected: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const WebviewManager: React.FC<WebviewManagerProps> = ({
   webviewRefs,
   getWebviewRef,
-  isConnected,
-  setIsConnected,
 }) => {
   const dispatch = useDispatch();
   const runs = useSelector((state: IAppState) => state.app.runs);
@@ -171,8 +168,11 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
 
   const handleNewRun = async (id: string | null = null) => {
-    setIsConnected(true);
     const newRun = id ? runs.find((run) => run.id === id) : runs[runs.length - 1];
+    dispatch(updateRunConnected(newRun.id, true));
+    console.log('this id: ', id)
+    console.log('this runs: ', runs)
+    console.log('this new run: ', newRun)
     if (newRun && newRun.status === 'running') {
       console.log('Run started:', newRun);
       if (!id) {
@@ -229,6 +229,7 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
     window.electron.ipcRenderer.removeAllListeners('console-log', handleLogs);
   };
   }, [runs.length])
+  
 
   useEffect(() => {
     const ipcMessageHandler = async (event) => {
@@ -435,6 +436,7 @@ useEffect(() => {
     if (!event.url.includes('about:blank')) {
       console.log('Navigating webview for run:', runId);
       handleNewRun(runId);
+  
       console.log('Webview navigated to:', event.url);
     }
   };
@@ -476,7 +478,7 @@ useEffect(() => {
                 </IconButton>
                 <RunCounter>{`${currentRunIndex + 1}/${activeRuns.length}`}</RunCounter>
                 <IconButton
-                  onClick={handleNextRun}
+                  onClick={() => handleNextRun()}
                   disabled={activeRunIndex === activeRuns.length - 1}
                 >
                   <ChevronRight size={16} />
@@ -484,14 +486,11 @@ useEffect(() => {
               </NavButtons>
             </LeftSection>
             <RightSection>
-              {!isConnected && (
-                <Button onClick={handleNewRun}>I've signed in!</Button>
-              )} 
               {isActiveRunStoppable() && (
                 <StopButton onClick={handleStopRun}>
                   <Square size={16} style={{ marginRight: '4px' }} />
                   Stop Run
-                </StopButton>
+                </StopButton>  
               )}
               <TrafficLights>
                 <TrafficLight color="#ff5f56" />
@@ -502,27 +501,40 @@ useEffect(() => {
           </BrowserHeader>
           <div style={{ position: 'relative', height: 'calc(100% - 40px)' }}>
             {activeRuns.map((run, index) => (
-              <webview
-                key={run.id}
-                src={run.url}
-                ref={getWebviewRef(run.id)}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  opacity: index === activeRunIndex ? 1 : 0,
-                  pointerEvents:
-                    index === activeRunIndex && isRunLayerVisible
-                      ? 'auto'
-                      : 'none',
-                }}
-                id={`webview-${run.id}`}
-                allowpopups=""
-                nodeintegration="true"
-                crossOrigin="anonymous"
-              />
+              <div key={run.id} style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                display: index === activeRunIndex ? 'block' : 'none',
+              }}>
+                <webview
+                  src={run.url}
+                  ref={getWebviewRef(run.id)}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                  }}
+                  id={`webview-${run.id}`}
+                  allowpopups=""
+                  nodeintegration="true"
+                  crossOrigin="anonymous"
+                />
+                {!run.isConnected && (
+                  <Button
+                    onClick={() => handleNewRun(run.id)}
+                    style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      zIndex: 1000,
+                    }}
+                  >
+                    I've signed in to {run.name}!
+                  </Button>
+                )}
+              </div>
             ))}
           </div>
         </FakeBrowser>

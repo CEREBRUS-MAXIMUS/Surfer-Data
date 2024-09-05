@@ -12,7 +12,7 @@ async function exportNotion(id, platformId, filename, company, name) {
     document.querySelector('input[aria-label="Enter your email address..."]')
   ) {
     bigStepper(id, 'Export stopped, waiting for sign in');
-    ipcRenderer.send('connect-website', company);
+    ipcRenderer.send('connect-website', id);
     return;
   }
   const dropdown = await waitForElement(
@@ -24,7 +24,7 @@ async function exportNotion(id, platformId, filename, company, name) {
   if (!dropdown) {
     bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
-    ipcRenderer.send('connect-website', company);
+    ipcRenderer.send('connect-website', id);
     return;
   }
 

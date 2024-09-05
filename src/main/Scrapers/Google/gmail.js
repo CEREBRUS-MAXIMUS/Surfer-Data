@@ -11,17 +11,19 @@ async function checkIfEmailExists(id, email) {
 }
 
 async function exportGmail(id, platformId, filename, company, name) {
-  if (!window.location.href.includes('mail.google.com')) {
+  if (!window.location.href.includes('mail.google.com') && !window.location.href.includes('gmail')) {
+    console.log('this window location href: ', window.location.href)
     customConsoleLog(id, 'Navigating to Gmail');
     bigStepper(id, 'Navigating to Gmail');
     window.location.assign('https://mail.google.com/');
   }
+  customConsoleLog(id, 'Waiting for page to load');
   await wait(2);
 
   if (document.querySelector('h1')) {
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     bigStepper(id, 'Export stopped, waiting for sign in');
-    ipcRenderer.send('connect-website', company);
+    ipcRenderer.send('connect-website', id);
     return;
   }
   const emails = []; // will add JSON structure later + handle multiple emails in same thread!
@@ -30,7 +32,7 @@ async function exportGmail(id, platformId, filename, company, name) {
   if (!mailLink) {
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     bigStepper(id, 'Export stopped, waiting for sign in');
-    ipcRenderer.send('connect-website', company);
+    ipcRenderer.send('connect-website', id);
     return;
   }
 

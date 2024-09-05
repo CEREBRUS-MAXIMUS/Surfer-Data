@@ -198,6 +198,16 @@ const appReducer = (state = initialAppState.app, action: any) => {
             : run
         )
       };
+
+      case 'UPDATE_RUN_CONNECTED':
+        return {
+          ...state,
+          runs: state.runs.map(run =>
+            run.id === action.payload.runId
+              ? { ...run, isConnected: action.payload.isConnected }
+              : run
+          )
+        }
     default:
       return state;
   }

@@ -8,7 +8,7 @@ To add support for a new platform in Surfer, follow these steps:
 
 3. **Implement the scraping function**: In this file, implement the scraping function following the existing patterns in other platform modules.
 
-4. **Add authentication check**: Implement a mechanism to verify if the user is connected to the website. This typically involves checking for the presence of specific elements that are only visible when logged in. If the user is not authenticated, send the 'connect-website' event to the renderer process using `ipcRenderer.send('connect-website', company)`.
+4. **Add authentication check**: Implement a mechanism to verify if the user is connected to the website. This typically involves checking for the presence of specific elements that are only visible when logged in. If the user is not authenticated, send the 'connect-website' event to the renderer process using `ipcRenderer.send('connect-website', id)`.
 
 5. **Update types**: Modify `platforms.ts` to include the necessary types for the new platform, including any subruns.
 

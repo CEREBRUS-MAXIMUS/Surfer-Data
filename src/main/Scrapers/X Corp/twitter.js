@@ -47,10 +47,10 @@ async function exportTwitter(id, platformId, filename, company, name) {
     window.location.assign('https://x.com/');
   }
   await wait(5);
-  if (document.querySelector('h1').innerText === 'Sign in to X') {
+  if (document.body.innerText.toLowerCase().includes('sign in to x') || document.body.innerText.toLowerCase().includes('happening now') || document.body.innerText.toLowerCase().includes('join today')) {
     bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
-    ipcRenderer.send('connect-website', company);
+    ipcRenderer.send('connect-website', id);
     return;
   }
   customConsoleLog(id, 'Waiting for profile pictures');
@@ -65,7 +65,7 @@ async function exportTwitter(id, platformId, filename, company, name) {
 
   if (!profilePics) {
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
-    ipcRenderer.send('connect-website', company);
+    ipcRenderer.send('connect-website', id);
     return;
   }
 

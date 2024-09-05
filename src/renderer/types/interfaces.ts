@@ -75,6 +75,7 @@ export interface IRun {
   id: string;
   platformId: string;
   filename: string;
+  isConnected: boolean;
   subRunId: string;
   startDate: string;
   endDate?: string;

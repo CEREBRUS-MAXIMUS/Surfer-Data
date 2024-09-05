@@ -18,7 +18,7 @@ async function exportYoutube(id, platformId, filename, company, name) {
   if (document.querySelector('a[aria-label="Sign in"]')) {
     bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
-    ipcRenderer.send('connect-website', company);
+    ipcRenderer.send('connect-website', id);
     return;
   }
   const videoData = [];
