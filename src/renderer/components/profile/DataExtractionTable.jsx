@@ -134,11 +134,11 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
 
 
   // useEffect(() => {
-  //   const runDailyExports = async () => {
+  //   const runisUpdateds = async () => {
   //     if (runs.length === 0) return;
 
   //     for (const platform of filteredPlatforms) {
-  //       if (platform.dailyExport) {
+  //       if (platform.isUpdated) {
   //         const platformRuns = runs.filter(run => run.platformId === platform.id);
   //         if (platformRuns.length > 0) {
   //           const today = new Date().toISOString().split('T')[0];
@@ -156,7 +156,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   //     }
   //   };
 
-  //   runDailyExports();
+  //   runisUpdateds();
   // }, [filteredPlatforms]);
 
   const pageCount = Math.ceil(filteredPlatforms.length / itemsPerPage);
@@ -187,7 +187,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       tasks: [],
       startDate: new Date().toISOString(),
       status: 'running',
-      dailyExport: platform.dailyExport,
+      isUpdated: platform.isUpdated,
       exportSize: null, 
       url: 'about:blank'
     }; 

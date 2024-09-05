@@ -3,7 +3,7 @@ const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
-async function getCurrentTweets(id, platformId, company, name) {
+async function checkIfTweetExists(id, platformId, company, name, currentTweet) {
   const userData = await ipcRenderer.invoke('get-user-data-path');
   const filePath = path.join(
     userData,
@@ -17,18 +17,27 @@ async function getCurrentTweets(id, platformId, company, name) {
   const fileExists = await fs.existsSync(filePath);
   if (fileExists) {
     console.log(id, `File exists, reading file`);
-    const fileData = await fs.readFileSync(filePath, 'utf8');
-    const fileJson = JSON.parse(fileData);
-    console.log(id, `File data:`, fileJson);
-    if (fileJson && fileJson.content) {
-      console.log(id, `JSON contains ${fileJson.content.length} tweets`);
-      return JSON.stringify(fileJson['content']);
-    } else {
-      console.log(id, `JSON structure is unexpected:`, fileJson);
-      return [];
+    const tweets = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    console.log(id, 'Tweets: ', tweets)
+    if (tweets.content && tweets.content.length > 0) {
+      for (const tweet of tweets.content) {
+        if (
+          tweet.timestamp === currentTweet.timestamp &&
+          tweet.text === currentTweet.text
+        ) {
+          console.log(id, 'Tweet already exists, skipping');
+          return true;
+        }
+      }
     }
+
+    else {
+      return false;
+    }
+
   }
-  return [];
+    
+    return false;
 }
 
 async function exportTwitter(id, platformId, filename, company, name) {
@@ -70,8 +79,7 @@ async function exportTwitter(id, platformId, filename, company, name) {
 
   bigStepper(id, 'Getting tweets...');
   customConsoleLog(id, 'Starting tweet collection');
-  const currentTweets = await getCurrentTweets(id, platformId, company, name);
-  console.log(id, `Current tweets: ${currentTweets}`);
+
   while (noNewTweetsCount < 3) {
     const tweets = await waitForElement(
       id,
@@ -86,11 +94,12 @@ async function exportTwitter(id, platformId, filename, company, name) {
       await wait(2);
       noNewTweetsCount++;
       continue;
-    }
+    } 
 
     customConsoleLog(id, 'Processing new tweets');
     const initialSize = tweetArray.length;
-    tweets.forEach((tweet) => {
+    
+    for (const tweet of tweets) {
       tweet.scrollIntoView({
         behavior: 'instant',
         block: 'end',
@@ -102,12 +111,27 @@ async function exportTwitter(id, platformId, filename, company, name) {
           timestamp: tweet.querySelector('time').getAttribute('datetime'),
         };
 
+        if (!tweetArray.some(t => t.timestamp === jsonTweet.timestamp && t.text === jsonTweet.text)) {
+          const tweetExists = await checkIfTweetExists(id, platformId, company, name, jsonTweet);
 
-          console.log(id, 'Tweet does not exist, adding to array: ', jsonTweet);
-          tweetArray.push(jsonTweet);
-
+          if (tweetExists) { 
+            customConsoleLog(id, 'Tweet already exists, skipping');
+  ipcRenderer.send('handle-update-complete', id, platformId, company, name);
+            return;
+          } else {
+            ipcRenderer.send(
+              'handle-update',
+              company,
+              name,
+              platformId,
+              JSON.stringify(jsonTweet),
+              id,
+            );
+            tweetArray.push(jsonTweet);
+          }
+        }
       }
-    });
+    }
 
     const newTweetsAdded = tweetArray.length - initialSize;
     customConsoleLog(
@@ -126,14 +150,16 @@ async function exportTwitter(id, platformId, filename, company, name) {
     await wait(2);
   }
 
-  if (tweetArray.length === 0) {
-    customConsoleLog(id, 'No tweets were collected');
-    return;
-  }
-
   customConsoleLog(id, `Exporting ${tweetArray.length} tweets`);
   bigStepper(id, 'Exporting data');
-  return tweetArray;
+  ipcRenderer.send(
+    'handle-update-complete',
+    id,
+    platformId,
+    company,
+    name,
+  );
+  return;
 }
 
 module.exports = exportTwitter;

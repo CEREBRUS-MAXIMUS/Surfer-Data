@@ -1,5 +1,44 @@
 const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
+const fs = require('fs')
+const path = require('path')
+
+async function checkIfRepoExists(id, platformId, company, name, currentRepo) {
+  const userData = await ipcRenderer.invoke('get-user-data-path');
+  const filePath = path.join(
+    userData,
+    'surfer_data',
+    company,
+    name,
+    platformId,
+    `${platformId}.json`,
+  );
+  console.log(id, `Checking if file exists at ${filePath}`);
+  const fileExists = await fs.existsSync(filePath);
+  if (fileExists) {
+    console.log(id, `File exists, reading file`);
+    const repos = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    console.log(id, 'Repos: ', repos);
+    if (repos.content && repos.content.length > 0) {
+      for (const repo of repos.content) {
+        if (
+          repo.name === currentRepo.name &&
+          repo.url === currentRepo.url &&
+          repo.description === currentRepo.description
+        ) {
+          console.log(id, 'Repo already exists, skipping');
+          return true;
+        }
+      }
+    } else {
+      console.log('returned false, should be appending here!')
+      return false;
+    }
+  }
+
+  return false;
+}
+
 
 async function exportGithub(id, platformId, filename, company, name) {
   if (!window.location.href.includes('github.com')) {
@@ -46,31 +85,61 @@ async function exportGithub(id, platformId, filename, company, name) {
 
   if (window.location.href.includes('tab=repositories')) {
     const repos = [];
+    bigStepper(id, 'Getting repositories...');
+    customConsoleLog(id, 'Starting repository collection');
+
     while (true) {
-      bigStepper(id, 'Getting repositories...');
-      customConsoleLog(id, `Waiting for Repositories`);
-      await wait(2);
       const repoLinks = await waitForElement(
         id,
         'a[itemprop="name codeRepository"]',
         'Repositories',
         true,
       );
-      customConsoleLog(id, 'Adding', repoLinks.length, 'repos!');
+      customConsoleLog(id, `Found ${repoLinks.length} repositories on the page`);
+
       for (const repoLink of repoLinks) {
         let desc = '';
-        const siblingDiv =
-          repoLink.parentElement.parentElement.nextElementSibling;
+        const siblingDiv = repoLink.parentElement.parentElement.nextElementSibling;
         if (siblingDiv && siblingDiv.childNodes[1]) {
           desc = siblingDiv.childNodes[1].innerText;
         }
-        repos.push({
+
+        const jsonRepo = {
           name: repoLink.innerText,
           url: repoLink.href,
           description: desc,
-        });
+        };
+
+        const repoExists = await checkIfRepoExists(id, platformId, company, name, jsonRepo);
+
+        if (repoExists) {
+          customConsoleLog(id, 'Repo already exists, skipping');
+            ipcRenderer.send(
+              'handle-update-complete',
+              id,
+              platformId,
+              company,
+              name,
+            );
+          return;
+        }
+
+        else {
+                    ipcRenderer.send(
+                      'handle-update',
+                      company,
+                      name,
+                      platformId,
+                      JSON.stringify(jsonRepo),
+                      id,
+                    );
+                    repos.push(jsonRepo);
+        }
+
+
+
       }
-      await wait(5);
+
       const nextPageButton = await waitForElement(
         id,
         'a.next_page',
@@ -84,15 +153,19 @@ async function exportGithub(id, platformId, filename, company, name) {
         block: 'center',
       });
       nextPageButton.click();
-      await wait(2);
+      await wait(5);
     }
-    customConsoleLog(
-      id,
-      'GitHub export completed. Total repositories:',
-      repos.length,
-    );
+
+    customConsoleLog(id, `Exporting ${repos.length} repositories`);
     bigStepper(id, 'Exporting data');
-    return repos;
+    ipcRenderer.send(
+      'handle-update-complete',
+      id,
+      platformId,
+      company,
+      name,
+    );
+    return;
   }
 }
 

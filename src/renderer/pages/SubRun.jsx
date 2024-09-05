@@ -54,7 +54,7 @@ const SubRun = ({ platform, subRun }) => {
       tasks: [],
       startDate: new Date().toISOString(),
       status: 'running',
-      dailyExport: platform.dailyExport,
+      isUpdated: platform.isUpdated,
       exportSize: null, 
       url: 'about:blank'
     }; 

@@ -118,7 +118,7 @@ ipcMain.handle('get-scrapers', async () => {
           name: metadata && metadata.name ? metadata.name : name,
           filename: name,
           description: metadata && metadata.description ? metadata.description : 'No description available',
-          dailyExport: metadata && metadata.dailyExport ? metadata.dailyExport : false,
+          isUpdated: metadata && metadata.isUpdated ? metadata.isUpdated : false,
         };
       }),
     );
@@ -788,7 +788,103 @@ ipcMain.on('check-for-updates', () => {
                 });
 });
 
-ipcMain.on('handle-export', (event, runID, platformId, filename, company, name, content, dailyExport) => {
+ipcMain.on('handle-update', (event, company, name, platformId, data, runID) => {
+  console.log(
+    'handling update for: ',
+    company,
+    ', specific name: ',
+    name,
+    ', runID: ',
+    runID,
+  );
+
+  const userData = app.getPath('userData');
+  const filePath = path.join(
+    userData,
+    'surfer_data',
+    company,
+    name,
+    platformId,
+    `${platformId}.json`
+  );
+
+  // Read existing data if available
+let existingData;
+if (fs.existsSync(filePath)) {
+  try {
+    existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    // Check if the existing data has the correct structure
+    if (
+      !existingData.company ||
+      !existingData.name ||
+      !existingData.runID ||
+      !existingData.timestamp ||
+      !Array.isArray(existingData.content)
+    ) {
+      throw new Error('Invalid data structure');
+    }
+  } catch (error) {
+    console.error('Error reading or parsing existing file:', error);
+    // If there's an error or invalid structure, we'll create a new structure
+    existingData = null;
+  }
+}
+
+if (!existingData) {
+  // Create the necessary directories if they don't exist
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  // Initialize the file with the basic structure
+  existingData = {
+    company,
+    name,
+    runID,
+    timestamp: Date.now(),
+    content: [],
+  };
+  fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
+}
+
+  let parsedData = JSON.parse(data);
+
+  // Add the added_to_db key
+  parsedData.added_to_db = new Date().toISOString();
+
+  // Append the updated email content to the existing data
+  existingData.content.push(parsedData);
+
+  // Write the updated data
+  fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
+
+  console.log(`Data appended to: ${filePath}`);
+});
+ 
+ipcMain.on('handle-update-complete', (event, runID, platformId, company, name) => {
+  const filePath = path.join(app.getPath('userData'), 'surfer_data', company, name, platformId, `${platformId}.json`)
+  console.log('this filepath: ', filePath)
+  const folderPath = path.join(
+    app.getPath('userData'),
+    'surfer_data',
+    company,
+    name,
+    platformId,
+  );
+
+  // if (!fs.existsSync(filePath)) 
+
+  if (fs.existsSync(filePath)) {
+  mainWindow?.webContents.send(
+    'export-complete',
+    company,
+    name,
+    runID,
+    folderPath,
+    getTotalFolderSize(folderPath),
+  );
+  }
+})
+
+
+ipcMain.on('handle-export', (event, runID, platformId, filename, company, name, content, isUpdated) => {
   console.log(
     'handling export for: ',
     company,
@@ -802,13 +898,8 @@ ipcMain.on('handle-export', (event, runID, platformId, filename, company, name, 
   const surferDataPath = path.join(userData, 'surfer_data');
   const platformPath = path.join(surferDataPath, company);
   const namePath = path.join(platformPath, name);
-  let idPath;
-  if (dailyExport) {
-    idPath = path.join(namePath, platformId);
-  }
-  else {
-    idPath = path.join(namePath, runID);
-  }
+  const idPath = path.join(namePath, runID);
+  
 
   // Create necessary folders
   [surferDataPath, platformPath, namePath, idPath].forEach((dir) => {
@@ -819,12 +910,12 @@ ipcMain.on('handle-export', (event, runID, platformId, filename, company, name, 
 
   const timestamp = Date.now();
   let fileName;
-  if (dailyExport) {
+
     fileName = `${platformId}.json`;
-  }
-  else {
+
+
     fileName = `${platformId}_${timestamp}.json`;
-  }
+
   const filePath = path.join(idPath, fileName);
 
   // Prepare the data object
