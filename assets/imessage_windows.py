@@ -65,7 +65,8 @@ try:
         message.ROWID,
         message.text,
         message.date,
-        handle.id as contact
+        handle.id as contact,
+        message.is_from_me
     FROM 
         message 
     LEFT JOIN 
@@ -134,7 +135,8 @@ try:
                 'id': msg[0],
                 'text': msg[1],
                 'date': apple_time_to_iso(msg[2]) if msg[2] is not None else None,
-                'contact': name
+                'contact': name,
+                'is_from_me': True if msg[4] == 1 else False
             })
     # Close the database connections
     imessage_conn.close()
