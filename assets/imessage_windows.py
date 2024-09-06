@@ -118,7 +118,6 @@ try:
     message_list = []
     for msg in messages:
         contact = msg[3]
-        name = "Unknown"  # Default name if contact is None or empty
         if contact:
             # Remove any non-digit characters from the contact
             clean_contact = ''.join(filter(str.isdigit, contact)) or contact
@@ -137,7 +136,6 @@ try:
                 'date': apple_time_to_iso(msg[2]) if msg[2] is not None else None,
                 'contact': name
             })
-
     # Close the database connections
     imessage_conn.close()
     contacts_conn.close()
