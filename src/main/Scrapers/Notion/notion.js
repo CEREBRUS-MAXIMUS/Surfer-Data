@@ -160,7 +160,7 @@ async function exportNotion(id, platformId, filename, company, name) {
     }
   } catch (error) {
     customConsoleLog(id, `Error during Notion export: ${error.message}`);
-    ipcRenderer.send('export-error', { id, error: error.message });
+    ipcRenderer.sendToHost('console-error', { id, error: error.message });
   }
 }
 
