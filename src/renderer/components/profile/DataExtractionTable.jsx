@@ -507,7 +507,6 @@ const showLogs = (platform) => {
               size="sm"
               variant="outline"
               onClick={() => handleExportClick(platform)}
-              disabled={activeRuns.length > 0}
             >
               <HardDriveDownload size={16} className="mr-2" />
               {getLatestRun(platform.id) ? (getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export') : 'Export'}

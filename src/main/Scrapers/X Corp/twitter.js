@@ -53,7 +53,7 @@ async function exportTwitter(id, platformId, filename, company, name) {
     window.location.assign('https://x.com/');
   }
   await wait(5);
-  if (document.body.innerText.toLowerCase().includes('sign in to x') || document.body.innerText.toLowerCase().includes('happening now') || document.body.innerText.toLowerCase().includes('join today')) {
+  if (document.body.innerText.toLowerCase().includes('sign in to x')) {
     bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(id, 'YOU NEED TO SIGN IN!');
     ipcRenderer.send('connect-website', id);

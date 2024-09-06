@@ -265,66 +265,7 @@ if (isDebug) {
 }
 
 let scrapingManager: ScrapingManager;
-
-const checkAndUpdateInstallation = async () => {
-  const userDataPath = app.getPath('userData');
-  const installedFilePath = path.join(userDataPath, 'installed.json');
-  const environment = process.env.NODE_ENV === 'production' ? 'production' : 'local';
-
-  // Break the function if environment isn't production
-  if (environment !== 'production') {
-    console.log('Skipping installation check and update in non-production environment');
-    return;
-  }
-
-  try {
-    if (!fs.existsSync(installedFilePath)) {
-      // First-time installation
-      fs.writeFileSync(installedFilePath, JSON.stringify({ installed: true, version: app.getVersion(), environment }));
-      
-      // Push installation data to Supabase
-      const { data: installationData, error: installationError } = await supabase.from('installations').insert({
-        version: app.getVersion(),
-        platform: process.platform,
-        arch: process.arch,
-        timestamp: new Date().toISOString(),
-      });
-
-      if (installationError) {
-        console.error('Error pushing installation data to Supabase:', installationError);
-      } else {
-        console.log('Installation data pushed to Supabase');
-      }
-    } else {
-      // Check if it's an update
-      const installedData = JSON.parse(fs.readFileSync(installedFilePath, 'utf-8'));
-      console.log('IN THE ELSE STATEMENT!')
-      console.log('INSTALLED DATA: ', installedData);
-      console.log('APP VERSION: ', app.getVersion());
-      if (installedData.version !== app.getVersion()) {
-        // Update the version and environment in the file
-        fs.writeFileSync(installedFilePath, JSON.stringify({ installed: true, version: app.getVersion(), environment }));
-        console.log('TRYNA PUSH TO SUPABASE!')
-        // Push update data to Supabase
-        const { data: updateData, error: updateError } = await supabase.from('app_updates').insert({
-          old_version: installedData.version,
-          new_version: app.getVersion(),
-          platform: process.platform,
-          arch: process.arch,
-          timestamp: new Date().toISOString(),
-        });
-
-        if (updateError) {
-          console.error('Error pushing update data to Supabase:', updateError);
-        } else {
-          console.log('Update data pushed to Supabase');
-        }
-      }
-    }
-  } catch (error) {
-    console.error('Error in checkAndUpdateInstallation:', error);
-  }
-};
+ 
 
 export const createWindow = async (visible: boolean = true) => {
   if (mainWindow) {
@@ -1061,16 +1002,6 @@ app
   .whenReady()
   .then(async () => {
     app.setAccessibilitySupportEnabled(true);
-
-    if (app.getLoginItemSettings().openAtLogin === false) {
-      app.setLoginItemSettings({
-        openAtLogin: true,
-        openAsHidden: true,
-        path: app.getPath('exe'),
-      });
-    }
-
-    await checkAndUpdateInstallation();
 
     createWindow();
 

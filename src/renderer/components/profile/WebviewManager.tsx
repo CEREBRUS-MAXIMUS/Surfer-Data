@@ -123,24 +123,12 @@ const IconButton = styled.button`
       props.disabled ? 'transparent' : '#ffffff1a'};
   }
 `;
-
-const TabsContainer = styled.div`
-  display: flex;
-  gap: 16px;
-`;
-
-const Tab = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const LOGO_SIZE = 24;
-
 interface WebviewManagerProps {
   webviewRefs: { [key: string]: React.RefObject<HTMLIFrameElement> };
   getWebviewRef: (runId: string) => React.RefObject<HTMLIFrameElement>;
 }
+
+import { debounce } from 'lodash'; // Make sure to import debounce from lodash
 
 const WebviewManager: React.FC<WebviewManagerProps> = ({
   webviewRefs,
@@ -169,31 +157,32 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
   const handleNewRun = async (id: string | null = null, isSignIn: boolean = false) => {
     const newRun = id ? runs.find((run) => run.id === id) : runs[runs.length - 1];
+    if (!newRun) return;
+
     if (isSignIn) {
       dispatch(updateRunConnected(newRun.id, true));
     }
 
-    if (newRun && newRun.status === 'running') {
+    if (newRun.status === 'running') {
       console.log('Run started:', newRun);
       if (!id) {
         dispatch(updateRunLogs(newRun.id, null));
       }
 
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        const webviewRef = getWebviewRef(newRun.id);
-        
-        
-        if (webviewRef.current) {
-          webviewRef.current.send(  
-            'export-website',
-            newRun.id,
-            newRun.platformId,
-            newRun.filename,
-            newRun.company,
-            newRun.name,
-            newRun.isUpdated
-          );
-        }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const webviewRef = getWebviewRef(newRun.id);
+      
+      if (webviewRef.current) {
+        webviewRef.current.send(  
+          'export-website',
+          newRun.id,
+          newRun.platformId,
+          newRun.filename,
+          newRun.company,
+          newRun.name,
+          newRun.isUpdated
+        );
+      }
     }
   };
 
@@ -203,11 +192,11 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     dispatch(bigStepper(runToStep.id, step));
   }, [dispatch, runs]);
 
-const handleLogs = useCallback((runId: string, ...logs: any[]) => {
-  const run = runs.find((run) => run.id === runId);
-  if (!run) return;
-  dispatch(updateRunLogs(runId, logs));
-}, [dispatch, runs]);
+  const handleLogs = useCallback((runId: string, ...logs: any[]) => {
+    const run = runs.find((run) => run.id === runId);
+    if (!run) return;
+    dispatch(updateRunLogs(runId, logs));
+  }, [dispatch, runs]);
 
   const handleChangeUrl = useCallback(async (url: string, id: string) => {
     const run = runs.find((run) => run.id === id);
@@ -220,15 +209,13 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
   }, [dispatch, runs, getWebviewRef]);
 
   useEffect(() => {
+    window.electron.ipcRenderer.on('console-log', handleLogs);
 
-  window.electron.ipcRenderer.on('console-log', handleLogs);
-
-  return () => {
-    window.electron.ipcRenderer.removeAllListeners('console-log', handleLogs);
-  };
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('console-log', handleLogs);
+    };
   }, [runs.length])
   
-
   useEffect(() => {
     const ipcMessageHandler = async (event) => {
       const { channel, args } = event;
@@ -290,7 +277,6 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
       namePath: string,
       exportSize: number
     ) => {
-
        if (name === 'Notion' || name === 'ChatGPT'){
         
         const downloadRun = activeRuns.filter(
@@ -313,9 +299,6 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
      
         dispatch(updateExportStatus(company, name, runID.toString(), namePath, exportSize));
        }
-
-
-      // }
     };
 
     window.electron.ipcRenderer.on('export-complete', handleExportComplete);
@@ -337,16 +320,12 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
     dispatch(setActiveRunIndex(activeRunIndex + 1));
   };
 
-
   const handleStopRun = async () => {
     const activeRun = activeRuns[activeRunIndex];
     if (
       activeRun &&
       (activeRun.status === 'pending' || activeRun.status === 'running')
     ) {
-
-
-
       dispatch(stopRun(activeRun.id));
       console.log('Stopping run:', activeRun.id);
 
@@ -412,8 +391,6 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
           webviewRef.current.setZoomFactor(0.8);
         };
 
-
-
         webviewRef.current.addEventListener('dom-ready', setWebview);
         webviewRef.current.addEventListener('did-navigate', setWebview);
         webviewRef.current.addEventListener('did-navigate-in-page', setWebview);
@@ -427,112 +404,124 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
     });
   }, [runs.length]); 
  
-useEffect(() => {
-  const handleDidNavigate = async (event: Electron.DidNavigateEvent, runId: string) => {
+  const lastNavigationTimes: { [runId: string]: number } = {};
+
+  const debouncedHandleNewRun = debounce((runId: string) => {
+    handleNewRun(runId);
+  }, 1000); // Debounce for 1 second
+
+  const handleDidNavigate = (event: Electron.DidNavigateEvent, runId: string) => {
     if (!event.url.includes('about:blank')) {
+      const now = Date.now();
+      if (lastNavigationTimes[runId] && now - lastNavigationTimes[runId] < 3000) {
+        console.log('Ignoring duplicate navigation for:', runId);
+        return;
+      }
+
+      lastNavigationTimes[runId] = now;
+
       console.log('Navigating webview for run:', runId);
-      handleNewRun(runId);
-  
+      debouncedHandleNewRun(runId);
+
       console.log('Webview navigated to:', event.url);
     }
   };
 
-  const webviewRefsArray = Object.entries(webviewRefs);
-  webviewRefsArray.forEach(([runId, webviewRef]) => {
-    if (webviewRef.current) {
-      console.log('Adding did-navigate event listener for run:', runId);
-      webviewRef.current.addEventListener('did-navigate', (event) => handleDidNavigate(event, runId));
-    }
-  });
-
-  return () => {
+  useEffect(() => {
+    const webviewRefsArray = Object.entries(webviewRefs);
     webviewRefsArray.forEach(([runId, webviewRef]) => {
       if (webviewRef.current) {
-        console.log('Removing did-navigate event listener for run:', runId);
-        webviewRef.current.removeEventListener('did-navigate', (event) => handleDidNavigate(event, runId));
+        console.log('Adding did-navigate event listener for run:', runId);
+        webviewRef.current.addEventListener('did-navigate', (event) => handleDidNavigate(event, runId));
       }
     });
-  };
-}, [runs.length]);
 
-return (
-  <FullScreenOverlay isVisible={isRunLayerVisible}>
-    <WebviewContainer>
-      <FakeBrowser>
-        <BrowserHeader>
-          <LeftSection>
-            <NavButtons>
-              <IconButton onClick={handleOpenDevTools}>
-                <Bug size={18} color="#ffffffb3" />
-              </IconButton>
-              <IconButton
-                onClick={handlePrevRun}
-                disabled={activeRunIndex === 0}
-              >
-                <ChevronLeft size={16} />
-              </IconButton>
-              <RunCounter>{`${currentRunIndex + 1}/${activeRuns.length}`}</RunCounter>
-              <IconButton
-                onClick={() => handleNextRun()}
-                disabled={activeRunIndex === activeRuns.length - 1}
-              >
-                <ChevronRight size={16} />
-              </IconButton>
-            </NavButtons>
-          </LeftSection>
-          <RightSection>
-            {activeRuns[activeRunIndex] && !activeRuns[activeRunIndex].isConnected && (
-              <Button
-                onClick={() => handleNewRun(activeRuns[activeRunIndex].id, true)}
-                style={{ marginRight: '8px' }}
-              >
-                I've signed in to {activeRuns[activeRunIndex].name}!
-              </Button>
-            )}
-            {isActiveRunStoppable() && (
-              <StopButton onClick={handleStopRun}>
-                <Square size={16} style={{ marginRight: '4px' }} />
-                Stop Run
-              </StopButton>  
-            )}
-            <TrafficLights>
-              <TrafficLight color="#ff5f56" />
-              <TrafficLight color="#ffbd2e" />
-              <TrafficLight color="#27c93f" />
-            </TrafficLights>
-          </RightSection>
-        </BrowserHeader>
-        <div style={{ position: 'relative', height: 'calc(100% - 40px)' }}>
-          {activeRuns.map((run, index) => (
-            <div key={run.id} style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              display: index === activeRunIndex ? 'block' : 'none',
-            }}>
-              <webview
-                src={run.url}
-                ref={getWebviewRef(run.id)}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                }}
-                id={`webview-${run.id}`}
-                allowpopups=""
-                nodeintegration="true"
-                crossOrigin="anonymous"
-              />
-            </div>
-          ))}
-        </div>
-      </FakeBrowser>
-    </WebviewContainer>
-  </FullScreenOverlay>
-);
+    return () => {
+      webviewRefsArray.forEach(([runId, webviewRef]) => {
+        if (webviewRef.current) {
+          console.log('Removing did-navigate event listener for run:', runId);
+          webviewRef.current.removeEventListener('did-navigate', (event) => handleDidNavigate(event, runId));
+        }
+      });
+    };
+  }, [runs.length]);
 
-// ... rest of the code ...
+  return (
+    <FullScreenOverlay isVisible={isRunLayerVisible}>
+      <WebviewContainer>
+        <FakeBrowser>
+          <BrowserHeader>
+            <LeftSection>
+              <NavButtons>
+                <IconButton onClick={handleOpenDevTools}>
+                  <Bug size={18} color="#ffffffb3" />
+                </IconButton>
+                <IconButton
+                  onClick={handlePrevRun}
+                  disabled={activeRunIndex === 0}
+                >
+                  <ChevronLeft size={16} />
+                </IconButton>
+                <RunCounter>{`${currentRunIndex + 1}/${activeRuns.length}`}</RunCounter>
+                <IconButton
+                  onClick={() => handleNextRun()}
+                  disabled={activeRunIndex === activeRuns.length - 1}
+                >
+                  <ChevronRight size={16} />
+                </IconButton>
+              </NavButtons>
+            </LeftSection>
+            <RightSection>
+              {activeRuns[activeRunIndex] && !activeRuns[activeRunIndex].isConnected && (
+                <Button
+                  onClick={() => handleNewRun(activeRuns[activeRunIndex].id, true)}
+                  style={{ marginRight: '8px' }}
+                >
+                  I've signed in to {activeRuns[activeRunIndex].name}!
+                </Button>
+              )}
+              {isActiveRunStoppable() && (
+                <StopButton onClick={handleStopRun}>
+                  <Square size={16} style={{ marginRight: '4px' }} />
+                  Stop Run
+                </StopButton>  
+              )}
+              <TrafficLights>
+                <TrafficLight color="#ff5f56" />
+                <TrafficLight color="#ffbd2e" />
+                <TrafficLight color="#27c93f" />
+              </TrafficLights>
+            </RightSection>
+          </BrowserHeader>
+          <div style={{ position: 'relative', height: 'calc(100% - 40px)' }}>
+            {activeRuns.map((run, index) => (
+              <div key={run.id} style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                display: index === activeRunIndex ? 'block' : 'none',
+              }}>
+                <webview
+                  src={run.url}
+                  ref={getWebviewRef(run.id)}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                  }}
+                  id={`webview-${run.id}`}
+                  allowpopups=""
+                  nodeintegration="true"
+                  crossOrigin="anonymous"
+                />
+              </div>
+            ))}
+          </div>
+        </FakeBrowser>
+      </WebviewContainer>
+    </FullScreenOverlay>
+  );
 };
 
 export default WebviewManager;
