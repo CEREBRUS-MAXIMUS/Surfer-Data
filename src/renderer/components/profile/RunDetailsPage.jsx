@@ -47,7 +47,6 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
       const reduxRun = reduxRuns.find(r => r.id === runId);
 
       if (reduxRun) {
-        console.log('Loaded run from Redux:', reduxRun);
         setRun(reduxRun);
         if (reduxRun.tasks.length > 0) {
           setSelectedTaskId(reduxRun.tasks[0].id);
@@ -56,7 +55,6 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
         // If not in Redux, load from IndexedDB
         const db = await openDB('dataExtractionDB', 1);
         const loadedRun = await db.get('runs', runId);
-        console.log('Loaded run from IndexedDB:', loadedRun);
 
         if (loadedRun) {
           // Ensure the first task and its first step are running

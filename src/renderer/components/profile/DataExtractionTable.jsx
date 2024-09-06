@@ -197,8 +197,6 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     dispatch(startRun(newRun));
     // dispatch(toggleRunVisibility());
     dispatch(setExportRunning(newRun.id, true));
-
-    //await window.electron.ipcRenderer.invoke('start-export', platform.name, platform.id, newRun.id);
   };
 
   const formatLastRunTime = (run) => {
@@ -504,14 +502,17 @@ const showLogs = (platform) => {
                       <TableCell>
 
         <div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleExportClick(platform)}
-          >
-            <HardDriveDownload size={16} className="mr-2" />
-            {getLatestRun(platform.id) ? (getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export') : 'Export'}
-          </Button>
+          <Tooltip content={activeRuns.length > 0 ? "Wait for current run to finish" : ""}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleExportClick(platform)}
+              disabled={activeRuns.length > 0}
+            >
+              <HardDriveDownload size={16} className="mr-2" />
+              {getLatestRun(platform.id) ? (getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export') : 'Export'}
+            </Button>
+          </Tooltip>
         </div>
 
                       </TableCell>

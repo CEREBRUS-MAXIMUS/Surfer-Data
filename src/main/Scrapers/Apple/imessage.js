@@ -9,7 +9,7 @@ async function exportiMessage(id, platformId, filename, company, name) {
     name, 
     id,
   );
-  return;
+  return 'NOTHING';
 }
 
 module.exports = exportiMessage;

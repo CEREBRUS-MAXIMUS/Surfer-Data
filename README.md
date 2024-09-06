@@ -92,7 +92,7 @@ See the [open issues](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues) fo
 - [x] Add verbosity to runs
 
 ### Medium to Long-Term
-- [x] Implement concurrent scraping to allow for multiple scraping jobs to run simultaneously
+- [ ] Implement concurrent scraping to allow for multiple scraping jobs to run simultaneously
 - [ ] Adding knowledge graphs, chatting with data, visualizations, etc
 - [ ] Adding sub-tasks within platforms (i.e. Twitter Bookmarks, LinkedIn Connections Data, etc)
 - [ ] Integrate with other agentic frameworks like LangChain for advanced personal AI assistants

@@ -41,7 +41,7 @@ async function exportLinkedin(id, platformId, filename, company, name) {
 
   if (!contactBtn) {
     customConsoleLog(id, 'Contact button not found');
-    return;
+    return 'NOTHING';
   }
   bigStepper(id, 'Clicking on Contact Button');
   contactBtn.click();
@@ -56,7 +56,7 @@ async function exportLinkedin(id, platformId, filename, company, name) {
 
   if (!contactInfoElement) {
     customConsoleLog(id, 'Contact info not found');
-    return;
+    return 'NOTHING';
   }
 
   return new Promise(async (resolve) => {

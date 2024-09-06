@@ -91,7 +91,7 @@ async function exportGmail(id, platformId, filename, company, name) {
       if (!emailExists) {
         emails.push(emailJSON);
       } else {
-        return;
+        return 'NOTHING';
       }
     }
 

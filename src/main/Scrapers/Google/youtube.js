@@ -13,7 +13,7 @@ async function exportYoutube(id, platformId, filename, company, name) {
     window.location.assign('https://www.youtube.com/');
   }
 
-  await wait(5);
+  await wait(10);
 
   if (document.querySelector('a[aria-label="Sign in"]')) {
     bigStepper(id, 'Export stopped, waiting for sign in');

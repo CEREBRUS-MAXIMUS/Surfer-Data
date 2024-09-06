@@ -18,6 +18,10 @@ ipcRenderer.on('export-website', async (event, runID, platformId, filename, comp
     console.log('CONNECT_WEBSITE');
   }
 
+  else if (data === 'NOTHING') {
+    console.log('NOTHING')
+  }
+
   else if (data === 'DOWNLOADING') {
     customConsoleLog(runID, 'Downloading export (will take some time!');
   }
@@ -43,7 +47,7 @@ ipcRenderer.on('export-website', async (event, runID, platformId, filename, comp
   else {
  customConsoleLog(
    runID,
-   'No data, might be going to next step, downloading file, or might be an error',
+   'Something probably went wrong (stop the run + run it again)',
  );
   }
 });

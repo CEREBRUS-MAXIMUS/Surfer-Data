@@ -242,9 +242,9 @@ const handleLogs = useCallback((runId: string, ...logs: any[]) => {
         }
       }
 
-if (channel === 'console-log') {
-  handleLogs(args[0], ...args.slice(1));
-}
+      if (channel === 'console-log') {
+        handleLogs(args[0], ...args.slice(1));
+      }
 
       if (channel === 'toggle-visibility') {
         dispatch(toggleRunVisibility());
@@ -257,6 +257,7 @@ if (channel === 'console-log') {
       if (channel === 'change-url') {
         await handleChangeUrl(args[0], args[1]);
       }
+
     };
 
     const webviewRefsArray = Object.values(webviewRefs);
