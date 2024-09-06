@@ -122,6 +122,7 @@
     "electron-updater": "^6.1.8",
     "idb": "^8.0.0",
     "lucide-react": "^0.396.0",
+    "mbox-parser": "^1.0.1",
     "next-themes": "^0.3.0",
     "npm": "^10.8.2",
     "os-browserify": "^0.3.0",

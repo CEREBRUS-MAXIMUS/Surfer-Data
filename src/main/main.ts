@@ -24,6 +24,7 @@ import { resolveHtmlPath } from './utils/util';
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import { PythonUtils } from './utils/python';
+import { mboxParser } from 'mbox-parser';
 
 
 const pythonUtils = new PythonUtils();
@@ -522,6 +523,54 @@ async function parseConversationsJSON(extractPath: string) {
   return formattedConversations;
 }
 
+  async function convertMboxToJson(
+    mboxFilePath: string,
+    jsonOutputPath: string,
+    id: number,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const readStream = fs.createReadStream(mboxFilePath);
+      const writeStream = fs.createWriteStream(jsonOutputPath);
+
+      writeStream.write('[');
+      let isFirstMessage = true;
+
+      mboxParser(readStream)
+        .then((messages) => {
+          messages.forEach((message) => {
+            if (!isFirstMessage) {
+              writeStream.write(',');
+            }
+
+            isFirstMessage = false;
+
+            const jsonMessage = {
+              accountID: id,
+              from: message.from?.text,
+              to: message.to?.text || message.to,
+              subject: message.subject,
+              timestamp: message.date,
+
+              body: message.text,
+              added_to_db: new Date().toISOString(),
+            };
+
+            writeStream.write(JSON.stringify(jsonMessage, null, 2));
+          });
+
+          writeStream.write(']');
+          writeStream.end();
+          console.log('MBOX to JSON conversion completed');
+          resolve();
+        })
+        .catch((error) => {
+          console.error('Error parsing MBOX:', error);
+          writeStream.end(']');
+          reject(error);
+        });
+    });
+  }
+
   let lastDownloadUrl = '';
   let lastDownloadTime = 0;
 
@@ -562,6 +611,11 @@ async function parseConversationsJSON(extractPath: string) {
         companyPath = path.join(surferDataPath, 'OpenAI');
         platformPath = path.join(companyPath, 'ChatGPT');
         platformId = `chatgpt-001-${Date.now()}`;
+        idPath = path.join(platformPath, platformId);
+      } else if (url.includes('takeout-download.usercontent.google.com')) {
+        companyPath = path.join(surferDataPath, 'Google');
+        platformPath = path.join(companyPath, 'Gmail');
+        platformId = `gmail-001`;
         idPath = path.join(platformPath, platformId);
       } else {
         console.error('Unknown download URL, needs to be handled:', url);
@@ -645,6 +699,50 @@ async function parseConversationsJSON(extractPath: string) {
               fs.unlinkSync(filePath);
 
               console.log('Zip fully extracted to:', extractPath);
+
+              if (url.includes('takeout-download.usercontent.google.com')) {
+                // Function to recursively find the MBOX file
+                const findMboxFile = (dir) => {
+                  const files = fs.readdirSync(dir);
+                  for (const file of files) {
+                    const filePath = path.join(dir, file);
+                    const stat = fs.statSync(filePath);
+                    if (stat.isDirectory()) {
+                      const result = findMboxFile(filePath);
+                      if (result) return result;
+                    } else if (file.toLowerCase().endsWith('.mbox')) {
+                      return filePath;
+                    }
+                  }
+                  return null;
+                };
+
+                const mboxFilePath = findMboxFile(extractPath);
+                if (mboxFilePath) {
+                  const jsonOutputPath = path.join(extractPath, 'emails.json');
+
+                  try {
+                    console.log('Converting MBOX to JSON:', mboxFilePath);
+                    const accountID =
+                      new URL(url).searchParams.get('authuser') || '0';
+                    await convertMboxToJson(
+                      mboxFilePath,
+                      jsonOutputPath,
+                      accountID,
+                    );
+                    console.log('MBOX converted to JSON:', jsonOutputPath);
+                  } catch (error) {
+                    console.error('Error converting MBOX to JSON:', error);
+                    mainWindow?.webContents.send('download-error', {
+                      fileName,
+                      error: 'Error converting MBOX to JSON: ' + error.message,
+                    });
+                  }
+                } else {
+                  console.log('No MBOX file found in the extracted content.');
+                }
+              }
+
               mainWindow?.webContents.send(
                 'export-complete',
                 path.basename(companyPath),

@@ -11,8 +11,11 @@ async function checkIfEmailExists(id, email) {
 }
 
 async function exportGmail(id, platformId, filename, company, name) {
-  if (!window.location.href.includes('mail.google.com') && !window.location.href.includes('gmail')) {
-    console.log('this window location href: ', window.location.href)
+  if (
+    !window.location.href.includes('mail.google.com') &&
+    !window.location.href.includes('gmail')
+  ) {
+    console.log('this window location href: ', window.location.href);
     customConsoleLog(id, 'Navigating to Gmail');
     bigStepper(id, 'Navigating to Gmail');
     window.location.assign('https://mail.google.com/');

@@ -45,9 +45,9 @@ ipcRenderer.on('export-website', async (event, runID, platformId, filename, comp
   }
 
   else {
- customConsoleLog(
+ console.log(
    runID,
-   'Something probably went wrong (stop the run + run it again)',
+   "Something might've gone wrong (click the Eye icon to view the run)",
  );
   }
 });
