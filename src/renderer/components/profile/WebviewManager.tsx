@@ -277,16 +277,17 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       namePath: string,
       exportSize: number
     ) => {
-       if (name === 'Notion' || name === 'ChatGPT'){
-        
+
+      if (runID.toString().slice(-4) === '-001'){
         const downloadRun = activeRuns.filter(
-          (run) => run.platformId === `${name.toLowerCase()}-001`,
+          (run) => run.platformId === runID.toString(),
         )[0];
 
         console.log('stopping download run: ', downloadRun); 
      
         dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
-       }
+      }
+
 
        else {
         console.log(
