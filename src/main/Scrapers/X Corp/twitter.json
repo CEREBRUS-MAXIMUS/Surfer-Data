@@ -1,5 +1,6 @@
 {
-    "name": "Twitter",
+    "name": "Twitter Posts",
     "description": "Exports all your tweets.",
-    "isUpdated": true
+    "isUpdated": true,
+    "logoURL": "https://logo.clearbit.com/twitter.com"
 }

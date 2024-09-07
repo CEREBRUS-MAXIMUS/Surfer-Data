@@ -32,15 +32,15 @@ We believe that personal data aggregation is the key to enabling truly useful, u
 
 ## Currently Supported Platforms
 
-- Twitter
-- LinkedIn
-- GitHub
+- Twitter Posts
+- Twitter Bookmarks
+- LinkedIn Profile
+- GitHub Repositories
 - YouTube
 - Notion
-- ChatGPT
+- ChatGPT History
 - Gmail
 - iMessages (coming soon!)
-- Twitter Bookmarks (coming soon!)
 - Reddit (coming soon!)
 
 ## How it works
@@ -83,7 +83,7 @@ See the [open issues](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues) fo
 ## Roadmap
 
 ### Short-Term
-- [ ] Data being maintained/updated everyday
+- [x] Data being maintained/updated everyday
 - [ ] Scheduled exports
 - [ ] Obtain a code signing certificate for Windows
 - [x] Replace `setTimeout` with `await` for script execution to ensure elements exist before scraping
