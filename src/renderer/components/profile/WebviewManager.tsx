@@ -307,7 +307,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     return () => {
       window.electron.ipcRenderer.removeAllListeners('export-complete');
     };
-  }, [runs]);
+  }, [runs.length]);
 
   useEffect(() => {
     dispatch(adjustActiveRunIndex());

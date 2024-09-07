@@ -148,7 +148,7 @@ app.on('web-contents-created', (_event, contents) => {
     // Use __dirname to get the path of the current directory
     const preloadPath = path.join(__dirname, 'preloadWebview.js');
     webPreferences.preload = preloadPath;
-  });
+  }); 
 });
 
 ipcMain.on('get-files-in-folder', (event, folderPath) => {
@@ -523,53 +523,51 @@ async function parseConversationsJSON(extractPath: string) {
   return formattedConversations;
 }
 
-  async function convertMboxToJson(
-    mboxFilePath: string,
-    jsonOutputPath: string,
-    id: number,
-  ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const readStream = fs.createReadStream(mboxFilePath);
-      const writeStream = fs.createWriteStream(jsonOutputPath);
+async function convertMboxToJson(
+  mboxFilePath: string,
+  jsonOutputPath: string,
+  id: string,
+  company: string,
+  name: string,
+  runID: string,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const readStream = fs.createReadStream(mboxFilePath);
 
-      writeStream.write('[');
-      let isFirstMessage = true;
+    const data = {
+      company,
+      name,
+      runID,
+      timestamp: Date.now(),
+      content: [],
+    };
 
-      mboxParser(readStream)
-        .then((messages) => {
-          messages.forEach((message) => {
-            if (!isFirstMessage) {
-              writeStream.write(',');
-            }
+    mboxParser(readStream)
+      .then((messages) => {
+        messages.forEach((message) => {
+          const jsonMessage = {
+            accountID: id,
+            from: message.from?.text,
+            to: message.to?.text || message.to,
+            subject: message.subject,
+            timestamp: message.date,
+            body: message.text,
+            added_to_db: new Date().toISOString(),
+          };
 
-            isFirstMessage = false;
-
-            const jsonMessage = {
-              accountID: id,
-              from: message.from?.text,
-              to: message.to?.text || message.to,
-              subject: message.subject,
-              timestamp: message.date,
-
-              body: message.text,
-              added_to_db: new Date().toISOString(),
-            };
-
-            writeStream.write(JSON.stringify(jsonMessage, null, 2));
-          });
-
-          writeStream.write(']');
-          writeStream.end();
-          console.log('MBOX to JSON conversion completed');
-          resolve();
-        })
-        .catch((error) => {
-          console.error('Error parsing MBOX:', error);
-          writeStream.end(']');
-          reject(error);
+          data.content.push(jsonMessage);
         });
-    });
-  }
+
+        fs.writeFileSync(jsonOutputPath, JSON.stringify(data, null, 2));
+        console.log('MBOX to JSON conversion completed');
+        resolve();
+      })
+      .catch((error) => {
+        console.error('Error parsing MBOX:', error);
+        reject(error);
+      });
+  });
+}
 
   let lastDownloadUrl = '';
   let lastDownloadTime = 0;
@@ -718,29 +716,40 @@ async function parseConversationsJSON(extractPath: string) {
                 };
 
                 const mboxFilePath = findMboxFile(extractPath);
-                if (mboxFilePath) {
-                  const jsonOutputPath = path.join(extractPath, 'emails.json');
+if (mboxFilePath) {
+  const jsonOutputPath = path.join(extractPath, `${platformId}.json`);
 
-                  try {
-                    console.log('Converting MBOX to JSON:', mboxFilePath);
-                    const accountID =
-                      new URL(url).searchParams.get('authuser') || '0';
-                    await convertMboxToJson(
-                      mboxFilePath,
-                      jsonOutputPath,
-                      accountID,
-                    );
-                    console.log('MBOX converted to JSON:', jsonOutputPath);
-                  } catch (error) {
-                    console.error('Error converting MBOX to JSON:', error);
-                    mainWindow?.webContents.send('download-error', {
-                      fileName,
-                      error: 'Error converting MBOX to JSON: ' + error.message,
-                    });
-                  }
-                } else {
-                  console.log('No MBOX file found in the extracted content.');
-                }
+  try {
+    console.log('Converting MBOX to JSON:', mboxFilePath);
+    const accountID = new URL(url).searchParams.get('authuser') || '0';
+    await convertMboxToJson(
+      mboxFilePath,
+      jsonOutputPath,
+      accountID,
+      'Google',
+      'Gmail',
+      platformId,
+    );
+    console.log('MBOX converted to JSON:', jsonOutputPath);
+
+    mainWindow?.webContents.send(
+      'export-complete',
+      'Google',
+      'Gmail',
+      platformId,
+      extractPath,
+      getTotalFolderSize(extractPath),
+    );
+  } catch (error) {
+    console.error('Error converting MBOX to JSON:', error);
+    mainWindow?.webContents.send('download-error', {
+      fileName,
+      error: 'Error converting MBOX to JSON: ' + error.message,
+    });
+  }
+} else {
+  console.log('No MBOX file found in the extracted content.');
+}
               }
 
               mainWindow?.webContents.send(
@@ -827,7 +836,7 @@ ipcMain.on('check-for-updates', () => {
                 });
 });
 
-ipcMain.on('handle-update', (event, company, name, platformId, data, runID) => {
+ipcMain.on('handle-update', (event, company, name, platformId, data, runID, customFilePath = null) => {
   console.log(
     'handling update for: ',
     company,
@@ -838,7 +847,7 @@ ipcMain.on('handle-update', (event, company, name, platformId, data, runID) => {
   );
 
   const userData = app.getPath('userData');
-  const filePath = path.join(
+  const filePath = customFilePath ? customFilePath : path.join(
     userData,
     'surfer_data',
     company,
@@ -846,6 +855,8 @@ ipcMain.on('handle-update', (event, company, name, platformId, data, runID) => {
     platformId,
     `${platformId}.json`
   );
+
+  console.log('filePath: ', filePath);
 
   // Read existing data if available
 let existingData;
@@ -897,8 +908,8 @@ if (!existingData) {
   console.log(`Data appended to: ${filePath}`);
 });
  
-ipcMain.on('handle-update-complete', (event, runID, platformId, company, name) => {
-  const filePath = path.join(app.getPath('userData'), 'surfer_data', company, name, platformId, `${platformId}.json`)
+ipcMain.on('handle-update-complete', (event, runID, platformId, company, name, customFilePath = null) => {
+  const filePath = customFilePath ? customFilePath : path.join(app.getPath('userData'), 'surfer_data', company, name, platformId, `${platformId}.json`)
   console.log('this filepath: ', filePath)
   const folderPath = path.join(
     app.getPath('userData'),

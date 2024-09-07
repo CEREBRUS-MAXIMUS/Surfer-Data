@@ -8,8 +8,37 @@ const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
-async function checkIfEmailExists(id, email) {
-  // finish this function later when we have takeout
+async function checkIfEmailExists(id, platformId, company, name, emailContent) {
+  const userDataPath = await ipcRenderer.invoke('get-user-data-path');
+  const gmailPath = path.join(
+    userDataPath,
+    'surfer_data',
+    company,
+    name,
+    platformId,
+    'extracted',
+    `${platformId}.json`
+  );
+
+  console.log('gmailPath: ', gmailPath);
+
+  if (fs.existsSync(gmailPath)) {
+    const fileContent = JSON.parse(fs.readFileSync(gmailPath, 'utf-8'));
+    // Check if the email content exists in the file
+    console.log('fileContent: ', fileContent);
+    console.log('emailContent: ', emailContent);
+      for (const email of fileContent.content) {
+        if (
+          email.subject === emailContent.subject &&
+          email.timestamp.slice(0, -7) ===
+            emailContent.timestamp.slice(0, -7)
+        ) {
+          customConsoleLog('email exists: ', email);
+          return true;
+        }
+      }
+  }
+  return false;
 }
 
 async function exportGmail(id, platformId, filename, company, name) {
@@ -17,11 +46,11 @@ async function exportGmail(id, platformId, filename, company, name) {
   const gmailPath = path.join(
     userDataPath,
     'surfer_data',
-    'Google',
-    'Gmail',
-    'gmail-001',
+    company,
+    name,
+    platformId,
     'extracted',
-    'emails.json',
+    `${platformId}.json`,
   );
 
   if (!fs.existsSync(gmailPath)) {
@@ -234,11 +263,22 @@ else {
         body: email.innerText || '',
       };
 
-      const emailExists = await checkIfEmailExists(id, emailJSON);
-      if (!emailExists) {
-        emails.push(emailJSON);
+      const emailExists = await checkIfEmailExists(id, platformId, company, name, emailJSON);
+      if (emailExists) {
+        customConsoleLog(id, 'Email already exists, skipping');
+        ipcRenderer.send('handle-update-complete', id, platformId, company, name, gmailPath);
+        return 'HANDLE_UPDATE_COMPLETE';
       } else {
-        return 'NOTHING';
+            ipcRenderer.send(
+              'handle-update',
+              company,
+              name,
+              platformId,
+              JSON.stringify(emailJSON),
+              id,
+              gmailPath
+            );
+            emails.push(emailJSON);
       }
     }
 
@@ -265,9 +305,15 @@ else {
   const uniqueEmails = [...new Set(emails)];
   customConsoleLog(id, 'Unique emails collected:', uniqueEmails.length);
 
-  bigStepper(id, 'Exporting data');
-
-  return uniqueEmails;
+        ipcRenderer.send(
+          'handle-update-complete',
+          id,
+          platformId,
+          company,
+          name,
+          gmailPath,
+        );
+        return 'HANDLE_UPDATE_COMPLETE';
 }
 }
 
