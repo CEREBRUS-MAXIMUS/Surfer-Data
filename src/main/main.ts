@@ -120,6 +120,7 @@ ipcMain.handle('get-scrapers', async () => {
           filename: name,
           description: metadata && metadata.description ? metadata.description : 'No description available',
           isUpdated: metadata && metadata.isUpdated ? metadata.isUpdated : false,
+          logoURL: metadata && metadata.logoURL ? metadata.logoURL : name,
         };
       }),
     );

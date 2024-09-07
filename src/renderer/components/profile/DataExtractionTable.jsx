@@ -219,18 +219,27 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
         const blob = await response.blob();
         const logoUrl = URL.createObjectURL(blob);
         setPlatformLogos(prev => ({ ...prev, [platform.id]: logoUrl }));
-      }
-
-      else {
-        const response = await fetch(`https://logo.clearbit.com/${platform.company}.com`);
-        if (response.ok) {
-          const blob = await response.blob();
+      } else {
+        const companyResponse = await fetch(`https://logo.clearbit.com/${platform.company}.com`);
+        if (companyResponse.ok) {
+          const blob = await companyResponse.blob();
           const logoUrl = URL.createObjectURL(blob);
+          setPlatformLogos(prev => ({ ...prev, [platform.id]: logoUrl }));
+        } else if (platform.logoURL) {
+          const logoUrlResponse = await fetch(platform.logoURL);
+          const logoBlob = await logoUrlResponse.blob();  
+          const logoUrl = URL.createObjectURL(logoBlob);
           setPlatformLogos(prev => ({ ...prev, [platform.id]: logoUrl }));
         }
       }
     } catch (error) {
       console.error(`Error fetching logo for ${platform.name}:`, error);
+      if (platform.logoURL) {
+          const logoUrlResponse = await fetch(platform.logoURL);
+          const logoBlob = await logoUrlResponse.blob();  
+          const logoUrl = URL.createObjectURL(logoBlob);
+          setPlatformLogos(prev => ({ ...prev, [platform.id]: logoUrl }));
+      }
     }
   };
 
