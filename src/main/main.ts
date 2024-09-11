@@ -602,15 +602,15 @@ async function convertMboxToJson(
       if (url.includes('file.notion.so')) {
         companyPath = path.join(surferDataPath, 'Notion');
         platformPath = path.join(companyPath, 'Notion');
-        platformId = `notion-001-${Date.now()}`;
-        idPath = path.join(platformPath, platformId);
+        platformId = `notion-001`;
+        idPath = path.join(platformPath, `${platformId}-${Date.now()}`);
       } else if (
         url.includes('proddatamgmtqueue.blob.core.windows.net/exportcontainer/')
       ) {
         companyPath = path.join(surferDataPath, 'OpenAI');
         platformPath = path.join(companyPath, 'ChatGPT');
         platformId = `chatgpt-001-${Date.now()}`;
-        idPath = path.join(platformPath, platformId);
+        idPath = path.join(platformPath, `${platformId}-${Date.now()}`);
       } else if (url.includes('takeout-download.usercontent.google.com')) {
         companyPath = path.join(surferDataPath, 'Google');
         platformPath = path.join(companyPath, 'Gmail');
