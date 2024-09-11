@@ -18,7 +18,6 @@ import {
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
-import { addDocuments } from '../../../../openai'
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
   position: fixed;
@@ -303,14 +302,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
         dispatch(updateExportStatus(company, name, runID.toString(), folderPath, exportSize));
        }
 
-        await addDocuments({
-          company: company,
-          name: name,
-          runID: runID,
-          folderPath: folderPath,
-          content: 'This is a quarterly sales report for Acme Corp, showing a 15% increase in revenue.',
-          vector: [1, 2, 3]
-        })
     };
 
 
