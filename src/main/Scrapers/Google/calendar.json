@@ -1,4 +1,5 @@
 {
-    "name": "Calendar",
-    "description": "Exports the events in your Google Calendar."
+    "name": "Google Calendar",
+    "description": "Exports the events in your Google Calendar.",
+    "isUpdated": true
 }

@@ -22,7 +22,7 @@ async function exportCalendar(id, platformId, filename, company, name) {
 
   customConsoleLog(id, 'Not first export, getting current calendar events!');
 
-  if (!window.location.href.includes('calendar.google.com')) {
+  if (!window.location.href.includes('calendar.google.com') && !window.location.href.includes('calendar')) {
     customConsoleLog(id, 'Navigating to Google Calendar');
     bigStepper(id, 'Navigating to Google Calendar');
     window.location.assign('https://calendar.google.com/calendar/u/0/r/week');

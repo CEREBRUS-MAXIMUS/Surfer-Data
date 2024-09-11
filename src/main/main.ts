@@ -25,29 +25,6 @@ import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import { PythonUtils } from './utils/python';
 import { mboxParser } from 'mbox-parser';
-import { createCollection } from './utils/chroma';
-import { ChromaClient } from 'chromadb';
-
-import express from 'express';
-import { OllamaEmbeddings } from '@langchain/community/embeddings/ollama';
-
-// ... existing code ...
-
-let server: express.Application;
-
-const startExpressServer = () => {
-  server = express();
-  const port = 8000;
-
-  server.get('/', (req, res) => {
-    res.send('Hello from Surfer Express server!');
-  });
-
-  server.listen(port, () => {
-    console.log(`Express server running at http://localhost:${port}`);
-  });
-};
-
 
 
 const pythonUtils = new PythonUtils();
@@ -1147,42 +1124,11 @@ const startChromaDB = async () => {
 };
 
 
-
-import fetch from 'node-fetch';
-
-async function isOllamaServerRunning() {
-  try {
-    const response = await fetch('http://localhost:8000/api/version');
-    return response.ok;
-  } catch (error) {
-    return false;
-  }
-}
-
-async function initializeOllama() {
-  console.log('tryna do embeddings!')
-const embeddings = new OllamaEmbeddings({
-  model: 'llama2', // default value
-  baseUrl: 'http://localhost:8000', // default value
-
-});
-
-console.log('embeddings', embeddings)
-
-const documents = ['Hello World!', 'Bye Bye'];
-
-const documentEmbeddings = await embeddings.embedDocuments(documents);
-
-console.log(documentEmbeddings);
-}
-
 app
   .whenReady()
   .then(async () => {
     app.setAccessibilitySupportEnabled(true);
     createWindow();
-
-    await initializeOllama();
     
     createRequiredFolders();
 
