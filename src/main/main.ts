@@ -25,6 +25,7 @@ import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import { PythonUtils } from './utils/python';
 import { mboxParser } from 'mbox-parser';
+import sqlite3 from 'sqlite3';
 
 
 const pythonUtils = new PythonUtils();
@@ -1108,21 +1109,101 @@ const createRequiredFolders = () => {
   });
 };
 
-const startChromaDB = async () => {
-  try {
-    const client = new ChromaClient();
-    await client.reset(); // This ensures a clean state
-    const collection = await client.createCollection({
-      name: 'test_collection',
-    });
-    console.log('ChromaDB collection created successfully');
-    return client;
-  } catch (error) {
-    console.error('Error initializing ChromaDB:', error);
-    throw error;
-  }
-};
+ipcMain.handle('add-document-to-vector-db', async (event, document) => {
+  const userData = app.getPath('userData');
+  const vectorDBPath = path.join(userData, 'vector_db.sqlite');
 
+  return new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(vectorDBPath, async (err) => {
+      if (err) {
+        console.error('Error opening vector_db.sqlite:', err);
+        reject({ success: false, error: err.message });
+        return;
+      }
+
+
+      try {
+        // Create table if it doesn't exist
+        await new Promise((res, rej) => {
+          db.run(
+            `CREATE TABLE IF NOT EXISTS vectors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            company TEXT,
+            name TEXT,
+            runID TEXT,
+            folderPath TEXT,
+            content TEXT,
+            vector BLOB
+          )`,
+            (err) => {
+              if (err) rej(err);
+              else res();
+            },
+          );
+        });
+
+        const { company, name, runID, folderPath } = document;
+
+        // read the files within the folderPath
+        const files = fs
+          .readdirSync(folderPath)
+          .filter((file) => file.endsWith('.json') || file.endsWith('.md'));
+        console.log('files', files);
+
+        for (const file of files) {
+          const content = fs.readFileSync(path.join(folderPath, file), 'utf-8');
+          console.log(`Content of ${file}:`, content);
+
+          // Create a random vector (for demonstration purposes)
+          const randomVector = new Float32Array(128).map(() => Math.random());
+
+          await new Promise((res, rej) => {
+            db.run(
+              'INSERT INTO vectors (company, name, runID, folderPath, content, vector) VALUES (?, ?, ?, ?, ?, ?)',
+              [
+                company,
+                name,
+                runID,
+                folderPath,
+                content,
+                Buffer.from(randomVector.buffer),
+              ],
+              function (insertErr) {
+                if (insertErr) {
+                  console.error(
+                    `Error inserting document for ${file}:`,
+                    insertErr,
+                  );
+                  rej({ success: false, error: insertErr.message });
+                } else {
+                  console.log(`Document for ${file} inserted successfully`);
+                  res({ success: true, id: this.lastID });
+                }
+              },
+            );
+          });
+        }
+
+        const result = {
+          success: true,
+          message: `Inserted ${files.length} documents`,
+        };
+
+        db.close((closeErr) => {
+          if (closeErr) {
+            console.error('Error closing database:', closeErr);
+          }
+        });
+
+        resolve(result);
+      } catch (error) {
+        console.error('Error in database operations:', error);
+        db.close();
+        reject({ success: false, error: error.message });
+      }
+    });
+  });
+});
 
 app
   .whenReady()

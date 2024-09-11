@@ -18,6 +18,7 @@ import {
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
+import { addDocuments } from '../../../../openai'
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
   position: fixed;
@@ -274,7 +275,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       company: string,
       name: string,
       runID: number,
-      namePath: string,
+      folderPath: string,
       exportSize: number
     ) => {
 
@@ -284,8 +285,8 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
         )[0];
 
         console.log('stopping download run: ', downloadRun); 
-     
-        dispatch(updateExportStatus(company, name, downloadRun.id, namePath, exportSize));
+
+        dispatch(updateExportStatus(company, name, downloadRun.id, folderPath, exportSize));
       }
 
 
@@ -297,10 +298,22 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           ', and runID: ',
           runID,
         );
+
      
-        dispatch(updateExportStatus(company, name, runID.toString(), namePath, exportSize));
+        dispatch(updateExportStatus(company, name, runID.toString(), folderPath, exportSize));
        }
+
+        await addDocuments({
+          company: company,
+          name: name,
+          runID: runID,
+          folderPath: folderPath,
+          content: 'This is a quarterly sales report for Acme Corp, showing a 15% increase in revenue.',
+          vector: [1, 2, 3]
+        })
     };
+
+
 
     window.electron.ipcRenderer.on('export-complete', handleExportComplete);
 

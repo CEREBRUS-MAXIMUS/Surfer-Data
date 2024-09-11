@@ -16,6 +16,7 @@ import { platform } from 'os';
 import { MoonLoader } from 'react-spinners';
 import ConfettiExplosion from 'react-confetti-explosion';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
+import { addDocuments } from '../../../../openai'
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -441,6 +442,7 @@ const showLogs = (platform) => {
     <div className="w-full h-full flex-col px-[50px] pt-6 pb-6 select-none">
       <div className="flex-shrink-0 mb-4">
         <div className="relative w-full max-w-2xl">
+
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <Input
             type="text"
@@ -452,6 +454,7 @@ const showLogs = (platform) => {
             }}
             className="pl-10 pr-10 w-full"
           />
+          
           {searchTerm && (
             <button
               onClick={clearSearch}
@@ -460,6 +463,13 @@ const showLogs = (platform) => {
               <X size={20} />
             </button>
           )}
+<Button onClick={() => addDocuments({
+  company: 'Acme Corp',
+  name: 'Sales Report',
+  runID: 'run_123456',
+  content: 'This is a quarterly sales report for Acme Corp, showing a 15% increase in revenue.',
+  vector: [1, 2, 3]
+})}>Generate Embedding</Button>
         </div>
       </div>
       {paginatedPlatforms.length > 0 ? (
