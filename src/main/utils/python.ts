@@ -83,7 +83,7 @@ export class PythonUtils {
         {
           shell: true,
         },
-      ); 
+      );
 
       pipInstallProcess.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);
@@ -263,6 +263,7 @@ export class PythonUtils {
   ) {
     const pythonPath = `"${this.SurferPythonPath}"`;
 
+
     if (platform === 'win32') {
       const requirementsPath = getAssetPath('imessage_windows_reqs.txt');
       const requirements = fs
@@ -321,7 +322,7 @@ export class PythonUtils {
                 app.getPath('userData'),
                 id,
               ],
-              { shell: true },
+              { shell: true }
             );
 
             let output = '';
@@ -390,7 +391,9 @@ export class PythonUtils {
         },
       });
 
-      promptWindow.loadURL(getAssetPath('password-prompt.html'));
+      promptWindow.loadURL(
+        getAssetPath('password-prompt.html'),
+      );
 
       promptWindow.once('ready-to-show', () => {
         promptWindow.show();
@@ -576,28 +579,11 @@ export class PythonUtils {
       });
     });
   }
-  async runChroma() {
+  async runChromaCommand() {
     const userDataPath = app.getPath('userData');
     const vectorDBsPath = path.join(userDataPath, 'vectorDBs');
 
     if (!fs.existsSync(vectorDBsPath)) {
-      const requirements = ['chromadb'];
-      console.log('Installing chromadb before for loop!');
-      for (const req of requirements) {
-        if (!fs.existsSync(vectorDBsPath)) {
-          console.log('Installing', req.trim());
-          try {
-            const { stdout, stderr } = await execAsync(
-              `${this.SurferPythonPath} -m pip install ${req.trim()}`,
-            );
-            console.log('stdout:', stdout);
-            console.log('stderr:', stderr);
-            console.log(`Installed ${req.trim()} successfully.`);
-          } catch (installError) {
-            console.error(`Failed to install ${req.trim()}:`, installError);
-          }
-        } 
-      } 
       fs.mkdirSync(vectorDBsPath);
       console.log('Created vectorDBs directory:', vectorDBsPath);
     }
@@ -613,52 +599,5 @@ export class PythonUtils {
     } catch (error) {
       console.error('Error running chroma command:', error);
     }
-  
-
-    // console.log('Starting Chroma server...');
-    // try {
-    //   const pythonScript = getAssetPath('start_chroma_windows.py');
-    //   let pythonProcess;
-    //   const output = await new Promise<string>((resolve, reject) => {
-    //     pythonProcess = spawn('python.exe', [pythonScript, userDataPath], { shell: true });
-
-    //     let output = '';
-
-    //     pythonProcess.stdout.on('data', (data) => {
-    //       const dataStr = data.toString();
-    //       output += dataStr;
-    //       console.log('Python script output:', dataStr);
-    //     });
-
-    //     pythonProcess.stderr.on('data', (data) => {
-    //       console.error('Python script error:', data.toString());
-    //     });
-
-    //     pythonProcess.on('close', (code) => {
-    //       console.log('Python script exited with code', code);
-    //       if (code === 0) {
-    //         resolve(output.trim());
-    //       } else {
-    //         reject(new Error(`Python script exited with code ${code}`));
-    //       }
-    //     });
-    //   });
-    // } catch (error) {
-    //   console.error('Failed to start Chroma server:', error);
-    //   throw error;
-    // }
   }
-
-  // async indexData(
-  //   platform: string,
-  //   folderPath: string,
-  //   company: string,
-  //   name: string,
-  //   id: string,
-  // ) {
-  //   const pythonPath = 'python.exe';
-  //   const scriptPath = getAssetPath('index_chroma_windows.py');
-  //   const command = `${pythonPath} ${scriptPath} ${platform} ${folderPath} ${company} ${name} ${id}`;
-  //   await execAsync(command, { shell: true });
-  // }
 }
