@@ -31,7 +31,10 @@ async function exportCalendar(id, platformId, filename, company, name) {
   await wait(2);
 
   if (document.querySelector('h1')) {
-    // ... (handle sign-in, similar to gmail.js)
+    customConsoleLog(id, 'YOU NEED TO SIGN IN!');
+    bigStepper(id, 'Export stopped, waiting for sign in');
+    ipcRenderer.send('connect-website', id);
+    return 'CONNECT_WEBSITE';
   }
 
   const events = [];
