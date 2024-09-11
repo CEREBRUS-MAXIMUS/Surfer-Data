@@ -16,7 +16,6 @@ import { platform } from 'os';
 import { MoonLoader } from 'react-spinners';
 import ConfettiExplosion from 'react-confetti-explosion';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
-import { addDocuments } from '../../../../openai'
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -463,13 +462,6 @@ const showLogs = (platform) => {
               <X size={20} />
             </button>
           )}
-<Button onClick={() => addDocuments({
-  company: 'Acme Corp',
-  name: 'Sales Report',
-  runID: 'run_123456',
-  content: 'This is a quarterly sales report for Acme Corp, showing a 15% increase in revenue.',
-  vector: [1, 2, 3]
-})}>Generate Embedding</Button>
         </div>
       </div>
       {paginatedPlatforms.length > 0 ? (

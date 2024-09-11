@@ -25,8 +25,8 @@ import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import { PythonUtils } from './utils/python';
 import { mboxParser } from 'mbox-parser';
-import sqlite3 from 'sqlite3';
-
+import { tableStructure, ensureTableStructure } from './utils/vector_db';
+import { Database } from 'sqlite3';
 
 const pythonUtils = new PythonUtils();
 
@@ -121,6 +121,7 @@ ipcMain.handle('get-scrapers', async () => {
           filename: name,
           description: metadata && metadata.description ? metadata.description : 'No description available',
           isUpdated: metadata && metadata.isUpdated ? metadata.isUpdated : false,
+          isVectorized: metadata && metadata.isVectorized ? metadata.isVectorized : false,
           logoURL: metadata && metadata.logoURL ? metadata.logoURL : name,
         };
       }),
@@ -603,15 +604,15 @@ async function convertMboxToJson(
       if (url.includes('file.notion.so')) {
         companyPath = path.join(surferDataPath, 'Notion');
         platformPath = path.join(companyPath, 'Notion');
-        platformId = `notion-001-${Date.now()}`;
-        idPath = path.join(platformPath, platformId);
+        platformId = `notion-001`;
+        idPath = path.join(platformPath, `${platformId}-${Date.now()}`);
       } else if (
         url.includes('proddatamgmtqueue.blob.core.windows.net/exportcontainer/')
       ) {
         companyPath = path.join(surferDataPath, 'OpenAI');
         platformPath = path.join(companyPath, 'ChatGPT');
-        platformId = `chatgpt-001-${Date.now()}`;
-        idPath = path.join(platformPath, platformId);
+        platformId = `chatgpt-001`;
+        idPath = path.join(platformPath, `${platformId}-${Date.now()}`);
       } else if (url.includes('takeout-download.usercontent.google.com')) {
         companyPath = path.join(surferDataPath, 'Google');
         platformPath = path.join(companyPath, 'Gmail');
@@ -1114,75 +1115,170 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
   const vectorDBPath = path.join(userData, 'vector_db.sqlite');
 
   return new Promise((resolve, reject) => {
-    const db = new sqlite3.Database(vectorDBPath, async (err) => {
+    const db = new Database(vectorDBPath, async (err) => {
       if (err) {
         console.error('Error opening vector_db.sqlite:', err);
         reject({ success: false, error: err.message });
         return;
       }
 
-
       try {
-        // Create table if it doesn't exist
-        await new Promise((res, rej) => {
-          db.run(
-            `CREATE TABLE IF NOT EXISTS vectors (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            company TEXT,
-            name TEXT,
-            runID TEXT,
-            folderPath TEXT,
-            content TEXT,
-            vector BLOB
-          )`,
-            (err) => {
-              if (err) rej(err);
-              else res();
-            },
-          );
-        });
+        // Ensure table structure is up to date
+        await ensureTableStructure(db);
 
         const { company, name, runID, folderPath } = document;
 
-        // read the files within the folderPath
-        const files = fs
-          .readdirSync(folderPath)
-          .filter((file) => file.endsWith('.json') || file.endsWith('.md'));
+        console.log('folderPath: ', folderPath);
+        const files: string[] = [];
+
+        function readFilesRecursively(dir: string) {
+          const items = fs.readdirSync(dir);
+          for (const item of items) {
+            const fullPath = path.join(dir, item);
+            if (fs.statSync(fullPath).isDirectory()) {
+              readFilesRecursively(fullPath);
+            } else if (item.endsWith('.json') || item.endsWith('.md')) {
+              files.push(fullPath);
+            }
+          }
+        }
+
+        readFilesRecursively(folderPath);
         console.log('files', files);
 
-        for (const file of files) {
-          const content = fs.readFileSync(path.join(folderPath, file), 'utf-8');
-          console.log(`Content of ${file}:`, content);
+function chunkText(text: string, chunkSize = 1000) {
+  const result = [];
+  // Split text into chunks of chunkSize
+  for (let i = 0; i < text.length; i += chunkSize) {
+    // If text is shorter than chunk size, return it as a single chunk
+        if (text.length <= chunkSize) {
+            result.push(text);
+            return result;
+          }
 
-          // Create a random vector (for demonstration purposes)
-          const randomVector = new Float32Array(128).map(() => Math.random());
+    result.push(text.slice(i, i + chunkSize));
+  }
 
-          await new Promise((res, rej) => {
-            db.run(
-              'INSERT INTO vectors (company, name, runID, folderPath, content, vector) VALUES (?, ?, ?, ?, ?, ?)',
-              [
-                company,
-                name,
-                runID,
-                folderPath,
-                content,
-                Buffer.from(randomVector.buffer),
-              ],
-              function (insertErr) {
-                if (insertErr) {
-                  console.error(
-                    `Error inserting document for ${file}:`,
-                    insertErr,
-                  );
-                  rej({ success: false, error: insertErr.message });
-                } else {
-                  console.log(`Document for ${file} inserted successfully`);
-                  res({ success: true, id: this.lastID });
-                }
-              },
-            );
-          });
+}
+
+for (const file of files) {
+  const filePath = path.isAbsolute(file) ? file : path.join(folderPath, file);
+  const fullContent = fs.readFileSync(filePath, 'utf-8');
+  let fullJSON: any;
+  let contentToProcess: any[];
+
+  try {
+    fullJSON = JSON.parse(fullContent);
+    console.log(`Content of ${file}:`, fullJSON);
+
+    if (Array.isArray(fullJSON.content)) {
+      // JSON with content array
+      contentToProcess = fullJSON.content;
+    } else if (Array.isArray(fullJSON)) {
+      // Regular JSON array
+      contentToProcess = fullJSON;
+    } else {
+      // Treat as single item
+      contentToProcess = [fullJSON];
+    }
+  } catch (error) {
+    console.log(`Content of ${file} (not JSON):`, fullContent);
+    // Raw text (txt, markdown, etc.)
+    contentToProcess = [fullContent];
+  }
+
+  function jsonToString(obj: any): string {
+    let result = '';
+    for (const [key, value] of Object.entries(obj)) {
+      if (typeof value === 'string') {
+        result += `The ${key} is ${value}. `;
+      } else if (typeof value === 'object' && value !== null) {
+        result += jsonToString(value);
+      }
+    }
+    return result.trim();
+  }
+
+  for (const item of contentToProcess) {
+    let textToChunk : string;
+    if (typeof item === 'string') {
+      textToChunk = item;
+    } else if (typeof item === 'object' && item !== null) {
+      textToChunk = jsonToString(item);
+    } else {
+      textToChunk = String(item);
+    }
+
+      if (textToChunk.trim().length === 0) {
+        console.log('Skipping empty content');
+    continue;
+  }
+
+    //const chunks = chunkText(textToChunk, 1000);
+
+    try {
+    // for (const chunk of chunks) {
+    const randomVector = new Float32Array(128).map(() => Math.random());
+
+    const columns = Object.keys(tableStructure)
+      .filter((col) => col !== 'id')
+      .join(', ');
+    const placeholders = Object.keys(tableStructure)
+      .filter((col) => col !== 'id')
+      .map(() => '?')
+      .join(', ');
+
+    const values = Object.keys(tableStructure)
+      .filter((col) => col !== 'id')
+      .map((col) => {
+        switch (col) {
+          case 'company':
+            return company;
+          case 'timestamp':
+            return Date.now();
+          case 'name':
+            return name;
+          case 'runID':
+            return runID;
+          case 'folderPath':
+            return folderPath;
+          case 'content':
+            return textToChunk;
+          case 'embeddings':
+            return JSON.stringify(randomVector);
+          default:
+            return null;
         }
+      });
+
+    await new Promise((res, rej) => {
+      db.run(
+        `INSERT INTO db (${columns}) VALUES (${placeholders})`,
+        values,
+        function (insertErr) {
+          if (insertErr) {
+            console.error(
+              `Error inserting document chunk for ${file}:`,
+              insertErr,
+            );
+            rej({ success: false, error: insertErr.message });
+          } else {
+            res({ success: true, id: this.lastID });
+          }
+        },
+      );
+    });
+  }
+// }
+
+catch (error) {
+  console.error('Error in chunking:', error);
+  continue;
+}
+  }
+
+  // ... rest of the existing code ...
+}
 
         const result = {
           success: true,
@@ -1199,7 +1295,7 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
       } catch (error) {
         console.error('Error in database operations:', error);
         db.close();
-        reject({ success: false, error: error.message });
+        reject({ success: false, error: error });
       }
     });
   });

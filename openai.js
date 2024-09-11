@@ -15,9 +15,9 @@ export async function addDocuments(documents) {
     }
 }
 
-export async function generateEmbedding(content) {
+export async function createEmbedding(text) {
     const response = await openai.embeddings.create({
-        input: content,
+        input: text,
         model: "text-embedding-3-small"
     });
     return response.data[0].embedding;

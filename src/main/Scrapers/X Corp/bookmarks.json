@@ -1,6 +1,7 @@
 {
     "name": "Twitter Bookmarks",
     "description": "Exports your Twitter bookmarks",
+    "isVectorized": true,
     "logoURL": "https://logo.clearbit.com/twitter.com",
     "isUpdated": true
 }

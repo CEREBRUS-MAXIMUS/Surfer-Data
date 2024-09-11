@@ -1,5 +1,6 @@
 {
     "name": "Gmail",
     "description": "Exports all emails.",
-    "isUpdated": true
+    "isUpdated": true,
+    "isVectorized": true
 }

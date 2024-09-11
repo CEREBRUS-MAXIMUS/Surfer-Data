@@ -1,4 +1,5 @@
 {
     "name": "Notion",
-    "description": "Exports your entire workspace."
+    "description": "Exports your entire workspace.",
+    "isVectorized": true
 }

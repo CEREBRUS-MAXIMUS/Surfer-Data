@@ -1,4 +1,5 @@
 {
     "name": "LinkedIn",
-    "description": "Exports your profile."
+    "description": "Exports your profile.",
+    "isVectorized": true
 }

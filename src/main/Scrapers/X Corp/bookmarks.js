@@ -52,7 +52,7 @@ async function checkIfBookmarkExists(id, platformId, company, name, currentBookm
 }
 
 async function exportBookmarks(id, platformId, filename, company, name) {
-  if (!window.location.href.includes('x.com')) {
+  if (!window.location.href.includes('x.com') && !window.location.href.includes('x.com/i/bookmarks')) {
     bigStepper(id, 'Navigating to Twitter');
     customConsoleLog(id, 'Navigating to Twitter');
     window.location.assign('https://x.com/i/bookmarks');

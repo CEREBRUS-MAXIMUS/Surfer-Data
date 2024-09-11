@@ -10,7 +10,9 @@ async function exportChatgpt(id, platformId, filename, company, name) {
   if (
     !window.location.href.includes('chatgpt.com/#settings/DataControls') &&
     !window.location.href.includes('mail.google.com') &&
-    !window.location.href.includes('https://auth.openai.com/authorize')
+    !window.location.href.includes('https://auth.openai.com/authorize') &&
+    !window.location.href.includes('accounts.google.com') &&
+    !window.location.href.includes('accounts.youtube.com')
   ) {
     bigStepper(id, 'Navigating to ChatGPT');
     customConsoleLog(id, 'Navigating to ChatGPT');

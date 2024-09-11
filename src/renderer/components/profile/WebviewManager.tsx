@@ -279,6 +279,8 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       exportSize: number
     ) => {
 
+      console.log('got this: ', company, name, runID, folderPath, exportSize);
+
       if (runID.toString().slice(-4) === '-001'){
         const downloadRun = activeRuns.filter(
           (run) => run.platformId === runID.toString(),
