@@ -609,7 +609,7 @@ async function convertMboxToJson(
       ) {
         companyPath = path.join(surferDataPath, 'OpenAI');
         platformPath = path.join(companyPath, 'ChatGPT');
-        platformId = `chatgpt-001-${Date.now()}`;
+        platformId = `chatgpt-001`;
         idPath = path.join(platformPath, `${platformId}-${Date.now()}`);
       } else if (url.includes('takeout-download.usercontent.google.com')) {
         companyPath = path.join(surferDataPath, 'Google');
