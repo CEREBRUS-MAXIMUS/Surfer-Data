@@ -7,7 +7,7 @@ import Landing from './pages/Landing';
 import Platform from './pages/Platform'; 
 import SubRun from './pages/SubRun';
 import Settings from './pages/Settings';
-import RunDetailsPage from './components/profile/RunDetailsPage';
+import Chat from './pages/Chat';
 import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs, updateRunConnected } from './state/actions';
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
@@ -161,6 +161,9 @@ function Surfer() {
         }
         newContent = <Home />;
         break;
+      case 'chat':
+          newContent = <Chat />;
+          break;
       default:
         console.warn('Unknown route:', currentRoute);
         newContent = <Home />;
@@ -177,6 +180,12 @@ function Surfer() {
     console.log('Home clicked');
     dispatch(setCurrentRoute('/home'));
     dispatch(updateBreadcrumb([{ icon: 'Home', text: 'Home', link: '/home' }]));
+  };
+
+  const handleChatClick = () => {
+    console.log('Chat clicked');
+    dispatch(setCurrentRoute('/chat'));
+    dispatch(updateBreadcrumb([{ text: 'Chat', link: '/chat' }]));
   };
 
   const getWebviewRef = (runId: string) => {
@@ -198,6 +207,7 @@ function Surfer() {
               getWebviewRef={getWebviewRef}
               contentScale={safeContentScale}
               onHomeClick={handleHomeClick}
+              onChatClick={handleChatClick}
             >
               {content}
             </Layout>

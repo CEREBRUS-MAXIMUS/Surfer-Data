@@ -15,6 +15,7 @@ import { Button } from '../ui/button';
 import SettingsButton from './SettingsButton';
 import { setIsRunLayerVisible } from '../../state/actions';
 import SupportButton from './SupportButton';
+import { MessageSquare } from 'lucide-react';
 
 const getStyleHorizontalLock = (style) =>
   style?.transform
@@ -553,7 +554,7 @@ const StyledSurferHeader = styled.div`
   }
 `;
 
-export const SurferHeader = () => {
+export const SurferHeader = ({ onChatClick }) => {
   const dispatch = useDispatch();
   const breadcrumb = useSelector((state) => state.app.breadcrumb);
   const isRunLayerVisible = useSelector((state) => state.app.isRunLayerVisible);
@@ -724,6 +725,11 @@ export const SurferHeader = () => {
         </div>
         <div className="header-option-panel">
           <TooltipProvider>
+            <Tooltip>
+              <Button variant="ghost" size="icon" onClick={onChatClick}>
+                <MessageSquare size={18} />
+              </Button>
+            </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <SupportButton />

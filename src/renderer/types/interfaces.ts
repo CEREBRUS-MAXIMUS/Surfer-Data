@@ -76,6 +76,8 @@ export interface IRun {
   platformId: string;
   filename: string;
   isConnected: boolean;
+  isVectorized: boolean;
+  filesToVectorize: string[] | null;
   subRunId: string;
   startDate: string;
   endDate?: string;

@@ -114,3 +114,17 @@ async function removeColumn(db: Database, columnName: string): Promise<void> {
     });
   });
 }
+
+export async function addDocuments(documents: object) {
+  try {
+    const response = await window.electron.ipcRenderer.invoke(
+      'add-document-to-vector-db',
+      documents,
+    );
+    console.log('response: ', response);
+    return response;
+  } catch (error) {
+    console.error('Error adding document to vector DB:', error);
+    throw error;
+  }
+}

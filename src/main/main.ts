@@ -21,12 +21,13 @@ import {
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
-import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import { PythonUtils } from './utils/python';
 import { mboxParser } from 'mbox-parser';
 import { tableStructure, ensureTableStructure } from './utils/vector_db';
+import OpenAI from 'openai';
 import { Database } from 'sqlite3';
+import sqlite3 from 'sqlite3';
 
 const pythonUtils = new PythonUtils();
 
@@ -41,21 +42,104 @@ autoUpdater.autoRunAppAfterInstall = true;
 
 let downloadingItems = new Map();
 
-let config;
-let supabase;
- 
-try {
-  const configPath = path.join(__dirname, '../../config.json');
-  if (fs.existsSync(configPath)) {
-    config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    supabase = createClient(config.supabase_url, config.supabase_key);
-  } else if (process.env.NODE_ENV === 'production') {
-    config = require('../../config.json');
-    supabase = createClient(config.supabase_url, config.supabase_key);
+
+
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true,
+  });
+
+async function createEmbedding(text: string) {
+
+  const response = await openai.embeddings.create({
+    input: text,
+    model: 'text-embedding-3-small',
+  });
+  return response.data[0].embedding;
+}
+
+
+
+async function getSimilarData(queryEmbedding: number[]): Promise<any[]> {
+  const userData = app.getPath('userData');
+  const vectorDBPath = path.join(userData, 'vector_db.sqlite');
+
+  if (!fs.existsSync(vectorDBPath)) {
+    throw new Error('Vector database does not exist.');
   }
-} catch (error) {
-  console.error('Error loading config:', error);
-} 
+
+  console.log('Getting similar data!');
+  const db = new sqlite3.Database(vectorDBPath);
+
+  try {
+    // Create a temporary table for the query embedding
+    await runQuery(
+      db,
+      `CREATE TEMPORARY TABLE query_embedding (idx INTEGER PRIMARY KEY, value REAL)`,
+    );
+
+    // Insert the query embedding into the temporary table
+    const insertStmt = db.prepare(
+      `INSERT INTO query_embedding (idx, value) VALUES (?, ?)`,
+    );
+    for (let i = 0; i < queryEmbedding.length; i++) {
+      insertStmt.run(i, queryEmbedding[i]);
+    }
+    await new Promise((resolve) => insertStmt.finalize(resolve));
+
+    // Perform the similarity search using a more efficient method
+    const query = `
+      WITH similarity_calc AS (
+        SELECT id, company, name, runID, folderPath, content,
+               (SELECT SUM(db_embed.value * query_embed.value)
+                FROM json_each(embeddings) AS db_embed
+                JOIN query_embedding AS query_embed ON db_embed.key = query_embed.idx) AS dot_product,
+               (SELECT SQRT(SUM(value * value)) FROM json_each(embeddings)) AS magnitude_db,
+               (SELECT SQRT(SUM(value * value)) FROM query_embedding) AS magnitude_query
+        FROM db
+      )
+      SELECT id, company, name, runID, folderPath, content,
+             dot_product / (magnitude_db * magnitude_query) AS similarity
+      FROM similarity_calc
+      ORDER BY similarity DESC
+      LIMIT 5
+    `;
+
+    const results = await new Promise<any[]>((resolve, reject) => {
+      db.all(query, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+
+    return results;
+  } finally {
+    await runQuery(db, `DROP TABLE IF EXISTS query_embedding`);
+    db.close();
+  }
+}
+
+function runQuery(db: sqlite3.Database, query: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    db.run(query, (err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+}
+
+ipcMain.handle('get-similar-data', async (event, query: string) => {
+  try {
+    const embedding = await createEmbedding(query);
+    console.log('got embedding')
+    const similarData = await getSimilarData(embedding);
+    return similarData;
+  } catch (error) {
+    console.error('Error getting similar data:', error);
+    throw error;
+  }
+});
+
 
 ipcMain.handle('get-scrapers', async () => {
   let scrapersDir;
@@ -122,6 +206,7 @@ ipcMain.handle('get-scrapers', async () => {
           description: metadata && metadata.description ? metadata.description : 'No description available',
           isUpdated: metadata && metadata.isUpdated ? metadata.isUpdated : false,
           isVectorized: metadata && metadata.isVectorized ? metadata.isVectorized : false,
+          filesToVectorize: metadata && metadata.filesToVectorize ? metadata.filesToVectorize : null,
           logoURL: metadata && metadata.logoURL ? metadata.logoURL : name,
         };
       }),
@@ -1126,7 +1211,9 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
         // Ensure table structure is up to date
         await ensureTableStructure(db);
 
-        const { company, name, runID, folderPath } = document;
+        const { company, name, runID, folderPath, filesToVectorize } = document;
+
+        console.log('document: ', document)
 
         console.log('folderPath: ', folderPath);
         const files: string[] = [];
@@ -1138,28 +1225,35 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
             if (fs.statSync(fullPath).isDirectory()) {
               readFilesRecursively(fullPath);
             } else if (item.endsWith('.json') || item.endsWith('.md')) {
-              files.push(fullPath);
+              if (filesToVectorize.length > 0 && filesToVectorize.includes(item)) {
+                files.push(fullPath);
+              }
+              else if (filesToVectorize.length === 0) {
+                files.push(fullPath);
+              }
+
+              else {
+                console.log('Skipping file: ', item);
+              }
             }
           }
         }
 
         readFilesRecursively(folderPath);
         console.log('files', files);
-
-function chunkText(text: string, chunkSize = 1000) {
-  const result = [];
-  // Split text into chunks of chunkSize
-  for (let i = 0; i < text.length; i += chunkSize) {
-    // If text is shorter than chunk size, return it as a single chunk
-        if (text.length <= chunkSize) {
-            result.push(text);
-            return result;
-          }
-
-    result.push(text.slice(i, i + chunkSize));
+function chunkText(text: string, chunkSize = 1000, overlap = 200) {
+  const chunks = [];
+  let start = 0;
+  while (start < text.length) {
+    const end = start + chunkSize;
+    const chunk = text.slice(start, end);
+    chunks.push(chunk);
+    start = end - overlap;
   }
-
+  return chunks;
 }
+
+
 
 for (const file of files) {
   const filePath = path.isAbsolute(file) ? file : path.join(folderPath, file);
@@ -1169,7 +1263,6 @@ for (const file of files) {
 
   try {
     fullJSON = JSON.parse(fullContent);
-    console.log(`Content of ${file}:`, fullJSON);
 
     if (Array.isArray(fullJSON.content)) {
       // JSON with content array
@@ -1182,7 +1275,6 @@ for (const file of files) {
       contentToProcess = [fullJSON];
     }
   } catch (error) {
-    console.log(`Content of ${file} (not JSON):`, fullContent);
     // Raw text (txt, markdown, etc.)
     contentToProcess = [fullContent];
   }
@@ -1214,11 +1306,11 @@ for (const file of files) {
     continue;
   }
 
-    //const chunks = chunkText(textToChunk, 1000);
+    const chunks = chunkText(textToChunk);
 
     try {
-    // for (const chunk of chunks) {
-    const randomVector = new Float32Array(128).map(() => Math.random());
+    for (const chunk of chunks) {
+    const embedding = await createEmbedding(chunk);
 
     const columns = Object.keys(tableStructure)
       .filter((col) => col !== 'id')
@@ -1243,9 +1335,9 @@ for (const file of files) {
           case 'folderPath':
             return folderPath;
           case 'content':
-            return textToChunk;
+            return chunk;
           case 'embeddings':
-            return JSON.stringify(randomVector);
+            return JSON.stringify(embedding);
           default:
             return null;
         }
@@ -1269,7 +1361,7 @@ for (const file of files) {
       );
     });
   }
-// }
+}
 
 catch (error) {
   console.error('Error in chunking:', error);

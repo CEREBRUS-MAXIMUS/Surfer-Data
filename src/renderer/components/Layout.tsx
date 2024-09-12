@@ -8,6 +8,7 @@ interface LayoutProps {
   getWebviewRef: (runId: string) => React.RefObject<HTMLWebViewElement>;
   contentScale: number; 
   onHomeClick: () => void;
+  onChatClick: () => void;
   children: React.ReactNode;
 }
 
@@ -16,11 +17,12 @@ const Layout: React.FC<LayoutProps> = ({
   getWebviewRef,
   contentScale,
   onHomeClick,
+  onChatClick,
   children
 }) => {
   return (
     <div className="h-screen flex flex-col w-full">
-      <SurferHeader className="flex-shrink-0 h-[55px] w-full" onHomeClick={onHomeClick} />
+      <SurferHeader className="flex-shrink-0 h-[55px] w-full" onChatClick={onChatClick} />
       <main className="flex-grow overflow-hidden relative w-full max-w-full min-w-full bg-background">
         <div
           className="absolute top-0 left-0 w-full h-full overflow-auto"

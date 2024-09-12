@@ -18,7 +18,7 @@ import {
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
-import { addDocuments } from '../../../../openai'
+import { addDocuments } from '../../../main/utils/vector_db'
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
   position: fixed;
@@ -280,11 +280,14 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     ) => {
 
       console.log('got this: ', company, name, runID, folderPath, exportSize);
+      let runToVectorize : any;
 
       if (runID.toString().slice(-4) === '-001'){
         const downloadRun = activeRuns.filter(
           (run) => run.platformId === runID.toString(),
         )[0];
+
+        runToVectorize = downloadRun;
 
         console.log('stopping download run: ', downloadRun); 
 
@@ -301,7 +304,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           runID,
         );
 
-     
+        runToVectorize = runs.find((run) => run.id === runID.toString());
         dispatch(updateExportStatus(company, name, runID.toString(), folderPath, exportSize));
        }
 
@@ -310,8 +313,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           name: name,
           runID: runID,
           folderPath: folderPath,
-          content: 'This is a quarterly sales report for Acme Corp, showing a 15% increase in revenue.',
-          vector: [1, 2, 3]
+          filesToVectorize: runToVectorize.filesToVectorize ? runToVectorize.filesToVectorize : []
         })
     };
 

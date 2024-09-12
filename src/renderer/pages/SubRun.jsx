@@ -51,6 +51,8 @@ const SubRun = ({ platform, subRun }) => {
       id: `${platform.id}-${Date.now()}`,
       filename: platform.filename,
       isConnected: true,
+      isVectorized: platform.isVectorized,
+      filesToVectorize: platform.filesToVectorize,
       company: platform.company,
       name: platform.name,
       platformId: platform.id,

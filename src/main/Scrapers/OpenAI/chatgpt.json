@@ -1,4 +1,5 @@
 {
     "name": "ChatGPT",
-    "description": "Exports your entire ChatGPT history."
+    "description": "Exports your entire ChatGPT history.",
+    "filesToVectorize": ["basic_conversations.json"]
 }
