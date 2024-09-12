@@ -272,6 +272,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
   useEffect(() => {
     const handleExportComplete = async (
+      isUpdate: boolean = false,
       company: string,
       name: string,
       runID: number,
@@ -308,6 +309,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
         dispatch(updateExportStatus(company, name, runID.toString(), folderPath, exportSize));
        }
 
+       if (!isUpdate) {
         await addDocuments({
           company: company,
           name: name,
@@ -315,6 +317,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           folderPath: folderPath,
           filesToVectorize: runToVectorize.filesToVectorize ? runToVectorize.filesToVectorize : []
         })
+       }
     };
 
 

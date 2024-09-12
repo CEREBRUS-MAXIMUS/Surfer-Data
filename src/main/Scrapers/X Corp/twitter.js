@@ -122,7 +122,7 @@ async function exportTwitter(id, platformId, filename, company, name) {
 
           if (tweetExists) { 
             customConsoleLog(id, 'Tweet already exists, skipping');
-  ipcRenderer.send('handle-update-complete', id, platformId, company, name);
+            ipcRenderer.send('handle-update-complete', id, platformId, company, name);
             return 'HANDLE_UPDATE_COMPLETE';
           } else {
             ipcRenderer.send(
