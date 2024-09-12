@@ -3,17 +3,24 @@ import { Card, CardContent } from "../../renderer/components/ui/card";
 import { Input } from "../../renderer/components/ui/input";
 import { Button } from "../../renderer/components/ui/button";
 import { ScrollArea } from "../../renderer/components/ui/scroll-area";
+import { useDispatch } from 'react-redux';
+import { updateBreadcrumb } from '../state/actions';
 
 const Chat = () => { 
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const scrollAreaRef = useRef(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages.length]);
+
+  useEffect(() => {
+    dispatch(updateBreadcrumb([{ text: 'Home', link: '/home' }]));
+  }, [dispatch]);
 
   const handleSendMessage = async () => {
     if (inputMessage.trim()) {

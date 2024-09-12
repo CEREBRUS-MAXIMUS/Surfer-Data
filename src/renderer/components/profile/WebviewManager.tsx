@@ -272,12 +272,12 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
   useEffect(() => {
     const handleExportComplete = async (
-      isUpdate: boolean = false,
       company: string,
       name: string,
       runID: number,
       folderPath: string,
-      exportSize: number
+      exportSize: number,
+      isUpdate: boolean = false
     ) => {
 
       console.log('got this: ', company, name, runID, folderPath, exportSize);

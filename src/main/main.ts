@@ -1086,6 +1086,7 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
                         );
                         rej({ success: false, error: insertErr.message });
                       } else {
+                        console.log('Inserted document chunk for: ', folderPath)
                         res({ success: true, id: this.lastID });
                       }
                     },
@@ -1195,7 +1196,10 @@ if (!existingData) {
 
   const vectorDBPath = path.join(userData, 'vector_db.sqlite');
 
+
   return new Promise((resolve, reject) => {
+
+    
     const db = new Database(vectorDBPath, async (err) => {
       if (err) {
         console.error('Error opening vector_db.sqlite:', err);
@@ -1204,6 +1208,8 @@ if (!existingData) {
       }
 
           try {
+
+             await ensureTableStructure(db);
             fullJSON = JSON.parse(fullContent);
 
             if (Array.isArray(fullJSON.content)) {
@@ -1302,7 +1308,10 @@ if (!existingData) {
                         );
                         rej({ success: false, error: insertErr.message });
                       } else {
-                        console.log('vectorized!')
+                        console.log(
+                          'Inserted document chunk for: ',
+                          filePath,
+                        );
                         res({ success: true, id: this.lastID });
                       }
                     },
@@ -1338,12 +1347,12 @@ ipcMain.on('handle-update-complete', (event, runID, platformId, company, name, c
   if (fs.existsSync(filePath)) {
   mainWindow?.webContents.send(
     'export-complete',
-    true,
     company,
     name,
     runID,
     folderPath,
     getTotalFolderSize(folderPath),
+    true,
   );
   }
 })

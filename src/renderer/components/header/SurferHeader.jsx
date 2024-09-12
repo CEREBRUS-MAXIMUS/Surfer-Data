@@ -695,6 +695,7 @@ export const SurferHeader = ({ onChatClick }) => {
     dispatch(toggleRunVisibility());
   };
 
+
   return (
     <StyledSurferHeader theme={theme} className="bg-background text-foreground">
       <div className="div">

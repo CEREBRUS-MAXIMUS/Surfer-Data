@@ -28,8 +28,7 @@ async function checkIfTweetExists(id, platformId, company, name, currentTweet) {
       if (tweets && tweets.content && Array.isArray(tweets.content)) {
         for (const tweet of tweets.content) {
           if (
-            tweet.timestamp === currentTweet.timestamp &&
-            tweet.text === currentTweet.text
+            tweet.timestamp === currentTweet.timestamp
           ) {
             console.log(id, 'Tweet already exists, skipping');
             return true;
