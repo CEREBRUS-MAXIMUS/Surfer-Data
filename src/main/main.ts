@@ -27,7 +27,8 @@ import { PythonUtils } from './utils/python';
 import { mboxParser } from 'mbox-parser';
 import { tableStructure, ensureTableStructure } from './utils/vector_db';
 import OpenAI from 'openai';
-import { Database, verbose } from 'better-sqlite3';
+import { Database } from 'sqlite3';
+import sqlite3 from 'sqlite3';
 import { dot } from 'mathjs';
 import { setupProtocol } from './utils/protocol';
 

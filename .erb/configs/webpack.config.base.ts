@@ -6,8 +6,9 @@ import webpack from 'webpack';
 import TsconfigPathsPlugins from 'tsconfig-paths-webpack-plugin';
 import webpackPaths from './webpack.paths';
 
+
 const configuration: webpack.Configuration = {
-  externals: ['better-sqlite3'],
+  externals: [],
 
   stats: 'errors-only',
 
