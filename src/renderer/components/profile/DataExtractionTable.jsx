@@ -398,7 +398,7 @@ const showLogs = (platform) => {
     <div id="log-container" className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '300px' }}>
       <pre className="font-mono text-xs whitespace-pre-wrap break-words">
         {logLines.map((line, index) => (
-          <span key={index} className={line === 'YOU NEED TO SIGN IN!' ? 'text-red-500' : ''}>
+          <span key={index} className={line === 'YOU NEED TO SIGN IN (click the eye in the top right)!' ? 'text-red-500' : ''}>
             {line}
             {index < logLines.length - 1 && '\n'}
           </span>

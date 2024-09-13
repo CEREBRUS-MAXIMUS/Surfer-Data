@@ -28,6 +28,7 @@ import { tableStructure, ensureTableStructure } from './utils/vector_db';
 import OpenAI from 'openai';
 import { Database } from 'sqlite3';
 import sqlite3 from 'sqlite3';
+import { dot } from 'mathjs';
 
 const pythonUtils = new PythonUtils();
 
@@ -57,6 +58,14 @@ async function createEmbedding(text: string) {
   return response.data[0].embedding;
 }
 
+function cosineSimilarity(a: number[], b: number[]): number {
+  const dotProduct = dot(a, b);
+  const magnitudeA = Math.sqrt(dot(a, a));
+  const magnitudeB = Math.sqrt(dot(b, b));
+  return dotProduct / (magnitudeA * magnitudeB);
+}
+
+
 
 
 async function getSimilarData(queryEmbedding: number[]): Promise<any[]> {
@@ -68,54 +77,30 @@ async function getSimilarData(queryEmbedding: number[]): Promise<any[]> {
   }
 
   console.log('Getting similar data!');
+
   const db = new sqlite3.Database(vectorDBPath);
 
-  try {
-    // Create a temporary table for the query embedding
-    await runQuery(
-      db,
-      `CREATE TEMPORARY TABLE query_embedding (idx INTEGER PRIMARY KEY, value REAL)`,
-    );
-
-    // Insert the query embedding into the temporary table
-    const insertStmt = db.prepare(
-      `INSERT INTO query_embedding (idx, value) VALUES (?, ?)`,
-    );
-    for (let i = 0; i < queryEmbedding.length; i++) {
-      insertStmt.run(i, queryEmbedding[i]);
-    }
-    await new Promise((resolve) => insertStmt.finalize(resolve));
-
-    // Perform the similarity search using a more efficient method
-    const query = `
-      WITH similarity_calc AS (
-        SELECT id, company, name, runID, folderPath, content,
-               (SELECT SUM(db_embed.value * query_embed.value)
-                FROM json_each(embeddings) AS db_embed
-                JOIN query_embedding AS query_embed ON db_embed.key = query_embed.idx) AS dot_product,
-               (SELECT SQRT(SUM(value * value)) FROM json_each(embeddings)) AS magnitude_db,
-               (SELECT SQRT(SUM(value * value)) FROM query_embedding) AS magnitude_query
-        FROM db
-      )
-      SELECT id, company, name, runID, folderPath, content,
-             dot_product / (magnitude_db * magnitude_query) AS similarity
-      FROM similarity_calc
-      ORDER BY similarity DESC
-      LIMIT 5
-    `;
-
-    const results = await new Promise<any[]>((resolve, reject) => {
-      db.all(query, [], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
+  // Fetch all embeddings and their corresponding row data
+  const rows = await new Promise<any[]>((resolve, reject) => {
+    db.all(`SELECT id, company, name, runID, folderPath, content, embeddings FROM db`, [], (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
     });
+  });
 
-    return results;
-  } finally {
-    await runQuery(db, `DROP TABLE IF EXISTS query_embedding`);
-    db.close();
-  }
+  // Calculate cosine similarity for each embedding
+  const similarities = rows.map(row => {
+    const embedding = JSON.parse(row.embeddings);
+    const similarity = cosineSimilarity(queryEmbedding, embedding);
+    return { ...row, similarity };
+  });
+
+  // Sort by similarity and get top 5
+  const topResults = similarities
+    .sort((a, b) => b.similarity - a.similarity)
+    .slice(0, 5);
+
+  return topResults;
 }
 
 function runQuery(db: sqlite3.Database, query: string): Promise<void> {
@@ -982,6 +967,8 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
 
         readFilesRecursively(folderPath);
 
+        const batchSize = 100;
+        let batch = [];
 
         for (const file of files) {
           const filePath = path.isAbsolute(file)
@@ -1042,14 +1029,6 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
               for (const chunk of chunks) {
                 const embedding = await createEmbedding(chunk);
 
-                const columns = Object.keys(tableStructure)
-                  .filter((col) => col !== 'id')
-                  .join(', ');
-                const placeholders = Object.keys(tableStructure)
-                  .filter((col) => col !== 'id')
-                  .map(() => '?')
-                  .join(', ');
-
                 const values = Object.keys(tableStructure)
                   .filter((col) => col !== 'id')
                   .map((col) => {
@@ -1067,37 +1046,29 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
                       case 'content':
                         return chunk;
                       case 'embeddings':
-                        return JSON.stringify([0, 1, 2]);
+                        return JSON.stringify(embedding);
                       default:
                         return null;
                     }
                   });
 
-                await new Promise((res, rej) => {
-                  db.run(
-                    `INSERT INTO db (${columns}) VALUES (${placeholders})`,
-                    values,
-                    function (insertErr) {
-                      if (insertErr) {
-                        console.error(
-                          `Error inserting document chunk for ${file}:`,
-                          insertErr,
-                        );
-                        rej({ success: false, error: insertErr.message });
-                      } else {
-                        console.log('Inserted document chunk for: ', folderPath)
-                        res({ success: true, id: this.lastID });
-                      }
-                    },
-                  );
-                });
+                batch.push(values);
+
+                if (batch.length === batchSize) {
+                  await insertBatch(db, batch);
+                  batch = [];
+                }
               }
             } catch (error) {
               console.error('Error in chunking:', error);
               continue;
             }
           }
+        }
 
+        // Insert any remaining items in the batch
+        if (batch.length > 0) {
+          await insertBatch(db, batch);
         }
 
         const result = {
@@ -1120,6 +1091,39 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
     });
   });
 });
+
+async function insertBatch(db: Database, batch: any[]) {
+  const columns = Object.keys(tableStructure)
+    .filter((col) => col !== 'id')
+    .join(', ');
+  const placeholders = batch
+    .map(
+      () =>
+        `(${Object.keys(tableStructure)
+          .filter((col) => col !== 'id')
+          .map(() => '?')
+          .join(', ')})`,
+    )
+    .join(', ');
+
+  const flattenedValues = batch.flat();
+
+  return new Promise((resolve, reject) => {
+    db.run(
+      `INSERT INTO db (${columns}) VALUES ${placeholders}`,
+      flattenedValues,
+      function (insertErr) {
+        if (insertErr) {
+          console.error(`Error inserting document chunks`, insertErr);
+          reject({ success: false, error: insertErr.message });
+        } else {
+          console.log(`Inserted ${batch.length} document chunks`);
+          resolve({ success: true, lastID: this.lastID });
+        }
+      },
+    );
+  });
+}
 
 
 ipcMain.on('handle-update', async (event, company, name, platformId, data, runID, customFilePath = null) => {

@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Card, CardContent } from "../../renderer/components/ui/card";
 import { Input } from "../../renderer/components/ui/input";
 import { Button } from "../../renderer/components/ui/button";
 import { ScrollArea } from "../../renderer/components/ui/scroll-area";
-import { useDispatch } from 'react-redux';
 import { updateBreadcrumb } from '../state/actions';
+import SubscribeCard from '../components/subscribe/SubscribeCard';
 
 const Chat = () => { 
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const scrollAreaRef = useRef(null);
   const dispatch = useDispatch();
+  const { isSubscribed } = useSelector((state) => state.app);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -54,31 +56,41 @@ const Chat = () => {
 
   return (
     <div className="flex flex-col h-screen p-4"> 
-      <Card className="flex-grow mb-4">
-        <CardContent className="p-4">
-          <ScrollArea className="h-[calc(100vh-200px)]" ref={scrollAreaRef}>
-            {messages.map((message, index) => (
-              <div key={index} className={`mb-4 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
-                <div className={`inline-block rounded-lg py-2 px-3 ${
-                  message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
-                }`}>
-                  {message.text || message.content}
-                </div>
-              </div>
-            ))}
-          </ScrollArea>
-        </CardContent>
-      </Card>
+      {isSubscribed ? (
+        <>
+          <Card className="flex-grow mb-4">
+            <CardContent className="p-4">
+              <ScrollArea className="h-[calc(100vh-200px)]" ref={scrollAreaRef}>
+                {messages.map((message, index) => (
+                  <div key={index} className={`mb-4 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
+                    <div className={`inline-block rounded-lg py-2 px-3 ${
+                      message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
+                    }`}>
+                      {message.text || message.content}
+                    </div>
+                  </div>
+                ))}
+              </ScrollArea>
+            </CardContent>
+          </Card>
 
-      <div className="flex space-x-2">
-        <Input
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-          placeholder="Type your message..."
-          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-        />
-        <Button onClick={handleSendMessage}>Send</Button>
-      </div>
+          <div className="flex space-x-2">
+            <Input
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              placeholder="Type your message..."
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            />
+            <Button onClick={handleSendMessage}>Send</Button>
+          </div>
+        </> 
+      ) : (
+        <div className="flex flex-col h-screen p-4">
+
+              <SubscribeCard />
+
+        </div>
+      )}
     </div>
   );
 };
