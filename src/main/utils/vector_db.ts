@@ -1,4 +1,4 @@
-import { Database } from 'sqlite3';
+import { Database } from 'better-sqlite3';
 
 // Define your table structure in one place
 export const tableStructure = {

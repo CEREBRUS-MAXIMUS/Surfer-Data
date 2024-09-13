@@ -8,6 +8,7 @@ import { getFilesInFolder } from './utils/util';
 import {
   app,
   BrowserWindow,
+  BrowserView,
   shell,
   ipcMain,
   protocol,
@@ -26,9 +27,9 @@ import { PythonUtils } from './utils/python';
 import { mboxParser } from 'mbox-parser';
 import { tableStructure, ensureTableStructure } from './utils/vector_db';
 import OpenAI from 'openai';
-import { Database } from 'sqlite3';
-import sqlite3 from 'sqlite3';
+import { Database, verbose } from 'better-sqlite3';
 import { dot } from 'mathjs';
+import { setupProtocol } from './utils/protocol';
 
 const pythonUtils = new PythonUtils();
 
@@ -78,7 +79,7 @@ async function getSimilarData(queryEmbedding: number[]): Promise<any[]> {
 
   console.log('Getting similar data!');
 
-  const db = new sqlite3.Database(vectorDBPath);
+  const db = new Database(vectorDBPath);
 
   // Fetch all embeddings and their corresponding row data
   const rows = await new Promise<any[]>((resolve, reject) => {
@@ -103,7 +104,7 @@ async function getSimilarData(queryEmbedding: number[]): Promise<any[]> {
   return topResults;
 }
 
-function runQuery(db: sqlite3.Database, query: string): Promise<void> {
+function runQuery(db: Database, query: string): Promise<void> {
   return new Promise((resolve, reject) => {
     db.run(query, (err) => {
       if (err) reject(err);
@@ -337,8 +338,41 @@ if (isDebug) {
   require('electron-debug')();
 }
 
-let scrapingManager: ScrapingManager;
- 
+let authWindow: BrowserView | null = null;
+
+ipcMain.handle('google-sign-in', async (event, authUrl: string) => {
+  if (mainWindow) {
+    authWindow = new BrowserView();
+    mainWindow.setBrowserView(authWindow);
+    authWindow.setBounds({ x: 0, y: 0, width: 800, height: 600 });
+    authWindow.webContents.loadURL(authUrl);
+
+    authWindow.webContents.on('will-navigate', (event, url) => {
+      handleAuthCallback(url);
+    });
+
+    authWindow.webContents.on('will-redirect', (event, url) => {
+      handleAuthCallback(url);
+    });
+  }
+});
+
+function handleAuthCallback(url: string) {
+  const rawCode = /access_token=([^&]*)/.exec(url) || null;
+  const accessToken = rawCode && rawCode.length > 1 ? rawCode[1] : null;
+  const error = /\?error=(.+)$/.exec(url);
+
+  if (accessToken) {
+    if (mainWindow && authWindow) {
+      mainWindow.removeBrowserView(authWindow);
+      authWindow = null;
+    }
+    mainWindow?.webContents.send('google-sign-in-success', accessToken);
+  } else if (error) {
+    console.error('Google Sign-In Error:', error);
+    mainWindow?.webContents.send('google-sign-in-error', error);
+  }
+}
 
 export const createWindow = async (visible: boolean = true) => {
   if (mainWindow) {
@@ -354,7 +388,7 @@ export const createWindow = async (visible: boolean = true) => {
   };
 
   mainWindow = new BrowserWindow({
-    show: visible, 
+    show: visible,
     //set to max with on mac screen
     width: 1560,
     height: 1024,
@@ -377,6 +411,8 @@ export const createWindow = async (visible: boolean = true) => {
       webviewTag: true,
     },
   });
+
+  setupProtocol(mainWindow);
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
@@ -403,7 +439,8 @@ export const createWindow = async (visible: boolean = true) => {
         details.url.includes(
           'https://proddatamgmtqueue.blob.core.windows.net/exportcontainer/',
         ) ||
-        details.url.includes('file.notion.so')
+        details.url.includes('file.notion.so') ||
+        details.url.includes('https://cerebrus-maximus.firebaseapp.com/__/auth/handler')
       ) {
         console.log('ALLOWING THIS URL: ', details.url);
         return { action: 'allow' };
@@ -424,6 +461,40 @@ export const createWindow = async (visible: boolean = true) => {
       mainWindow?.webContents.send('fullscreen-changed', true);
     }
   });
+
+  const filter = {
+    urls: ['https://cerebrus-maximus.firebaseapp.com/__/auth/handler*'],
+  };
+
+
+  // let isHandlingRedirect = false;
+  // mainWindow?.webContents.session.webRequest.onBeforeRequest(
+  //   filter,
+  //   (details, callback) => {
+  //     if (isHandlingRedirect) {
+  //       callback({ cancel: false });
+  //       return;
+  //     }
+
+  //     isHandlingRedirect = true;
+  //     const url = new URL(details.url);
+  //     console.log('Intercepted auth redirect:', url.toString());
+
+  //     // Instead of loading the URL directly, send it to the renderer process
+  //     mainWindow?.loadURL(url.toString());
+
+  //     // Allow the request to proceed
+  //     callback({ cancel: false });
+
+  //     // Reset the flag after a short delay
+  //     setTimeout(() => {
+  //       isHandlingRedirect = false;
+  //     }, 1000);
+  //   },
+  // );
+
+  // ... rest of createWindow function ...
+
 
   //on take screenshot
   mainWindow?.webContents.on('take-screenshot', (event, url, workspaceId) => {
@@ -539,107 +610,108 @@ export const createWindow = async (visible: boolean = true) => {
     });
   }
 
-async function parseConversationsJSON(extractPath: string) {
-  const conversationsFilePath = path.join(extractPath, 'conversations.json');
-  const parsedConversationsFilePath = path.join(
-    extractPath,
-    'basic_conversations.json',
-  );
-  console.log('Parsing conversations.json...');
-
-  let formattedConversations = [];
-
-  if (fs.existsSync(conversationsFilePath)) {
-    const conversationsData = fs.readFileSync(conversationsFilePath, 'utf8');
-    const parsedData = JSON.parse(conversationsData);
-
-    formattedConversations = parsedData.map((conversation: any) => {
-      const messages = Object.values(conversation.mapping)
-        .filter(
-          (node: any) => node.message && node.message.author.role !== 'system',
-        )
-        .sort((a: any, b: any) => {
-          const timeA = a.message.create_time || 0;
-          const timeB = b.message.create_time || 0;
-          return timeA - timeB;
-        })
-        .map((node: any) => ({
-          message: node.message.content.parts.join('\n'),
-          role: node.message.author.role === 'assistant' ? 'AI' : 'human',
-        }))
-        .filter(msg => msg.message.trim() !== ''); // Filter out blank or whitespace-only messages
-
-      return {
-        title: conversation.title,
-        timestamp: conversation.create_time,
-        conversation: messages,
-      };
-    });
-
-    console.log('Conversations parsed successfully');
-  } else {
-    console.warn('Conversations.json file not found in:', extractPath);
-  }
-
-  // Write the formatted conversations to parsed_conversations.json
-  try {
-    fs.writeFileSync(
-      parsedConversationsFilePath,
-      JSON.stringify(formattedConversations, null, 2),
+  async function parseConversationsJSON(extractPath: string) {
+    const conversationsFilePath = path.join(extractPath, 'conversations.json');
+    const parsedConversationsFilePath = path.join(
+      extractPath,
+      'basic_conversations.json',
     );
-    console.log('Parsed conversations written to parsed_conversations.json');
-  } catch (error) {
-    console.error('Error writing to parsed_conversations.json:', error);
+    console.log('Parsing conversations.json...');
+
+    let formattedConversations = [];
+
+    if (fs.existsSync(conversationsFilePath)) {
+      const conversationsData = fs.readFileSync(conversationsFilePath, 'utf8');
+      const parsedData = JSON.parse(conversationsData);
+
+      formattedConversations = parsedData.map((conversation: any) => {
+        const messages = Object.values(conversation.mapping)
+          .filter(
+            (node: any) =>
+              node.message && node.message.author.role !== 'system',
+          )
+          .sort((a: any, b: any) => {
+            const timeA = a.message.create_time || 0;
+            const timeB = b.message.create_time || 0;
+            return timeA - timeB;
+          })
+          .map((node: any) => ({
+            message: node.message.content.parts.join('\n'),
+            role: node.message.author.role === 'assistant' ? 'AI' : 'human',
+          }))
+          .filter((msg) => msg.message.trim() !== ''); // Filter out blank or whitespace-only messages
+
+        return {
+          title: conversation.title,
+          timestamp: conversation.create_time,
+          conversation: messages,
+        };
+      });
+
+      console.log('Conversations parsed successfully');
+    } else {
+      console.warn('Conversations.json file not found in:', extractPath);
+    }
+
+    // Write the formatted conversations to parsed_conversations.json
+    try {
+      fs.writeFileSync(
+        parsedConversationsFilePath,
+        JSON.stringify(formattedConversations, null, 2),
+      );
+      console.log('Parsed conversations written to parsed_conversations.json');
+    } catch (error) {
+      console.error('Error writing to parsed_conversations.json:', error);
+    }
+
+    return formattedConversations;
   }
 
-  return formattedConversations;
-}
+  async function convertMboxToJson(
+    mboxFilePath: string,
+    jsonOutputPath: string,
+    id: string,
+    company: string,
+    name: string,
+    runID: string,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const readStream = fs.createReadStream(mboxFilePath);
 
-async function convertMboxToJson(
-  mboxFilePath: string,
-  jsonOutputPath: string,
-  id: string,
-  company: string,
-  name: string,
-  runID: string,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const readStream = fs.createReadStream(mboxFilePath);
+      const data = {
+        company,
+        name,
+        runID,
+        timestamp: Date.now(),
+        content: [],
+      };
 
-    const data = {
-      company,
-      name,
-      runID,
-      timestamp: Date.now(),
-      content: [],
-    };
+      mboxParser(readStream)
+        .then((messages) => {
+          messages.forEach((message) => {
+            const jsonMessage = {
+              accountID: id,
+              from: message.from?.text,
+              to: message.to?.text || message.to,
+              subject: message.subject,
+              timestamp: message.date,
+              body: message.text,
+              added_to_db: new Date().toISOString(),
+            };
 
-    mboxParser(readStream)
-      .then((messages) => {
-        messages.forEach((message) => {
-          const jsonMessage = {
-            accountID: id,
-            from: message.from?.text,
-            to: message.to?.text || message.to,
-            subject: message.subject,
-            timestamp: message.date,
-            body: message.text,
-            added_to_db: new Date().toISOString(),
-          };
+            data.content.push(jsonMessage);
+          });
 
-          data.content.push(jsonMessage);
+          fs.writeFileSync(jsonOutputPath, JSON.stringify(data, null, 2));
+          console.log('MBOX to JSON conversion completed');
+          resolve();
+        })
+        .catch((error) => {
+          console.error('Error parsing MBOX:', error);
+          reject(error);
         });
-
-        fs.writeFileSync(jsonOutputPath, JSON.stringify(data, null, 2));
-        console.log('MBOX to JSON conversion completed');
-        resolve();
-      })
-      .catch((error) => {
-        console.error('Error parsing MBOX:', error);
-        reject(error);
-      });
-  });
-}
+    });
+  }
 
   let lastDownloadUrl = '';
   let lastDownloadTime = 0;
@@ -741,26 +813,27 @@ async function convertMboxToJson(
           console.log('Download completed:', dl.getSavePath());
           const filePath = dl.getSavePath();
           if (filePath.toLowerCase().endsWith('.zip')) {
-
             const extractPath = path.join(idPath, 'extracted');
-            
+
             try {
               await extractZip(filePath, extractPath);
               console.log('Outer ZIP extracted to:', extractPath);
 
-              // parsing conversations.json  
+              // parsing conversations.json
 
               if (extractPath.includes('ChatGPT')) {
-                await parseConversationsJSON(extractPath)
+                await parseConversationsJSON(extractPath);
               }
               // Find the inner ZIP file
-              const innerZipFile = fs.readdirSync(extractPath).find(file => file.endsWith('.zip'));
-              
+              const innerZipFile = fs
+                .readdirSync(extractPath)
+                .find((file) => file.endsWith('.zip'));
+
               if (innerZipFile) {
                 const innerZipPath = path.join(extractPath, innerZipFile);
                 await extractZip(innerZipPath, extractPath);
                 console.log('Inner ZIP extracted to:', extractPath);
-                
+
                 // Delete the inner ZIP file after extraction
                 fs.unlinkSync(innerZipPath);
               }
@@ -788,40 +861,44 @@ async function convertMboxToJson(
                 };
 
                 const mboxFilePath = findMboxFile(extractPath);
-if (mboxFilePath) {
-  const jsonOutputPath = path.join(extractPath, `${platformId}.json`);
+                if (mboxFilePath) {
+                  const jsonOutputPath = path.join(
+                    extractPath,
+                    `${platformId}.json`,
+                  );
 
-  try {
-    console.log('Converting MBOX to JSON:', mboxFilePath);
-    const accountID = new URL(url).searchParams.get('authuser') || '0';
-    await convertMboxToJson(
-      mboxFilePath,
-      jsonOutputPath,
-      accountID,
-      'Google',
-      'Gmail',
-      platformId,
-    );
-    console.log('MBOX converted to JSON:', jsonOutputPath);
+                  try {
+                    console.log('Converting MBOX to JSON:', mboxFilePath);
+                    const accountID =
+                      new URL(url).searchParams.get('authuser') || '0';
+                    await convertMboxToJson(
+                      mboxFilePath,
+                      jsonOutputPath,
+                      accountID,
+                      'Google',
+                      'Gmail',
+                      platformId,
+                    );
+                    console.log('MBOX converted to JSON:', jsonOutputPath);
 
-    mainWindow?.webContents.send(
-      'export-complete',
-      'Google',
-      'Gmail',
-      platformId,
-      extractPath,
-      getTotalFolderSize(extractPath),
-    );
-  } catch (error) {
-    console.error('Error converting MBOX to JSON:', error);
-    mainWindow?.webContents.send('download-error', {
-      fileName,
-      error: 'Error converting MBOX to JSON: ' + error.message,
-    });
-  }
-} else {
-  console.log('No MBOX file found in the extracted content.');
-}
+                    mainWindow?.webContents.send(
+                      'export-complete',
+                      'Google',
+                      'Gmail',
+                      platformId,
+                      extractPath,
+                      getTotalFolderSize(extractPath),
+                    );
+                  } catch (error) {
+                    console.error('Error converting MBOX to JSON:', error);
+                    mainWindow?.webContents.send('download-error', {
+                      fileName,
+                      error: 'Error converting MBOX to JSON: ' + error.message,
+                    });
+                  }
+                } else {
+                  console.log('No MBOX file found in the extracted content.');
+                }
               }
 
               mainWindow?.webContents.send(
@@ -830,7 +907,7 @@ if (mboxFilePath) {
                 path.basename(platformPath),
                 platformId,
                 extractPath,
-                getTotalFolderSize(extractPath)
+                getTotalFolderSize(extractPath),
               );
             } catch (error) {
               console.error('Error extracting ZIP:', error);
@@ -847,7 +924,7 @@ if (mboxFilePath) {
               path.basename(platformPath),
               platformId,
               idPath,
-              getTotalFolderSize(idPath)
+              getTotalFolderSize(idPath),
             );
           }
         })

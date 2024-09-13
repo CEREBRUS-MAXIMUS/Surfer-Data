@@ -31,10 +31,5 @@
     "rebuild": "node -r ts-node/register ../../.erb/scripts/electron-rebuild.js",
     "postinstall": "npm run rebuild && npm run link-modules",
     "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
-  },
-  "dependencies": {
-    "@langchain/community": "^0.0.43",
-    "@vscode/vscode-languagedetection": "^1.0.22",
-    "langchain": "^0.1.30"
   }
 }

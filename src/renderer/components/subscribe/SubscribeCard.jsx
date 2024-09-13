@@ -2,14 +2,11 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Check } from 'lucide-react';
 import { Button } from "../ui/button";
-import SignInModal from './SignInModal';
+import SignInModal from './SignInModal'; 
+import { useAuth } from '../../auth/FirebaseAuth';
 
 const SubscribeCard = () => {
-	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false); 
-
-	const handleSubscribe = () => {
-		setIsSignInModalOpen(true);
-	};
+	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
 	return (
 		<>
@@ -58,8 +55,8 @@ const SubscribeCard = () => {
 					</CardContent>
 					<CardFooter>
 						<Button 
-							className="w-full" 
-							onClick={handleSubscribe}
+							className="w-full"
+							onClick={() => setIsSignInModalOpen(true)}
 						>
 							Subscribe
 						</Button>

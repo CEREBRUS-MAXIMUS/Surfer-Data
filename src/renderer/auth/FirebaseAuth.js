@@ -1,53 +1,74 @@
-// import React, { useState, useEffect } from 'react';
-// import { auth } from '../firebase-config'; // Assuming you have a firebase-config.js file
-// import { 
-//   signInWithEmailAndPassword, 
-//   createUserWithEmailAndPassword, 
-//   signOut,
-//   onAuthStateChanged
-// } from 'firebase/auth';
+import React, { useContext, useState, useEffect } from 'react';
+import app from '../../firebase'
 
-export const AuthContext = React.createContext();
+const AuthContext = React.createContext();
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+export function useAuth() {
+  return useContext(AuthContext);
+}
+
+export function AuthProvider({ children }) {
+  const [currentUser, setCurrentUser] = useState();
   const [loading, setLoading] = useState(true);
+  const [userDoc, setUserDoc] = useState(null); // State to hold user document
+
+  console.log('AuthProvider');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => { 
-      setUser(user);
+    const unsubscribeAuth = app.auth().onAuthStateChanged((user) => {
+      setLoading(true);
+
+      console.log('auth state changed!');
+      // DEBUGGING IN PROD DONT REMOVE!!!
+      if (user && user.email === 'lihas1002@gmail.com') {
+        window.electron.ipcRenderer.send('show-dev-tools');
+      }
+      setCurrentUser(user);
       setLoading(false);
+
+      if (user) {
+        const unsubscribeUserDoc = app
+          .firestore()
+          .collection('Users')
+          .doc(user.uid)
+          .onSnapshot((doc) => {
+            setUserDoc(doc.data());
+          });
+
+        return () => unsubscribeUserDoc();
+      }
     });
 
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
 
-  const login = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
-  };
-
-  const signup = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
-  };
-
-  const logout = () => {
-    return signOut(auth);
-  };
-
-  const value = {
-    user,
-    login,
-    signup,
-    logout
-  };
+  if (loading) {
+    return (
+      <div
+        className="bg-black"
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'column',
+          height: '100vh', // This ensures the spinner takes the full viewport height
+        }}
+      >
+        <div className="bg-background flex flex-row justify-center">
+          <img
+            alt="Animations"
+            style={{
+              width: '100px',
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ currentUser, userDoc }}>
       {!loading && children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  return React.useContext(AuthContext);
-};
+}
