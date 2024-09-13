@@ -43,7 +43,6 @@ autoUpdater.autoRunAppAfterInstall = true;
 let downloadingItems = new Map();
 
 
-
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
     dangerouslyAllowBrowser: true,
@@ -128,6 +127,49 @@ function runQuery(db: sqlite3.Database, query: string): Promise<void> {
   });
 }
 
+ipcMain.on('chroma', async (event) => {
+  const vectorDBPath = path.join(app.getPath('userData'), 'vector_db.sqlite');
+  const outputPath = path.join(
+    app.getPath('userData'),
+    'vector_db_content.json',
+  );
+
+  const db = new sqlite3.Database(
+    vectorDBPath,
+    sqlite3.OPEN_READONLY,
+    (err) => {
+      if (err) {
+        console.error('Error opening database:', err);
+        event.reply('chroma-error', 'Failed to open database');
+        return;
+      }
+
+      db.all(
+        'SELECT id, company, name, runID, folderPath, content FROM db WHERE content IS NOT NULL',
+        [],
+        (err, rows) => {
+          if (err) {
+            console.error('Error querying database:', err);
+            event.reply('chroma-error', 'Failed to query database');
+            db.close();
+            return;
+          }
+
+          fs.writeFile(outputPath, JSON.stringify(rows, null, 2), (err) => {
+            if (err) {
+              console.error('Error writing JSON file:', err);
+              event.reply('chroma-error', 'Failed to write JSON file');
+            } else {
+              console.log('Vector DB content saved to:', outputPath);
+              event.reply('chroma-success', outputPath);
+            }
+            db.close();
+          });
+        },
+      );
+    },
+  );
+});
 ipcMain.handle('get-similar-data', async (event, query: string) => {
   try {
     const embedding = await createEmbedding(query);
@@ -1068,7 +1110,7 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
                       case 'content':
                         return chunk;
                       case 'embeddings':
-                        return JSON.stringify(embedding);
+                        return JSON.stringify([0, 1, 2]);
                       default:
                         return null;
                     }
@@ -1258,6 +1300,8 @@ if (!existingData) {
               console.log('Skipping empty content');
               continue;
             }
+
+            // batch add for chunks?
 
             const chunks = chunkText(textToChunk);
 
@@ -1537,7 +1581,6 @@ app
   .then(async () => {
     app.setAccessibilitySupportEnabled(true);
     createWindow();
-    
     createRequiredFolders();
 
     autoUpdater.checkForUpdates(); 

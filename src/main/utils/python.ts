@@ -648,17 +648,33 @@ export class PythonUtils {
     //   throw error;
     // }
   }
-
-  // async indexData(
-  //   platform: string,
-  //   folderPath: string,
-  //   company: string,
-  //   name: string,
-  //   id: string,
-  // ) {
-  //   const pythonPath = 'python.exe';
-  //   const scriptPath = getAssetPath('index_chroma_windows.py');
-  //   const command = `${pythonPath} ${scriptPath} ${platform} ${folderPath} ${company} ${name} ${id}`;
-  //   await execAsync(command, { shell: true });
-  // }
+  async indexData(
+    platform: string,
+    folderPath: string,
+    company: string,
+    name: string,
+    id: string,
+  ) {
+    const pythonPath = 'python.exe';
+    try {
+      //await execAsync('python.exe -m pip install chromadb', { shell: true });
+      console.log('Successfully installed chromadb');
+    } catch (error) {
+      console.error('Error installing chromadb:', error);
+      throw error;
+    }
+    const scriptPath = getAssetPath('index_chroma_windows.py');
+    const command = `${pythonPath} ${scriptPath} ${platform} ${folderPath} ${company} ${name} ${id}`;
+    
+    try {
+      const { stdout, stderr } = await execAsync(command, { shell: true });
+      console.log('Python script output:', stdout);
+      if (stderr) {
+        console.error('Python script error:', stderr);
+      }
+    } catch (error) {
+      console.error('Error executing Python script:', error);
+      throw error;
+    }
+  }
 }

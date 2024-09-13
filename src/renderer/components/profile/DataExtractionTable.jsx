@@ -443,7 +443,7 @@ const showLogs = (platform) => {
     <div className="w-full h-full flex-col px-[50px] pt-6 pb-6 select-none">
       <div className="flex-shrink-0 mb-4">
         <div className="relative w-full max-w-2xl">
-
+        <Button onClick={() => window.electron.ipcRenderer.send('chroma')}>DO chroma!</Button>
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <Input
             type="text"
