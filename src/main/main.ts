@@ -27,7 +27,7 @@ import { PythonUtils } from './utils/python';
 import { mboxParser } from 'mbox-parser';
 import { tableStructure, ensureTableStructure } from './utils/vector_db';
 import OpenAI from 'openai';
-const sqlite = require('sqlite-electron');
+import { Database } from 'sqlite3';
 import { dot } from 'mathjs';
 import { setupProtocol } from './utils/protocol';
 
@@ -67,7 +67,7 @@ function cosineSimilarity(a: number[], b: number[]): number {
 }
 
 
- let db: any;
+
 
 async function getSimilarData(queryEmbedding: number[]): Promise<any[]> {
   const userData = app.getPath('userData');
@@ -77,16 +77,17 @@ async function getSimilarData(queryEmbedding: number[]): Promise<any[]> {
     throw new Error('Vector database does not exist.');
   }
 
+  console.log('Getting similar data!');
 
-  if (!db) {
-    db = await sqlite.setdbPath(vectorDBPath);
-  }
-  
-
-  console.log('sqlite: ', sqlite);
+  const db = new Database(vectorDBPath);
 
   // Fetch all embeddings and their corresponding row data
-  const rows = await sqlite.fetchAll('SELECT id, company, name, runID, folderPath, content, embeddings FROM db');
+  const rows = await new Promise<any[]>((resolve, reject) => {
+    db.all(`SELECT id, company, name, runID, folderPath, content, embeddings FROM db`, [], (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
 
   // Calculate cosine similarity for each embedding
   const similarities = rows.map(row => {
@@ -102,8 +103,6 @@ async function getSimilarData(queryEmbedding: number[]): Promise<any[]> {
 
   return topResults;
 }
-
-// The runQuery function is no longer needed with the new library
 
 function runQuery(db: Database, query: string): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -1003,13 +1002,16 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
   const userData = app.getPath('userData');
   const vectorDBPath = path.join(userData, 'vector_db.sqlite');
 
-  return new Promise(async (resolve, reject) => {
-
+  return new Promise((resolve, reject) => {
+    const db = new Database(vectorDBPath, async (err) => {
+      if (err) {
+        console.error('Error opening vector_db.sqlite:', err);
+        reject({ success: false, error: err.message });
+        return;
+      }
 
       try {
         // Ensure table structure is up to date
-
-        const db = await sqlite.setdbPath(vectorDBPath);
         await ensureTableStructure(db);
 
         const { company, name, runID, folderPath, filesToVectorize } = document;
@@ -1130,7 +1132,7 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
                 batch.push(values);
 
                 if (batch.length === batchSize) {
-                  await insertBatch(sqlite, batch);
+                  await insertBatch(db, batch);
                   batch = [];
                 }
               }
@@ -1143,7 +1145,7 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
 
         // Insert any remaining items in the batch
         if (batch.length > 0) {
-          await insertBatch(sqlite, batch);
+          await insertBatch(db, batch);
         }
 
         const result = {
@@ -1165,27 +1167,41 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
       }
     });
   });
+});
 
-
-async function insertBatch(sqlite: any, batch: any[]) {
+async function insertBatch(db: Database, batch: any[]) {
   const columns = Object.keys(tableStructure)
     .filter((col) => col !== 'id')
     .join(', ');
   const placeholders = batch
-    .map(() => `(${Object.keys(tableStructure).filter((col) => col !== 'id').map(() => '?').join(', ')})`)
+    .map(
+      () =>
+        `(${Object.keys(tableStructure)
+          .filter((col) => col !== 'id')
+          .map(() => '?')
+          .join(', ')})`,
+    )
     .join(', ');
 
   const flattenedValues = batch.flat();
 
-  try {
-    await sqlite.executeMany(`INSERT INTO db (${columns}) VALUES ${placeholders}`, flattenedValues);
-    console.log(`Inserted ${batch.length} document chunks`);
-    return { success: true };
-  } catch (insertErr) {
-    console.error(`Error inserting document chunks`, insertErr);
-    throw insertErr;
-  }
+  return new Promise((resolve, reject) => {
+    db.run(
+      `INSERT INTO db (${columns}) VALUES ${placeholders}`,
+      flattenedValues,
+      function (insertErr) {
+        if (insertErr) {
+          console.error(`Error inserting document chunks`, insertErr);
+          reject({ success: false, error: insertErr.message });
+        } else {
+          console.log(`Inserted ${batch.length} document chunks`);
+          resolve({ success: true, lastID: this.lastID });
+        }
+      },
+    );
+  });
 }
+
 
 ipcMain.on('handle-update', async (event, company, name, platformId, data, runID, customFilePath = null) => {
   console.log(
