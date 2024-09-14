@@ -56,7 +56,7 @@ const Chat = () => {
 
   return (
     <div className="flex flex-col h-screen p-4"> 
-      {isSubscribed ? (
+      {/* {isSubscribed ? ( */}
         <>
           <Card className="flex-grow mb-4">
             <CardContent className="p-4">
@@ -84,13 +84,13 @@ const Chat = () => {
             <Button onClick={handleSendMessage}>Send</Button>
           </div>
         </> 
-      ) : (
-        <div className="flex flex-col h-screen p-4">
+      {/* // ) : (
+      //   <div className="flex flex-col h-screen p-4">
 
-              <SubscribeCard />
+      //         <SubscribeCard />
 
-        </div>
-      )}
+      //   </div>
+      // )} */}
     </div>
   );
 };
