@@ -26,7 +26,6 @@ import fs from 'fs';
 import { PythonUtils } from './utils/python';
 import { mboxParser } from 'mbox-parser';
 import OpenAI from 'openai';
-import { dot } from 'mathjs';
 import { setupProtocol } from './utils/protocol';
 
 const pythonUtils = new PythonUtils();
@@ -58,12 +57,12 @@ async function createEmbedding(text: string) {
   return response.data[0].embedding;
 }
 
-function cosineSimilarity(a: number[], b: number[]): number {
-  const dotProduct = dot(a, b);
-  const magnitudeA = Math.sqrt(dot(a, a));
-  const magnitudeB = Math.sqrt(dot(b, b));
-  return dotProduct / (magnitudeA * magnitudeB);
-}
+// function cosineSimilarity(a: number[], b: number[]): number {
+//   const dotProduct = dot(a, b);
+//   const magnitudeA = Math.sqrt(dot(a, a));
+//   const magnitudeB = Math.sqrt(dot(b, b));
+//   return dotProduct / (magnitudeA * magnitudeB);
+// }
 
 
 

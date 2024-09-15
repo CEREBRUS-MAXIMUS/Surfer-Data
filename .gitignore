@@ -3,7 +3,7 @@ logs
 *.log
 
 # chrome data
-
+src/firebase.js
 config.json
 edge_data.json
 chrome_data.json
