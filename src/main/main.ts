@@ -115,6 +115,10 @@ ipcMain.handle('get-openai-api-key', async () => {
   return process.env.OPENAI_API_KEY;
 });
 
+ipcMain.handle('get-firebase-api-key', async () => {
+  return process.env.FIREBASE_API_KEY;
+});
+
 ipcMain.handle('get-similar-data', async (event, query: string) => {
   try {
     const embedding = await createEmbedding(query);
@@ -1381,131 +1385,70 @@ if (!existingData) {
   //       return;
   //     }
 
-  //         try {
+   
 
-  //            await ensureTableStructure(db);
-  //           fullJSON = JSON.parse(fullContent);
+    try {
+      fullJSON = JSON.parse(fullContent);
 
-  //           if (Array.isArray(fullJSON.content)) {
-  //             // JSON with content array
-  //             contentToProcess = fullJSON.content;
-  //           } else if (Array.isArray(fullJSON)) {
-  //             // Regular JSON array
-  //             contentToProcess = fullJSON;
-  //           } else {
-  //             // Treat as single item
-  //             contentToProcess = [fullJSON];
-  //           }
-  //         } catch (error) {
-  //           // Raw text (txt, markdown, etc.)
-  //           contentToProcess = [fullContent];
-  //         }
+      if (Array.isArray(fullJSON.content)) {
+        contentToProcess = fullJSON.content;
+      } else if (Array.isArray(fullJSON)) {
+        contentToProcess = fullJSON;
+      } else {
+        contentToProcess = [fullJSON];
+      }
+    } catch (error) {
+      contentToProcess = [fullContent];
+    }
 
-  //         function jsonToString(obj: any): string {
-  //           let result = '';
-  //           for (const [key, value] of Object.entries(obj)) {
-  //             if (typeof value === 'string') {
-  //               // Check if the value can be converted to a valid Date
-  //               const date = new Date(value);
-  //               if (isNaN(date.getTime())) {
-  //                 // If it's not a valid timestamp, add it to the result
-  //                 result += `The ${key} is ${value}. `;
-  //               }
-  //             } else if (typeof value === 'object' && value !== null) {
-  //               result += jsonToString(value);
-  //             }
-  //           }
-  //           return result.trim();
-  //         }
+    function jsonToString(obj: any): string {
+      let result = '';
+      for (const [key, value] of Object.entries(obj)) {
+        if (typeof value === 'string') {
+          result += `The ${key} is ${value}. `;
+        } else if (typeof value === 'object' && value !== null) {
+          result += jsonToString(value);
+        }
+      }
+      return result.trim();
+    }
 
-  //         for (const item of contentToProcess) {
-  //           let textToChunk: string;
-  //           if (typeof item === 'string') {
-  //             textToChunk = item;
-  //           } else if (typeof item === 'object' && item !== null) {
-  //             textToChunk = jsonToString(item);
-  //           } else {
-  //             textToChunk = String(item);
-  //           }
+    for (const item of contentToProcess) {
+      let textToChunk: string; 
+      if (typeof item === 'string') {
+        textToChunk = item;
+      } else if (typeof item === 'object' && item !== null) {
+        textToChunk = jsonToString(item);
+      } else {
+        textToChunk = String(item);
+      }
 
-  //           if (textToChunk.trim().length === 0) {
-  //             console.log('Skipping empty content');
-  //             continue;
-  //           }
+      if (textToChunk.trim().length === 0) {
+        console.log('Skipping empty content');
+        continue;
+      }
 
-  //           // batch add for chunks?
+      const chunks: string[] = chunkText(textToChunk);
 
-  //           const chunks = chunkText(textToChunk);
-
-  //           try {
-  //             for (const chunk of chunks) {
-  //               const embedding = await createEmbedding(chunk);
-
-  //               const columns = Object.keys(tableStructure)
-  //                 .filter((col) => col !== 'id')
-  //                 .join(', ');
-  //               const placeholders = Object.keys(tableStructure)
-  //                 .filter((col) => col !== 'id')
-  //                 .map(() => '?')
-  //                 .join(', ');
-
-  //               const values = Object.keys(tableStructure)
-  //                 .filter((col) => col !== 'id')
-  //                 .map((col) => {
-  //                   switch (col) {
-  //                     case 'company':
-  //                       return company;
-  //                     case 'timestamp':
-  //                       return Date.now();
-  //                     case 'name':
-  //                       return name;
-  //                     case 'runID':
-  //                       return runID;
-  //                     case 'folderPath':
-  //                       return filePath;
-  //                     case 'content':
-  //                       return chunk;
-  //                     case 'embeddings':
-  //                       return JSON.stringify(embedding);
-  //                     default:
-  //                       return null;
-  //                   }
-  //                 });
-
-  //               await new Promise((res, rej) => {
-  //                 db.run(
-  //                   `INSERT INTO db (${columns}) VALUES (${placeholders})`,
-  //                   values,
-  //                   function (insertErr) {
-  //                     if (insertErr) {
-  //                       console.error(
-  //                         `Error inserting document chunk for ${filePath}:`,
-  //                         insertErr,
-  //                       );
-  //                       rej({ success: false, error: insertErr.message });
-  //                     } else {
-  //                       console.log(
-  //                         'Inserted document chunk for: ',
-  //                         filePath,
-  //                       );
-  //                       res({ success: true, id: this.lastID });
-  //                     }
-  //                   },
-  //                 );
-  //               });
-  //             }
-  //           } catch (error) {
-  //             console.error('Error in chunking:', error);
-  //             continue;
-  //           }
+      try {
+        // send this to renderer to execute addTexts method
+        mainWindow?.webContents.send(
+          'add-texts',
+          chunks,
+          company,
+          name,
+          runID,
+          filePath, // might change to folderPath / parent later on!
+        );
+      } catch (error) {
+        console.error('Error in chunking:', error);
+        continue;
+      }
             
-  //         }
-  //       }
-  //     )
-  // console.log(`Data appended to: ${filePath}`);
-  //   })
+          }
 
-});
+    })
+
  
 ipcMain.on('handle-update-complete', (event, runID, platformId, company, name, customFilePath = null) => {
   const filePath = customFilePath ? customFilePath : path.join(app.getPath('userData'), 'surfer_data', company, name, platformId, `${platformId}.json`)

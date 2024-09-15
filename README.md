@@ -122,6 +122,7 @@ Project Link: [https://github.com/CEREBRUS-MAXIMUS/Surfer-Data](https://github.c
 ## Acknowledgements
 
 - [Electron React Boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate)
+- [Vector Storage](https://github.com/nitaiaharoni1/vector-storage)
 
 [contributors-shield]: https://img.shields.io/github/contributors/CEREBRUS-MAXIMUS/Surfer-Data.svg?style=for-the-badge
 [contributors-url]: https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/graphs/contributors

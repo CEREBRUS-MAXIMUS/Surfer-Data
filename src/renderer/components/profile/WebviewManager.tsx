@@ -18,7 +18,7 @@ import {
 import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
-import { addDocuments } from '../../../main/utils/vector_db'
+import { addDocuments } from '../../vector_db';
 import { VectorStorage } from 'vector-storage';
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
@@ -312,18 +312,11 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
        if (!isUpdate) {
 
-// ... existing code ...
-
       const texts = await window.electron.ipcRenderer.invoke('get-texts', folderPath, runToVectorize.filesToVectorize ? runToVectorize.filesToVectorize : []);
       console.log('got texts!');
 
-      const uniqueTexts : string[] = Array.from(new Set(texts));
+      const documents = await addDocuments(texts, company, name, runID, folderPath);
 
-      const metadataArray = uniqueTexts.map(() => ({ company, name, runID, folderPath }));
-
-      const apiKey = await window.electron.ipcRenderer.invoke('get-openai-api-key');
-      const vectorStore = new VectorStorage({ openAIApiKey: apiKey, openaiModel: 'text-embedding-3-small' });
-      const documents = await vectorStore.addTexts(uniqueTexts, metadataArray);
       console.log('finished vectorizing! ', documents);
 
        }

@@ -12,6 +12,8 @@ import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs, update
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
 import { Progress } from './components/ui/progress';
+import { addDocuments } from './vector_db';
+// import { useAuth } from './auth/FirebaseAuth';
 
 function Surfer() {
   const dispatch = useDispatch();
@@ -26,6 +28,7 @@ function Surfer() {
   const [showNotConnectedAlert, setShowNotConnectedAlert] = useState(false);
   const [updateProgress, setUpdateProgress] = useState<number | null>(null);
   const [content, setContent] = useState<React.ReactNode | null>(null);
+  // const { currentUser } = useAuth();
 
   useEffect(() => {
     const handleUpdateDownloadProgress = (progress: number) => {
@@ -39,6 +42,33 @@ function Surfer() {
       window.electron.ipcRenderer.removeAllListeners('update-download-progress');
     };
   }, []);
+
+  useEffect(() => {
+    const handleAddTexts = async (chunks: string[], company: string, name: string, runID: string, folderPath: string) => {
+      console.log('Received chunks:', chunks);
+      await addDocuments(chunks, company, name, runID, folderPath);
+      console.log('finished vectorizing!')
+    };
+
+    window.electron.ipcRenderer.on('add-texts', handleAddTexts);
+
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('add-texts');
+    };
+  }, [])
+
+  // useEffect(() => {
+  //   if (currentUser) {
+  //     console.log("current user: ", currentUser)
+  //   }
+  // }, [currentUser]);
+
+  useEffect(() => {
+    console.log('opening dev tools')
+    window.electron.ipcRenderer.send('show-dev-tools')
+  }, [])
+
+  
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

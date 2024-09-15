@@ -13,7 +13,7 @@ export interface IUserFile {
 
 export interface IPreferences {
   contentScale: number;
-}
+} 
 
 export interface IDataSource {
   id: string;
@@ -33,7 +33,6 @@ export interface IAppState {
     isRunLayerVisible: boolean;
     breadcrumb: { text: string; link: string }[];
     runs: IRun[];
-    isSubscribed: boolean;
   };
 }
 
@@ -49,7 +48,6 @@ export const initialState: IAppState = {
     isRunLayerVisible: false,
     breadcrumb: [{ text: 'Home', link: '/' }],
     runs: [],
-    isSubscribed: false
   },
 };
 

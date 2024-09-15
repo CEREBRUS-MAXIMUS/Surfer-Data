@@ -1,12 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Check } from 'lucide-react';
 import { Button } from "../ui/button";
 import SignInModal from './SignInModal'; 
 import { useAuth } from '../../auth/FirebaseAuth';
+import { signInWithCredential, getAuth, GoogleAuthProvider } from 'firebase/auth';
 
 const SubscribeCard = () => {
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+	//const { currentUser } = useAuth();
+
+	useEffect(() => {
+
+		const handleToken = async (token) => {
+			console.log('Received token, sign in with credential now:', token);
+			const auth = getAuth();
+			const credential = GoogleAuthProvider.credential(token);
+			const result = await signInWithCredential(auth, credential);
+			console.log('Sign-in result:', result);
+		};
+
+		window.electron.ipcRenderer.on('token', handleToken);
+
+		return () => {
+			window.electron.ipcRenderer.removeAllListeners('token', handleToken);
+		};
+	}, []);
+
 
 	return (
 		<>
@@ -56,7 +76,7 @@ const SubscribeCard = () => {
 					<CardFooter>
 						<Button 
 							className="w-full"
-							onClick={() => setIsSignInModalOpen(true)}
+							onClick={() => window.electron.ipcRenderer.send('open-external', 'https://surfsup.ai/signin')}
 						>
 							Subscribe
 						</Button>

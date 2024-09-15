@@ -14,6 +14,5 @@ export const initialAppState: IAppState = {
     isRunLayerVisible: false,
     breadcrumb: [{ text: 'Home', link: '/' }],
     runs: [],
-    isSubscribed: true
   },
 };

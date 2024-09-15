@@ -3,7 +3,7 @@ logs
 *.log
 
 # chrome data
-src/firebase.js
+
 config.json
 edge_data.json
 chrome_data.json
@@ -16,7 +16,7 @@ screenshot.png
 before_interaction.png
 after_interaction.png
 
-src/firebase.js
+src/firebase.js 
 
 # Runtime data
 pids

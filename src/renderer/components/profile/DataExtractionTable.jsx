@@ -69,10 +69,6 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   console.log('opening dev tools')
-  //   window.electron.ipcRenderer.send('show-dev-tools')
-  // }, [])
 
 
 
