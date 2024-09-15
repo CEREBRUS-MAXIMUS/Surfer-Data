@@ -142,9 +142,6 @@
     "react-spinners": "^0.14.1",
     "react-transition-group": "^4.4.5",
     "sass-loader": "^16.0.0",
-    "sqlite": "^5.1.1",
-    "sqlite-electron": "^3.1.1",
-    "sqlite3": "^5.1.7",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
     "style-loader": "^4.0.0",
@@ -155,6 +152,7 @@
     "url": "^0.11.4",
     "uuid": "^9.0.1",
     "vaul": "^0.9.1",
+    "vector-storage": "^1.0.55",
     "vm-browserify": "^1.1.2"
   },
   "devDependencies": {

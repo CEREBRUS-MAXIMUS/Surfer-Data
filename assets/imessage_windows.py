@@ -2,7 +2,6 @@ import sys
 import sqlite3
 from iphone_backup_decrypt import EncryptedBackup, RelativePath, MatchFiles
 import os
-import sqlite3
 import json
 from datetime import datetime, timedelta
 

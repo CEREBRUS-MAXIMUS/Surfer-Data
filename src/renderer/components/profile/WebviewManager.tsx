@@ -19,6 +19,7 @@ import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
 import { addDocuments } from '../../../main/utils/vector_db'
+import { VectorStorage } from 'vector-storage';
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
   position: fixed;
@@ -147,7 +148,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     (state: IAppState) => state.app.isRunLayerVisible,
   );
 
-  const { theme } = useTheme();
+
 
   useEffect(() => {
     if (activeRuns.length === 0 && isRunLayerVisible) {
@@ -310,13 +311,21 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
        }
 
        if (!isUpdate) {
-        await addDocuments({
-          company: company,
-          name: name,
-          runID: runID,
-          folderPath: folderPath,
-          filesToVectorize: runToVectorize.filesToVectorize ? runToVectorize.filesToVectorize : []
-        })
+
+// ... existing code ...
+
+      const texts = await window.electron.ipcRenderer.invoke('get-texts', folderPath, runToVectorize.filesToVectorize ? runToVectorize.filesToVectorize : []);
+      console.log('got texts!');
+
+      const uniqueTexts : string[] = Array.from(new Set(texts));
+
+      const metadataArray = uniqueTexts.map(() => ({ company, name, runID, folderPath }));
+
+      const apiKey = await window.electron.ipcRenderer.invoke('get-openai-api-key');
+      const vectorStore = new VectorStorage({ openAIApiKey: apiKey, openaiModel: 'text-embedding-3-small' });
+      const documents = await vectorStore.addTexts(uniqueTexts, metadataArray);
+      console.log('finished vectorizing! ', documents);
+
        }
     };
 
@@ -363,6 +372,18 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       dispatch(closeRun(activeRun.id));
     }
   };
+
+const addDocumentsToDB = async (documents: object) => {
+  const db = await openDB('vectorDB', 1, {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains('documents')) {
+        db.createObjectStore('documents', { keyPath: 'id', autoIncrement: true });
+      }
+    },
+  });
+  await db.add('documents', documents);
+  console.log('added documents to db');
+}
 
   // Update active run index whenever runs change
   useEffect(() => {

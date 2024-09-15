@@ -27,7 +27,6 @@ import { PythonUtils } from './utils/python';
 import { mboxParser } from 'mbox-parser';
 import { tableStructure, ensureTableStructure } from './utils/vector_db';
 import OpenAI from 'openai';
-import { Database } from 'sqlite3';
 import { dot } from 'mathjs';
 import { setupProtocol } from './utils/protocol';
 
@@ -43,6 +42,7 @@ autoUpdater.autoInstallOnAppQuit = false;
 autoUpdater.autoRunAppAfterInstall = true;
 
 let downloadingItems = new Map();
+
 
 
   const openai = new OpenAI({
@@ -112,6 +112,10 @@ function runQuery(db: Database, query: string): Promise<void> {
     });
   });
 }
+
+ipcMain.handle('get-openai-api-key', async () => {
+  return process.env.OPENAI_API_KEY;
+});
 
 ipcMain.handle('get-similar-data', async (event, query: string) => {
   try {
@@ -998,6 +1002,96 @@ ipcMain.on('check-for-updates', () => {
           return chunks;
         }
 
+ipcMain.handle('get-texts', async (event, folderPath, filesToVectorize) => {
+  const files: string[] = [];
+  const texts: string[] = [];
+
+  function readFilesRecursively(dir: string) {
+    const items = fs.readdirSync(dir);
+    for (const item of items) {
+      const fullPath = path.join(dir, item);
+      if (fs.statSync(fullPath).isDirectory()) {
+        readFilesRecursively(fullPath);
+      } else if (item.endsWith('.json') || item.endsWith('.md')) {
+        if (
+          filesToVectorize.length > 0 &&
+          filesToVectorize.includes(item)
+        ) {
+          files.push(fullPath);
+        } else if (filesToVectorize.length === 0) {
+          files.push(fullPath);
+        } else {
+          console.log('Skipping file: ', item);
+        }
+      }
+    }
+  }
+
+  readFilesRecursively(folderPath);
+
+  for (const file of files) {
+    const filePath = path.isAbsolute(file)
+      ? file
+      : path.join(folderPath, file);
+    const fullContent = fs.readFileSync(filePath, 'utf-8');
+    let fullJSON: any;
+    let contentToProcess: any[];
+
+    try {
+      fullJSON = JSON.parse(fullContent);
+
+      if (Array.isArray(fullJSON.content)) {
+        contentToProcess = fullJSON.content;
+      } else if (Array.isArray(fullJSON)) {
+        contentToProcess = fullJSON;
+      } else {
+        contentToProcess = [fullJSON];
+      }
+    } catch (error) {
+      contentToProcess = [fullContent];
+    }
+
+    function jsonToString(obj: any): string {
+      let result = '';
+      for (const [key, value] of Object.entries(obj)) {
+        if (typeof value === 'string') {
+          result += `The ${key} is ${value}. `;
+        } else if (typeof value === 'object' && value !== null) {
+          result += jsonToString(value);
+        }
+      }
+      return result.trim();
+    }
+
+    for (const item of contentToProcess) {
+      let textToChunk: string; 
+      if (typeof item === 'string') {
+        textToChunk = item;
+      } else if (typeof item === 'object' && item !== null) {
+        textToChunk = jsonToString(item);
+      } else {
+        textToChunk = String(item);
+      }
+
+      if (textToChunk.trim().length === 0) {
+        console.log('Skipping empty content');
+        continue;
+      }
+
+      const chunks: string[] = chunkText(textToChunk);
+
+      try {
+        texts.push(...chunks);
+      } catch (error) {
+        console.error('Error in chunking:', error);
+        continue;
+      }
+    }
+  }
+
+  return texts; // Return all processed texts after the loop
+});
+
 ipcMain.handle('add-document-to-vector-db', async (event, document) => {
   const userData = app.getPath('userData');
   const vectorDBPath = path.join(userData, 'vector_db.sqlite');
@@ -1128,6 +1222,8 @@ ipcMain.handle('add-document-to-vector-db', async (event, document) => {
                         return null;
                     }
                   });
+
+                await vectorStore.addText(chunk, { company, name, runID, folderPath, embedding });
 
                 batch.push(values);
 

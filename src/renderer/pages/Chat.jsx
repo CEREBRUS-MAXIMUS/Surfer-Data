@@ -6,6 +6,8 @@ import { Button } from "../../renderer/components/ui/button";
 import { ScrollArea } from "../../renderer/components/ui/scroll-area";
 import { updateBreadcrumb } from '../state/actions';
 import SubscribeCard from '../components/subscribe/SubscribeCard';
+import { VectorStorage } from 'vector-storage';
+import { OpenAI } from 'openai';
 
 const Chat = () => { 
   const [messages, setMessages] = useState([]);
@@ -13,6 +15,8 @@ const Chat = () => {
   const scrollAreaRef = useRef(null);
   const dispatch = useDispatch();
   const { isSubscribed } = useSelector((state) => state.app);
+
+
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -24,15 +28,26 @@ const Chat = () => {
     dispatch(updateBreadcrumb([{ text: 'Home', link: '/home' }]));
   }, [dispatch]);
 
+
+
+
   const handleSendMessage = async () => {
     if (inputMessage.trim()) {
       // Add user message
       setMessages(prevMessages => [...prevMessages, { text: inputMessage, sender: 'user' }]);
       setInputMessage('');
 
-      // Get similar data
-      const similarData = await window.electron.ipcRenderer.invoke('get-similar-data', inputMessage);
-      
+      const apiKey = await window.electron.ipcRenderer.invoke('get-openai-api-key');
+      const vectorStore = new VectorStorage({ openAIApiKey: apiKey, openaiModel: 'text-embedding-3-small' });
+      const search = await vectorStore.similaritySearch({
+        query: inputMessage,
+        k: 5,
+      });
+
+      const similarData = search.similarItems;
+
+      console.log('vectorStore: ', vectorStore);
+      console.log('similarData: ', similarData);
       // Add bot response with similar data
       if (similarData.length > 0) {
         const botResponse = (
@@ -41,7 +56,7 @@ const Chat = () => {
             <ul className="list-disc pl-4">
               {similarData.map((item, index) => (
                 <li key={index}>
-                  {item.name} - {item.content} (Similarity: {(item.similarity * 100).toFixed(2)}%)
+                  {item.metadata.name} - {item.text} (Similarity: {(item.score * 100).toFixed(2)}%)
                 </li>
               ))}
             </ul>

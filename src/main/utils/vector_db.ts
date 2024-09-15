@@ -1,5 +1,3 @@
-import { Database } from 'sqlite3';
-
 // Define your table structure in one place
 export const tableStructure = {
   id: 'INTEGER PRIMARY KEY AUTOINCREMENT',
