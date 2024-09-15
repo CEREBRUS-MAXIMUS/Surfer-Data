@@ -31,7 +31,10 @@ const configuration: webpack.Configuration = {
       );
       return files
         .flat()
-        .filter((file) => file.endsWith('.js') || file.endsWith('.json'));
+        .filter((file) => 
+          (file.endsWith('.js') || file.endsWith('.json')) && 
+          !path.basename(file, path.extname(file)).includes('401')
+        );
     };
 
     const scrapersDir = path.join(webpackPaths.srcMainPath, 'Scrapers');
