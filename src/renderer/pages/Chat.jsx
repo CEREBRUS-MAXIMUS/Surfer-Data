@@ -16,7 +16,7 @@ const Chat = () => {
   const [inputMessage, setInputMessage] = useState('');
   const scrollAreaRef = useRef(null); 
   const dispatch = useDispatch();
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(true);
 
 
 
