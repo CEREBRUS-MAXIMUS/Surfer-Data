@@ -25,7 +25,6 @@ import { resolveHtmlPath } from './utils/util';
 import fs from 'fs';
 import { PythonUtils } from './utils/python';
 import { mboxParser } from 'mbox-parser';
-import { tableStructure, ensureTableStructure } from './utils/vector_db';
 import OpenAI from 'openai';
 import { dot } from 'mathjs';
 import { setupProtocol } from './utils/protocol';
@@ -69,49 +68,49 @@ function cosineSimilarity(a: number[], b: number[]): number {
 
 
 
-async function getSimilarData(queryEmbedding: number[]): Promise<any[]> {
-  const userData = app.getPath('userData');
-  const vectorDBPath = path.join(userData, 'vector_db.sqlite');
+// async function getSimilarData(queryEmbedding: number[]): Promise<any[]> {
+//   const userData = app.getPath('userData');
+//   const vectorDBPath = path.join(userData, 'vector_db.sqlite');
 
-  if (!fs.existsSync(vectorDBPath)) {
-    throw new Error('Vector database does not exist.');
-  }
+//   if (!fs.existsSync(vectorDBPath)) {
+//     throw new Error('Vector database does not exist.');
+//   }
 
-  console.log('Getting similar data!');
+//   console.log('Getting similar data!');
 
-  const db = new Database(vectorDBPath);
+//   const db = new Database(vectorDBPath);
 
-  // Fetch all embeddings and their corresponding row data
-  const rows = await new Promise<any[]>((resolve, reject) => {
-    db.all(`SELECT id, company, name, runID, folderPath, content, embeddings FROM db`, [], (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows);
-    });
-  });
+//   // Fetch all embeddings and their corresponding row data
+//   const rows = await new Promise<any[]>((resolve, reject) => {
+//     db.all(`SELECT id, company, name, runID, folderPath, content, embeddings FROM db`, [], (err, rows) => {
+//       if (err) reject(err);
+//       else resolve(rows);
+//     });
+//   });
 
-  // Calculate cosine similarity for each embedding
-  const similarities = rows.map(row => {
-    const embedding = JSON.parse(row.embeddings);
-    const similarity = cosineSimilarity(queryEmbedding, embedding);
-    return { ...row, similarity };
-  });
+//   // Calculate cosine similarity for each embedding
+//   const similarities = rows.map(row => {
+//     const embedding = JSON.parse(row.embeddings);
+//     const similarity = cosineSimilarity(queryEmbedding, embedding);
+//     return { ...row, similarity };
+//   });
 
-  // Sort by similarity and get top 5
-  const topResults = similarities
-    .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, 5);
+//   // Sort by similarity and get top 5
+//   const topResults = similarities
+//     .sort((a, b) => b.similarity - a.similarity)
+//     .slice(0, 5);
 
-  return topResults;
-}
+//   return topResults;
+// }
 
-function runQuery(db: Database, query: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    db.run(query, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
-}
+// function runQuery(db: Database, query: string): Promise<void> {
+//   return new Promise((resolve, reject) => {
+//     db.run(query, (err) => {
+//       if (err) reject(err);
+//       else resolve();
+//     });
+//   });
+// }
 
 ipcMain.handle('get-openai-api-key', async () => {
   return process.env.OPENAI_API_KEY;
@@ -1092,211 +1091,211 @@ ipcMain.handle('get-texts', async (event, folderPath, filesToVectorize) => {
   return texts; // Return all processed texts after the loop
 });
 
-ipcMain.handle('add-document-to-vector-db', async (event, document) => {
-  const userData = app.getPath('userData');
-  const vectorDBPath = path.join(userData, 'vector_db.sqlite');
+// ipcMain.handle('add-document-to-vector-db', async (event, document) => {
+//   const userData = app.getPath('userData');
+//   const vectorDBPath = path.join(userData, 'vector_db.sqlite');
 
-  return new Promise((resolve, reject) => {
-    const db = new Database(vectorDBPath, async (err) => {
-      if (err) {
-        console.error('Error opening vector_db.sqlite:', err);
-        reject({ success: false, error: err.message });
-        return;
-      }
+//   return new Promise((resolve, reject) => {
+//     const db = new Database(vectorDBPath, async (err) => {
+//       if (err) {
+//         console.error('Error opening vector_db.sqlite:', err);
+//         reject({ success: false, error: err.message });
+//         return;
+//       }
 
-      try {
-        // Ensure table structure is up to date
-        await ensureTableStructure(db);
+//       try {
+//         // Ensure table structure is up to date
+//         await ensureTableStructure(db);
 
-        const { company, name, runID, folderPath, filesToVectorize } = document;
+//         const { company, name, runID, folderPath, filesToVectorize } = document;
 
-        console.log('document: ', document);
+//         console.log('document: ', document);
 
-        console.log('folderPath: ', folderPath);
-        const files: string[] = [];
+//         console.log('folderPath: ', folderPath);
+//         const files: string[] = [];
 
-        function readFilesRecursively(dir: string) {
-          const items = fs.readdirSync(dir);
-          for (const item of items) {
-            const fullPath = path.join(dir, item);
-            if (fs.statSync(fullPath).isDirectory()) {
-              readFilesRecursively(fullPath);
-            } else if (item.endsWith('.json') || item.endsWith('.md')) {
-              if (
-                filesToVectorize.length > 0 &&
-                filesToVectorize.includes(item)
-              ) {
-                files.push(fullPath);
-              } else if (filesToVectorize.length === 0) {
-                files.push(fullPath);
-              } else {
-                console.log('Skipping file: ', item);
-              }
-            }
-          }
-        }
+//         function readFilesRecursively(dir: string) {
+//           const items = fs.readdirSync(dir);
+//           for (const item of items) {
+//             const fullPath = path.join(dir, item);
+//             if (fs.statSync(fullPath).isDirectory()) {
+//               readFilesRecursively(fullPath);
+//             } else if (item.endsWith('.json') || item.endsWith('.md')) {
+//               if (
+//                 filesToVectorize.length > 0 &&
+//                 filesToVectorize.includes(item)
+//               ) {
+//                 files.push(fullPath);
+//               } else if (filesToVectorize.length === 0) {
+//                 files.push(fullPath);
+//               } else {
+//                 console.log('Skipping file: ', item);
+//               }
+//             }
+//           }
+//         }
 
-        readFilesRecursively(folderPath);
+//         readFilesRecursively(folderPath);
 
-        const batchSize = 100;
-        let batch = [];
+//         const batchSize = 100;
+//         let batch = [];
 
-        for (const file of files) {
-          const filePath = path.isAbsolute(file)
-            ? file
-            : path.join(folderPath, file);
-          const fullContent = fs.readFileSync(filePath, 'utf-8');
-          let fullJSON: any;
-          let contentToProcess: any[];
+//         for (const file of files) {
+//           const filePath = path.isAbsolute(file)
+//             ? file
+//             : path.join(folderPath, file);
+//           const fullContent = fs.readFileSync(filePath, 'utf-8');
+//           let fullJSON: any;
+//           let contentToProcess: any[];
 
-          try {
-            fullJSON = JSON.parse(fullContent);
+//           try {
+//             fullJSON = JSON.parse(fullContent);
 
-            if (Array.isArray(fullJSON.content)) {
-              // JSON with content array
-              contentToProcess = fullJSON.content;
-            } else if (Array.isArray(fullJSON)) {
-              // Regular JSON array
-              contentToProcess = fullJSON;
-            } else {
-              // Treat as single item
-              contentToProcess = [fullJSON];
-            }
-          } catch (error) {
-            // Raw text (txt, markdown, etc.)
-            contentToProcess = [fullContent];
-          }
+//             if (Array.isArray(fullJSON.content)) {
+//               // JSON with content array
+//               contentToProcess = fullJSON.content;
+//             } else if (Array.isArray(fullJSON)) {
+//               // Regular JSON array
+//               contentToProcess = fullJSON;
+//             } else {
+//               // Treat as single item
+//               contentToProcess = [fullJSON];
+//             }
+//           } catch (error) {
+//             // Raw text (txt, markdown, etc.)
+//             contentToProcess = [fullContent];
+//           }
 
-          function jsonToString(obj: any): string {
-            let result = '';
-            for (const [key, value] of Object.entries(obj)) {
-              if (typeof value === 'string') {
-                result += `The ${key} is ${value}. `;
-              } else if (typeof value === 'object' && value !== null) {
-                result += jsonToString(value);
-              }
-            }
-            return result.trim();
-          }
+//           function jsonToString(obj: any): string {
+//             let result = '';
+//             for (const [key, value] of Object.entries(obj)) {
+//               if (typeof value === 'string') {
+//                 result += `The ${key} is ${value}. `;
+//               } else if (typeof value === 'object' && value !== null) {
+//                 result += jsonToString(value);
+//               }
+//             }
+//             return result.trim();
+//           }
 
-          for (const item of contentToProcess) {
-            let textToChunk: string;
-            if (typeof item === 'string') {
-              textToChunk = item;
-            } else if (typeof item === 'object' && item !== null) {
-              textToChunk = jsonToString(item);
-            } else {
-              textToChunk = String(item);
-            }
+//           for (const item of contentToProcess) {
+//             let textToChunk: string;
+//             if (typeof item === 'string') {
+//               textToChunk = item;
+//             } else if (typeof item === 'object' && item !== null) {
+//               textToChunk = jsonToString(item);
+//             } else {
+//               textToChunk = String(item);
+//             }
 
-            if (textToChunk.trim().length === 0) {
-              console.log('Skipping empty content');
-              continue;
-            }
+//             if (textToChunk.trim().length === 0) {
+//               console.log('Skipping empty content');
+//               continue;
+//             }
 
-            const chunks = chunkText(textToChunk);
+//             const chunks = chunkText(textToChunk);
 
-            try {
-              for (const chunk of chunks) {
-                const embedding = await createEmbedding(chunk);
+//             try {
+//               for (const chunk of chunks) {
+//                 const embedding = await createEmbedding(chunk);
 
-                const values = Object.keys(tableStructure)
-                  .filter((col) => col !== 'id')
-                  .map((col) => {
-                    switch (col) {
-                      case 'company':
-                        return company;
-                      case 'timestamp':
-                        return Date.now();
-                      case 'name':
-                        return name;
-                      case 'runID':
-                        return runID;
-                      case 'folderPath':
-                        return folderPath;
-                      case 'content':
-                        return chunk;
-                      case 'embeddings':
-                        return JSON.stringify(embedding);
-                      default:
-                        return null;
-                    }
-                  });
+//                 const values = Object.keys(tableStructure)
+//                   .filter((col) => col !== 'id')
+//                   .map((col) => {
+//                     switch (col) {
+//                       case 'company':
+//                         return company;
+//                       case 'timestamp':
+//                         return Date.now();
+//                       case 'name':
+//                         return name;
+//                       case 'runID':
+//                         return runID;
+//                       case 'folderPath':
+//                         return folderPath;
+//                       case 'content':
+//                         return chunk;
+//                       case 'embeddings':
+//                         return JSON.stringify(embedding);
+//                       default:
+//                         return null;
+//                     }
+//                   });
 
-                await vectorStore.addText(chunk, { company, name, runID, folderPath, embedding });
+//                 await vectorStore.addText(chunk, { company, name, runID, folderPath, embedding });
 
-                batch.push(values);
+//                 batch.push(values);
 
-                if (batch.length === batchSize) {
-                  await insertBatch(db, batch);
-                  batch = [];
-                }
-              }
-            } catch (error) {
-              console.error('Error in chunking:', error);
-              continue;
-            }
-          }
-        }
+//                 if (batch.length === batchSize) {
+//                   await insertBatch(db, batch);
+//                   batch = [];
+//                 }
+//               }
+//             } catch (error) {
+//               console.error('Error in chunking:', error);
+//               continue;
+//             }
+//           }
+//         }
 
-        // Insert any remaining items in the batch
-        if (batch.length > 0) {
-          await insertBatch(db, batch);
-        }
+//         // Insert any remaining items in the batch
+//         if (batch.length > 0) {
+//           await insertBatch(db, batch);
+//         }
 
-        const result = {
-          success: true,
-          message: `Inserted ${files.length} documents`,
-        };
+//         const result = {
+//           success: true,
+//           message: `Inserted ${files.length} documents`,
+//         };
 
-        db.close((closeErr) => {
-          if (closeErr) {
-            console.error('Error closing database:', closeErr);
-          }
-        });
+//         db.close((closeErr) => {
+//           if (closeErr) {
+//             console.error('Error closing database:', closeErr);
+//           }
+//         });
 
-        resolve(result);
-      } catch (error) {
-        console.error('Error in database operations:', error);
-        db.close();
-        reject({ success: false, error: error });
-      }
-    });
-  });
-});
+//         resolve(result);
+//       } catch (error) {
+//         console.error('Error in database operations:', error);
+//         db.close();
+//         reject({ success: false, error: error });
+//       }
+//     });
+//   });
+// });
 
-async function insertBatch(db: Database, batch: any[]) {
-  const columns = Object.keys(tableStructure)
-    .filter((col) => col !== 'id')
-    .join(', ');
-  const placeholders = batch
-    .map(
-      () =>
-        `(${Object.keys(tableStructure)
-          .filter((col) => col !== 'id')
-          .map(() => '?')
-          .join(', ')})`,
-    )
-    .join(', ');
+// async function insertBatch(db: Database, batch: any[]) {
+//   const columns = Object.keys(tableStructure)
+//     .filter((col) => col !== 'id')
+//     .join(', ');
+//   const placeholders = batch
+//     .map(
+//       () =>
+//         `(${Object.keys(tableStructure)
+//           .filter((col) => col !== 'id')
+//           .map(() => '?')
+//           .join(', ')})`,
+//     )
+//     .join(', ');
 
-  const flattenedValues = batch.flat();
+//   const flattenedValues = batch.flat();
 
-  return new Promise((resolve, reject) => {
-    db.run(
-      `INSERT INTO db (${columns}) VALUES ${placeholders}`,
-      flattenedValues,
-      function (insertErr) {
-        if (insertErr) {
-          console.error(`Error inserting document chunks`, insertErr);
-          reject({ success: false, error: insertErr.message });
-        } else {
-          console.log(`Inserted ${batch.length} document chunks`);
-          resolve({ success: true, lastID: this.lastID });
-        }
-      },
-    );
-  });
-}
+//   return new Promise((resolve, reject) => {
+//     db.run(
+//       `INSERT INTO db (${columns}) VALUES ${placeholders}`,
+//       flattenedValues,
+//       function (insertErr) {
+//         if (insertErr) {
+//           console.error(`Error inserting document chunks`, insertErr);
+//           reject({ success: false, error: insertErr.message });
+//         } else {
+//           console.log(`Inserted ${batch.length} document chunks`);
+//           resolve({ success: true, lastID: this.lastID });
+//         }
+//       },
+//     );
+//   });
+// }
 
 
 ipcMain.on('handle-update', async (event, company, name, platformId, data, runID, customFilePath = null) => {
@@ -1370,142 +1369,142 @@ if (!existingData) {
           let fullJSON: any;
           let contentToProcess: any[];
 
-  const vectorDBPath = path.join(userData, 'vector_db.sqlite');
+  //const vectorDBPath = path.join(userData, 'vector_db.sqlite');
 
 
-  return new Promise((resolve, reject) => {
+  // return new Promise((resolve, reject) => {
 
     
-    const db = new Database(vectorDBPath, async (err) => {
-      if (err) {
-        console.error('Error opening vector_db.sqlite:', err);
-        reject({ success: false, error: err.message });
-        return;
-      }
+  //   const db = new Database(vectorDBPath, async (err) => {
+  //     if (err) {
+  //       console.error('Error opening vector_db.sqlite:', err);
+  //       reject({ success: false, error: err.message });
+  //       return;
+  //     }
 
-          try {
+  //         try {
 
-             await ensureTableStructure(db);
-            fullJSON = JSON.parse(fullContent);
+  //            await ensureTableStructure(db);
+  //           fullJSON = JSON.parse(fullContent);
 
-            if (Array.isArray(fullJSON.content)) {
-              // JSON with content array
-              contentToProcess = fullJSON.content;
-            } else if (Array.isArray(fullJSON)) {
-              // Regular JSON array
-              contentToProcess = fullJSON;
-            } else {
-              // Treat as single item
-              contentToProcess = [fullJSON];
-            }
-          } catch (error) {
-            // Raw text (txt, markdown, etc.)
-            contentToProcess = [fullContent];
-          }
+  //           if (Array.isArray(fullJSON.content)) {
+  //             // JSON with content array
+  //             contentToProcess = fullJSON.content;
+  //           } else if (Array.isArray(fullJSON)) {
+  //             // Regular JSON array
+  //             contentToProcess = fullJSON;
+  //           } else {
+  //             // Treat as single item
+  //             contentToProcess = [fullJSON];
+  //           }
+  //         } catch (error) {
+  //           // Raw text (txt, markdown, etc.)
+  //           contentToProcess = [fullContent];
+  //         }
 
-          function jsonToString(obj: any): string {
-            let result = '';
-            for (const [key, value] of Object.entries(obj)) {
-              if (typeof value === 'string') {
-                // Check if the value can be converted to a valid Date
-                const date = new Date(value);
-                if (isNaN(date.getTime())) {
-                  // If it's not a valid timestamp, add it to the result
-                  result += `The ${key} is ${value}. `;
-                }
-              } else if (typeof value === 'object' && value !== null) {
-                result += jsonToString(value);
-              }
-            }
-            return result.trim();
-          }
+  //         function jsonToString(obj: any): string {
+  //           let result = '';
+  //           for (const [key, value] of Object.entries(obj)) {
+  //             if (typeof value === 'string') {
+  //               // Check if the value can be converted to a valid Date
+  //               const date = new Date(value);
+  //               if (isNaN(date.getTime())) {
+  //                 // If it's not a valid timestamp, add it to the result
+  //                 result += `The ${key} is ${value}. `;
+  //               }
+  //             } else if (typeof value === 'object' && value !== null) {
+  //               result += jsonToString(value);
+  //             }
+  //           }
+  //           return result.trim();
+  //         }
 
-          for (const item of contentToProcess) {
-            let textToChunk: string;
-            if (typeof item === 'string') {
-              textToChunk = item;
-            } else if (typeof item === 'object' && item !== null) {
-              textToChunk = jsonToString(item);
-            } else {
-              textToChunk = String(item);
-            }
+  //         for (const item of contentToProcess) {
+  //           let textToChunk: string;
+  //           if (typeof item === 'string') {
+  //             textToChunk = item;
+  //           } else if (typeof item === 'object' && item !== null) {
+  //             textToChunk = jsonToString(item);
+  //           } else {
+  //             textToChunk = String(item);
+  //           }
 
-            if (textToChunk.trim().length === 0) {
-              console.log('Skipping empty content');
-              continue;
-            }
+  //           if (textToChunk.trim().length === 0) {
+  //             console.log('Skipping empty content');
+  //             continue;
+  //           }
 
-            // batch add for chunks?
+  //           // batch add for chunks?
 
-            const chunks = chunkText(textToChunk);
+  //           const chunks = chunkText(textToChunk);
 
-            try {
-              for (const chunk of chunks) {
-                const embedding = await createEmbedding(chunk);
+  //           try {
+  //             for (const chunk of chunks) {
+  //               const embedding = await createEmbedding(chunk);
 
-                const columns = Object.keys(tableStructure)
-                  .filter((col) => col !== 'id')
-                  .join(', ');
-                const placeholders = Object.keys(tableStructure)
-                  .filter((col) => col !== 'id')
-                  .map(() => '?')
-                  .join(', ');
+  //               const columns = Object.keys(tableStructure)
+  //                 .filter((col) => col !== 'id')
+  //                 .join(', ');
+  //               const placeholders = Object.keys(tableStructure)
+  //                 .filter((col) => col !== 'id')
+  //                 .map(() => '?')
+  //                 .join(', ');
 
-                const values = Object.keys(tableStructure)
-                  .filter((col) => col !== 'id')
-                  .map((col) => {
-                    switch (col) {
-                      case 'company':
-                        return company;
-                      case 'timestamp':
-                        return Date.now();
-                      case 'name':
-                        return name;
-                      case 'runID':
-                        return runID;
-                      case 'folderPath':
-                        return filePath;
-                      case 'content':
-                        return chunk;
-                      case 'embeddings':
-                        return JSON.stringify(embedding);
-                      default:
-                        return null;
-                    }
-                  });
+  //               const values = Object.keys(tableStructure)
+  //                 .filter((col) => col !== 'id')
+  //                 .map((col) => {
+  //                   switch (col) {
+  //                     case 'company':
+  //                       return company;
+  //                     case 'timestamp':
+  //                       return Date.now();
+  //                     case 'name':
+  //                       return name;
+  //                     case 'runID':
+  //                       return runID;
+  //                     case 'folderPath':
+  //                       return filePath;
+  //                     case 'content':
+  //                       return chunk;
+  //                     case 'embeddings':
+  //                       return JSON.stringify(embedding);
+  //                     default:
+  //                       return null;
+  //                   }
+  //                 });
 
-                await new Promise((res, rej) => {
-                  db.run(
-                    `INSERT INTO db (${columns}) VALUES (${placeholders})`,
-                    values,
-                    function (insertErr) {
-                      if (insertErr) {
-                        console.error(
-                          `Error inserting document chunk for ${filePath}:`,
-                          insertErr,
-                        );
-                        rej({ success: false, error: insertErr.message });
-                      } else {
-                        console.log(
-                          'Inserted document chunk for: ',
-                          filePath,
-                        );
-                        res({ success: true, id: this.lastID });
-                      }
-                    },
-                  );
-                });
-              }
-            } catch (error) {
-              console.error('Error in chunking:', error);
-              continue;
-            }
+  //               await new Promise((res, rej) => {
+  //                 db.run(
+  //                   `INSERT INTO db (${columns}) VALUES (${placeholders})`,
+  //                   values,
+  //                   function (insertErr) {
+  //                     if (insertErr) {
+  //                       console.error(
+  //                         `Error inserting document chunk for ${filePath}:`,
+  //                         insertErr,
+  //                       );
+  //                       rej({ success: false, error: insertErr.message });
+  //                     } else {
+  //                       console.log(
+  //                         'Inserted document chunk for: ',
+  //                         filePath,
+  //                       );
+  //                       res({ success: true, id: this.lastID });
+  //                     }
+  //                   },
+  //                 );
+  //               });
+  //             }
+  //           } catch (error) {
+  //             console.error('Error in chunking:', error);
+  //             continue;
+  //           }
             
-          }
-        }
-      )
-  console.log(`Data appended to: ${filePath}`);
-    })
+  //         }
+  //       }
+  //     )
+  // console.log(`Data appended to: ${filePath}`);
+  //   })
 
 });
  
