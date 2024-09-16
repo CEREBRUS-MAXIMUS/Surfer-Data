@@ -8,11 +8,6 @@ export async function addDocuments(chunks, company, name, runID, folderPath) {
                     autoIncrement: true,
                     keyPath: 'id',
                 });
-                documentStore.createIndex('text', 'text');
-                documentStore.createIndex('timestamp', 'timestamp');
-                documentStore.createIndex('vector', 'vector');
-                documentStore.createIndex('vectorMag', 'vectorMag');
-                documentStore.createIndex('hits', 'hits');
         },
     });
 

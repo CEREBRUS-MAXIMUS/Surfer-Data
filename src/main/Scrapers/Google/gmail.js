@@ -100,7 +100,7 @@ async function exportGmail(id, platformId, filename, company, name) {
   }
 
   if (window.location.href.includes('mail.google.com')) {
-    customConsoleLog(id, 'Already on gmail, continuing to export!');
+    customConsoleLog(id, 'On gmail');
     bigStepper(id, 'On gmail, checking for takeout email');
     let emailFound = false;
     let refreshCounter = 0;
@@ -112,14 +112,16 @@ async function exportGmail(id, platformId, filename, company, name) {
         'Download Email',
         true,
       );
+      bigStepper(id, 'Checking for email');
+      customConsoleLog(id, `Waiting for email from Google Takeout`);
       for (const email of emails) {
         if (email.innerText.includes('Your Google data is ready to download')) {
           bigStepper(id, 'Clicked takeout email');
           email.click();
-          return 'DOWNLOADING';
+          return true;
         }
       }
-      return 'NOTHING';
+      return false;
     };
 
     while (!emailFound) {

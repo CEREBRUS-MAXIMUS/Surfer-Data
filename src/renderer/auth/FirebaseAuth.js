@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
-import app from '../../firebase'
+import app from '../../firebase';
+import Tumbler from '../animations/tumbler.gif';
 
 const AuthContext = React.createContext();
 
@@ -13,30 +14,41 @@ export function AuthProvider({ children }) {
   const [userDoc, setUserDoc] = useState(null); // State to hold user document
 
   console.log('AuthProvider');
-
+ 
   useEffect(() => {
     const unsubscribeAuth = app.auth().onAuthStateChanged((user) => {
-      setLoading(true);
+      try {
+        setLoading(true);
 
-      console.log('auth state changed!');
-      // DEBUGGING IN PROD DONT REMOVE!!!
-      if (user && user.email === 'lihas1002@gmail.com') {
-        window.electron.ipcRenderer.send('show-dev-tools');
+        console.log('auth state changed!');
+        // DEBUGGING IN PROD DONT REMOVE!!!
+        if (user && user.email === 'lihas1002@gmail.com') {
+          window.electron.ipcRenderer.send('show-dev-tools');
+        }
+        setCurrentUser(user);
+
+        if (user) {
+          const unsubscribeUserDoc = app
+            .firestore()
+            .collection('Users')
+            .doc(user.uid)
+            .onSnapshot((doc) => {
+              setUserDoc(doc.data());
+            }, (error) => {
+              console.error("Error fetching user document:", error);
+              setError(error);
+            });
+
+          return () => unsubscribeUserDoc();
+        }
+      } catch (error) {
+        console.error("Error in auth state change:", error);
+      } finally {
+        setLoading(false);
       }
-      setCurrentUser(user);
+    }, (error) => {
+      console.error("Auth state change error:", error);
       setLoading(false);
-
-      if (user) {
-        const unsubscribeUserDoc = app
-          .firestore()
-          .collection('Users')
-          .doc(user.uid)
-          .onSnapshot((doc) => {
-            setUserDoc(doc.data());
-          });
-
-        return () => unsubscribeUserDoc();
-      }
     });
 
     return () => unsubscribeAuth();
@@ -56,6 +68,7 @@ export function AuthProvider({ children }) {
       >
         <div className="bg-background flex flex-row justify-center">
           <img
+            src={Tumbler}
             alt="Animations"
             style={{
               width: '100px',
