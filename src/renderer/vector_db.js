@@ -4,7 +4,6 @@ import OpenAI from "openai";
 export async function addDocuments(chunks, company, name, runID, folderPath) {
     const db = await openDB('vectorDB', 1, {
         upgrade(db) {
-            if (!db.objectStoreNames.contains('documents')) {
                 const documentStore = db.createObjectStore('documents', {
                     autoIncrement: true,
                     keyPath: 'id',
@@ -14,7 +13,6 @@ export async function addDocuments(chunks, company, name, runID, folderPath) {
                 documentStore.createIndex('vector', 'vector');
                 documentStore.createIndex('vectorMag', 'vectorMag');
                 documentStore.createIndex('hits', 'hits');
-            }
         },
     });
 
