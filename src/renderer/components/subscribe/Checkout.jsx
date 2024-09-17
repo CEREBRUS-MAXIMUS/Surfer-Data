@@ -6,7 +6,7 @@ import { getCheckoutUrl, getPremiumStatus } from '@/src/main/utils/stripe';
 import Tumbler from '../../animations/tumbler.gif';
 import { useAuth } from '../../auth/FirebaseAuth';
 
-const Checkout = () => {
+const Checkout = ({handleSignOut}) => {
     const [stripeURL, setStripeURL] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const { currentUser } = useAuth();
@@ -23,9 +23,17 @@ const Checkout = () => {
         fetchStripeURL();
     }, [currentUser]);
 
-
+ 
     return (
-      <Card>
+      <Card className="relative">
+        <Button 
+          onClick={handleSignOut} 
+          variant="outline" 
+          size="sm" 
+          className="absolute top-2 right-2"
+        >
+          Sign Out
+        </Button>
         <CardContent>
           <CardHeader>
             <CardTitle>Upgrade to Premium</CardTitle>

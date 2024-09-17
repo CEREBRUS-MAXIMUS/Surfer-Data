@@ -7,9 +7,10 @@ import { ScrollArea } from "../../renderer/components/ui/scroll-area";
 import { Badge } from "../../renderer/components/ui/badge";
 import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
 import SubscribeCard from '../components/subscribe/SubscribeCard';
-// Remove unused import
-// import { VectorStorage } from 'vector-storage';
 import { similaritySearch } from '../vector_db';
+import { useAuth } from '../auth/FirebaseAuth';
+import { getFirestore, collection, query, where, onSnapshot } from 'firebase/firestore';
+import app from '../../firebase'
 
 const Chat = () => { 
   const [messages, setMessages] = useState([]);
@@ -17,12 +18,33 @@ const Chat = () => {
   const scrollAreaRef = useRef(null); 
   const dispatch = useDispatch();
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const { currentUser } = useAuth();
 
-useEffect(() => {
-  if (!isSubscribed) {
-    dispatch(setCurrentRoute('/profile'))
-  }
-}, [dispatch, isSubscribed])
+
+    useEffect(() => {
+        if (!currentUser) {
+          dispatch(setCurrentRoute('/profile'))
+          return; 
+        }
+
+        const db = getFirestore(app);
+        const subscriptionsRef = collection(db, 'Users', currentUser.uid, 'subscriptions');
+        const q = query(subscriptionsRef, where('status', 'in', ['trialing', 'active']));
+
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
+            const isActive = snapshot.docs.length > 0;
+            console.log('isActive: ', isActive);
+            setIsSubscribed(isActive);
+            if (!isActive) {
+                dispatch(setCurrentRoute('/profile'))
+              }
+        }, (error) => {
+            console.error("Error listening to subscription changes:", error);
+        });
+
+        return () => unsubscribe();
+    }, [currentUser]);
+
 
   useEffect(() => {
     if (scrollAreaRef.current) {

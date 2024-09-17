@@ -1,15 +1,9 @@
-'use client';
-import { FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import {
   addDoc,
   collection,
   getFirestore,
   onSnapshot,
-  query,
-  where,
-  doc,
-  getDoc,
 } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import app from '../../firebase';
@@ -59,7 +53,7 @@ export const getCheckoutUrl = async (
   });
 };
 
-export const getPortalUrl = async (app: FirebaseApp): Promise<string> => {
+export const getPortalUrl = async (): Promise<string> => {
   const auth = getAuth(app);
   const user = auth.currentUser;
 
@@ -89,38 +83,5 @@ export const getPortalUrl = async (app: FirebaseApp): Promise<string> => {
       reject(new Error('No url returned'));
     }
   });
-};
-
-export const getPremiumStatus = async (app: FirebaseApp) => {
-  const auth = getAuth(app);
-  const userId = auth.currentUser?.uid;
-  if (!userId) throw new Error('User not logged in');
-
-  const db = getFirestore(app);
-  const subscriptionsRef = collection(db, 'Users', userId, 'subscriptions');
-  console.log(subscriptionsRef)
-  const q = query(
-    subscriptionsRef,
-    where('status', 'in', ['trialing', 'active']),
-  );
-
-  const premiumStatus = await new Promise<boolean>((resolve, reject) => {
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        if (snapshot.docs.length === 0) {
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-        unsubscribe();
-      },
-      reject,
-    );
-  });
-
-  console.log('premium status: ', premiumStatus)
-
-  return premiumStatus;
 };
 

@@ -103,6 +103,9 @@ const SubscribeCard = () => {
 						>
 							Subscribe
 						</Button>
+						<Button className='w-full' onClick={handleSubscribeClick}>
+							Sign back in
+						</Button>
 						{!isProduction && showTokenInput && (
 							<form onSubmit={handleTokenSubmit} className="w-full space-y-2">
 								<p>Enter your user token (sign in on website + look at console for token)</p>

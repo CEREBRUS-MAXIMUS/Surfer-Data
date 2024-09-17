@@ -4,14 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import SubscribeCard from '../components/subscribe/SubscribeCard';
 import Checkout from '../components/subscribe/Checkout';  // Import the Checkout component
 import { useAuth } from '../auth/FirebaseAuth'
-import app from '../../firebase';
+import app from '../../firebase'; 
 import { getAuth } from 'firebase/auth';
-import { getPremiumStatus } from '@/src/main/utils/stripe';
-import { getFirestore, collection, query, where, onSnapshot } from 'firebase/firestore';
+import { getPremiumStatus, getPortalUrl } from '@/src/main/utils/stripe';
+import { getFirestore, collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 
 const UserProfile = () => {
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [showCheckout, setShowCheckout] = useState(false);
+    const [isCancelled, setIsCancelled] = useState(false);
+    const [subscriptionEndDate, setSubscriptionEndDate] = useState(null);
     const { currentUser } = useAuth();
     const auth = getAuth(app);
 
@@ -22,25 +24,48 @@ const UserProfile = () => {
         const subscriptionsRef = collection(db, 'Users', currentUser.uid, 'subscriptions');
         const q = query(subscriptionsRef, where('status', 'in', ['trialing', 'active']));
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            setIsSubscribed(snapshot.docs.length > 0);
-            setShowCheckout(snapshot.docs.length === 0);
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
+            const isActive = snapshot.docs.length > 0;
+            setIsSubscribed(isActive);
+            setShowCheckout(!isActive); 
+
+            if (isActive) {
+                const cancelledQuery = query(subscriptionsRef, where('cancel_at_period_end', '==', true));
+                const cancelledDocs = await getDocs(cancelledQuery);
+                const isCancelled = cancelledDocs.docs.length > 0;
+                setIsCancelled(isCancelled);
+
+                if (isCancelled) {
+                    const subscriptionData = cancelledDocs.docs[0].data();
+                    const endDate = subscriptionData.current_period_end?.toDate();
+                    setSubscriptionEndDate(endDate);
+                } else {
+                    setSubscriptionEndDate(null);
+                }
+            } else {
+                setIsCancelled(false);
+                setSubscriptionEndDate(null);
+            }
         }, (error) => {
             console.error("Error listening to subscription changes:", error);
         });
 
-        // Clean up the listener when the component unmounts or currentUser changes
         return () => unsubscribe();
     }, [currentUser]);
 
 
     const handleCancelSubscription = async () => {
-        console.log('Cancel subscription');
+        const portalUrl = await getPortalUrl(app);
+        window.electron.ipcRenderer.send('open-external', portalUrl);
     };
 
     const handleSignOut = async () => {
         setIsSubscribed(false);
         await auth.signOut();
+    };
+
+    const formatDate = (date) => {
+        return date ? date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
     };
 
     return (
@@ -53,7 +78,10 @@ const UserProfile = () => {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <p><strong>Email:</strong> {currentUser.email}</p>
-                            <p><strong>Subscription Status:</strong> Active</p>
+                            <p><strong>Subscription Status:</strong> {isCancelled 
+                                ? `Cancelled (Active until ${formatDate(subscriptionEndDate)})` 
+                                : 'Active'}
+                            </p>
                         </div>
                         <div className="flex space-x-4">
                             <Button
@@ -62,17 +90,18 @@ const UserProfile = () => {
                             >
                                 Sign Out
                             </Button>
-                            <Button
-                                onClick={handleCancelSubscription}
-                                variant="destructive"
-                            >
-                                Cancel Subscription
-                            </Button>
+                    
+                                <Button
+                                    onClick={handleCancelSubscription}
+                                >
+                                    Manage Subscription
+                                </Button>
+                            
                         </div>
                     </CardContent>
                 </Card>
             ) : currentUser ? (
-                showCheckout ? <Checkout /> : <SubscribeCard />
+                showCheckout ? <Checkout handleSignOut={handleSignOut}/> : <SubscribeCard />
             ) : (
                 <SubscribeCard />
             )}
