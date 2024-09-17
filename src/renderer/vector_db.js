@@ -44,16 +44,21 @@ function calculateMagnitude(vector) {
 
 async function createEmbeddings(chunks) {
     const apiKey = await window.electron.ipcRenderer.invoke('get-openai-api-key');
-
     const client = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-
-    const embeddings = await client.embeddings.create({
-        input: chunks,
-        model: 'text-embedding-3-small',
-
-    });
-
-    return embeddings;
+    const allEmbeddings = [];
+    const batchSize = 1000;
+    for (let i = 0; i < chunks.length; i += batchSize) {
+        const chunkBatch = chunks.slice(i, i + batchSize);
+        const embeddings = await client.embeddings.create({
+            input: chunkBatch,
+            model: 'text-embedding-3-small',
+        });
+        console.log('embeddings: ', embeddings);
+        allEmbeddings.push(...embeddings.data);
+    }
+    console.log('embedding this: ', chunks);
+    console.log('returning this: ', allEmbeddings);
+    return { data: allEmbeddings };
 }
 
 async function getAll() {
