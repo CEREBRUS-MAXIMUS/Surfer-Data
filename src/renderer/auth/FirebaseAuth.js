@@ -36,7 +36,6 @@ export function AuthProvider({ children }) {
               setUserDoc(doc.data());
             }, (error) => {
               console.error("Error fetching user document:", error);
-              setError(error);
             });
 
           return () => unsubscribeUserDoc();

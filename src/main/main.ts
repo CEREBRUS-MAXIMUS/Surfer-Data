@@ -43,20 +43,6 @@ let downloadingItems = new Map();
 
 
 
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    dangerouslyAllowBrowser: true,
-  });
-
-async function createEmbedding(text: string) {
-
-  const response = await openai.embeddings.create({
-    input: text,
-    model: 'text-embedding-3-small',
-  });
-  return response.data[0].embedding;
-}
-
 // function cosineSimilarity(a: number[], b: number[]): number {
 //   const dotProduct = dot(a, b);
 //   const magnitudeA = Math.sqrt(dot(a, a));
@@ -65,51 +51,9 @@ async function createEmbedding(text: string) {
 // }
 
 
-
-
-// async function getSimilarData(queryEmbedding: number[]): Promise<any[]> {
-//   const userData = app.getPath('userData');
-//   const vectorDBPath = path.join(userData, 'vector_db.sqlite');
-
-//   if (!fs.existsSync(vectorDBPath)) {
-//     throw new Error('Vector database does not exist.');
-//   }
-
-//   console.log('Getting similar data!');
-
-//   const db = new Database(vectorDBPath);
-
-//   // Fetch all embeddings and their corresponding row data
-//   const rows = await new Promise<any[]>((resolve, reject) => {
-//     db.all(`SELECT id, company, name, runID, folderPath, content, embeddings FROM db`, [], (err, rows) => {
-//       if (err) reject(err);
-//       else resolve(rows);
-//     });
-//   });
-
-//   // Calculate cosine similarity for each embedding
-//   const similarities = rows.map(row => {
-//     const embedding = JSON.parse(row.embeddings);
-//     const similarity = cosineSimilarity(queryEmbedding, embedding);
-//     return { ...row, similarity };
-//   });
-
-//   // Sort by similarity and get top 5
-//   const topResults = similarities
-//     .sort((a, b) => b.similarity - a.similarity)
-//     .slice(0, 5);
-
-//   return topResults;
-// }
-
-// function runQuery(db: Database, query: string): Promise<void> {
-//   return new Promise((resolve, reject) => {
-//     db.run(query, (err) => {
-//       if (err) reject(err);
-//       else resolve();
-//     });
-//   });
-// }
+ipcMain.handle('is-production', async () => {
+  return process.env.NODE_ENV === 'production';
+});
 
 ipcMain.handle('get-openai-api-key', async () => {
   return process.env.OPENAI_API_KEY;
@@ -233,10 +177,6 @@ app.on('web-contents-created', (_event, contents) => {
 ipcMain.on('get-files-in-folder', (event, folderPath) => {
   const files = getFilesInFolder(folderPath);
   event.reply('files-in-folder', files);
-});
-
-ipcMain.on('open-external', (event, url) => {
-  shell.openExternal(url);
 });
 
 ipcMain.on('get-version-number', (event) => {

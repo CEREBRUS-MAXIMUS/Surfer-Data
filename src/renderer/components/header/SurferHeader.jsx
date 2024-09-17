@@ -10,12 +10,12 @@ import {
   TooltipTrigger,
 } from '../ui/tooltip';
 import { useTheme } from '../ui/theme-provider';
-import { setCurrentRoute, toggleRunVisibility, updateBreadcrumbToIndex, setIsMac, setIsFullScreen } from '../../state/actions';
+import { toggleRunVisibility, updateBreadcrumbToIndex, setIsMac, setIsFullScreen, updateBreadcrumb, setCurrentRoute } from '../../state/actions';
 import { Button } from '../ui/button';
 import SettingsButton from './SettingsButton';
 import { setIsRunLayerVisible } from '../../state/actions';
 import SupportButton from './SupportButton';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, CircleUserRound } from 'lucide-react';
 
 const getStyleHorizontalLock = (style) =>
   style?.transform
@@ -727,7 +727,7 @@ export const SurferHeader = ({ onChatClick }) => {
         <div className="header-option-panel">
           <TooltipProvider>
             <Tooltip>
-              <Button variant="ghost" size="icon" onClick={onChatClick}>
+              <Button variant="ghost" size="icon" onClick={() => dispatch(setCurrentRoute('/chat'))}>
                 <MessageSquare size={18} />
               </Button>
             </Tooltip>
@@ -770,6 +770,18 @@ export const SurferHeader = ({ onChatClick }) => {
               </TooltipTrigger>
               <TooltipContent>
                 <p>Settings</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={() => dispatch(setCurrentRoute('/profile'))}>
+                  <CircleUserRound />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Profile</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

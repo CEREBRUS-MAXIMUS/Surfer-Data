@@ -5,7 +5,7 @@ import { Input } from "../../renderer/components/ui/input";
 import { Button } from "../../renderer/components/ui/button";
 import { ScrollArea } from "../../renderer/components/ui/scroll-area";
 import { Badge } from "../../renderer/components/ui/badge";
-import { updateBreadcrumb } from '../state/actions';
+import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
 import SubscribeCard from '../components/subscribe/SubscribeCard';
 // Remove unused import
 // import { VectorStorage } from 'vector-storage';
@@ -16,9 +16,13 @@ const Chat = () => {
   const [inputMessage, setInputMessage] = useState('');
   const scrollAreaRef = useRef(null); 
   const dispatch = useDispatch();
-  const [isSubscribed, setIsSubscribed] = useState(true);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
-
+useEffect(() => {
+  if (!isSubscribed) {
+    dispatch(setCurrentRoute('/profile'))
+  }
+}, [dispatch, isSubscribed])
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -104,11 +108,7 @@ const Chat = () => {
           </div>
         </> 
        ) : (
-        <div className="flex flex-col h-screen p-4">
-
-                 <SubscribeCard />
-
-        </div>
+          null
       )}
     </div>
   );

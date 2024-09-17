@@ -5,13 +5,14 @@ import { Button } from "../ui/button";
 import SignInModal from './SignInModal'; 
 import { useAuth } from '../../auth/FirebaseAuth';
 import { signInWithCredential, getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { Input } from "../ui/input"; // Add this import
 
 const SubscribeCard = () => {
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-	//const { currentUser } = useAuth();
-
-	useEffect(() => {
-
+	const [isProduction, setIsProduction] = useState(true);
+	const [showTokenInput, setShowTokenInput] = useState(false);
+	const [userToken, setUserToken] = useState('');
+	const { currentUser } = useAuth();
 		const handleToken = async (token) => {
 			console.log('Received token, sign in with credential now:', token);
 			const auth = getAuth();
@@ -20,13 +21,35 @@ const SubscribeCard = () => {
 			console.log('Sign-in result:', result);
 		};
 
+	useEffect(() => {
+
 		window.electron.ipcRenderer.on('token', handleToken);
+
+		// Check if it's production mode
 
 		return () => {
 			window.electron.ipcRenderer.removeAllListeners('token', handleToken);
 		};
 	}, []);
 
+	const handleSubscribeClick = async () => {
+		const isProduction = await window.electron.ipcRenderer.invoke('is-production')
+		console.log('Is production:', isProduction)
+		window.electron.ipcRenderer.send('open-external', 'https://surfsup.ai/signin');
+		if (!isProduction) {
+			console.log('Not in production, setting production to false')
+			setIsProduction(false)
+			setShowTokenInput(true)
+		}
+	}
+
+	const handleTokenSubmit = (e) => {
+		e.preventDefault();
+		console.log('User token:', userToken);
+		handleToken(userToken);
+		setShowTokenInput(false);
+		setUserToken('');
+	}
 
 	return (
 		<>
@@ -73,13 +96,27 @@ const SubscribeCard = () => {
 							</li>
 						</ul>
 					</CardContent>
-					<CardFooter>
+					<CardFooter className="flex flex-col space-y-2">
 						<Button 
 							className="w-full"
-							onClick={() => window.electron.ipcRenderer.send('open-external', 'https://surfsup.ai/signin')}
+							onClick={handleSubscribeClick}
 						>
 							Subscribe
 						</Button>
+						{!isProduction && showTokenInput && (
+							<form onSubmit={handleTokenSubmit} className="w-full space-y-2">
+								<p>Enter your user token (sign in on website + look at console for token)</p>
+								<Input
+									type="text"
+									placeholder="Enter your token"
+									value={userToken}
+									onChange={(e) => setUserToken(e.target.value)}
+								/>
+								<Button type="submit" className="w-full">
+									Submit Token
+								</Button>
+							</form>
+						)}
 					</CardFooter>
 				</Card>
 			</div>

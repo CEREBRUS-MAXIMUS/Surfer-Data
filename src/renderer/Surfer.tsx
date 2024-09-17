@@ -8,12 +8,13 @@ import Platform from './pages/Platform';
 import SubRun from './pages/SubRun';
 import Settings from './pages/Settings';
 import Chat from './pages/Chat';
+import UserProfile from './pages/UserProfile';
 import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs, updateRunConnected } from './state/actions';
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
 import { Progress } from './components/ui/progress';
 import { addDocuments } from './vector_db';
-// import { useAuth } from './auth/FirebaseAuth';
+import { useAuth } from './auth/FirebaseAuth';
 
 function Surfer() {
   const dispatch = useDispatch();
@@ -28,7 +29,7 @@ function Surfer() {
   const [showNotConnectedAlert, setShowNotConnectedAlert] = useState(false);
   const [updateProgress, setUpdateProgress] = useState<number | null>(null);
   const [content, setContent] = useState<React.ReactNode | null>(null);
-  // const { currentUser } = useAuth();
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     const handleUpdateDownloadProgress = (progress: number) => {
@@ -57,11 +58,11 @@ function Surfer() {
     };
   }, [])
 
-  // useEffect(() => {
-  //   if (currentUser) {
-  //     console.log("current user: ", currentUser)
-  //   }
-  // }, [currentUser]);
+  useEffect(() => {
+    if (currentUser) {
+      console.log("current user: ", currentUser)
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     console.log('opening dev tools')
@@ -194,6 +195,9 @@ function Surfer() {
       case 'chat':
           newContent = <Chat />;
           break;
+      case 'profile':
+        newContent = <UserProfile />;
+        break;
       default:
         console.warn('Unknown route:', currentRoute);
         newContent = <Home />;
@@ -212,11 +216,13 @@ function Surfer() {
     dispatch(updateBreadcrumb([{ icon: 'Home', text: 'Home', link: '/home' }]));
   };
 
-  const handleChatClick = () => {
-    console.log('Chat clicked');
-    dispatch(setCurrentRoute('/chat'));
-    dispatch(updateBreadcrumb([{ text: 'Chat', link: '/chat' }]));
-  };
+
+
+  // const handleProfileClick = () => {
+  //   console.log('Profile clicked');
+  //   dispatch(setCurrentRoute('/profile'));
+  //   dispatch(updateBreadcrumb([{ text: 'Profile', link: '/profile' }]));
+  // };
 
   const getWebviewRef = (runId: string) => {
     if (!webviewRefs.current[runId]) {
@@ -236,8 +242,6 @@ function Surfer() {
               webviewRefs={webviewRefs.current}
               getWebviewRef={getWebviewRef}
               contentScale={safeContentScale}
-              onHomeClick={handleHomeClick}
-              onChatClick={handleChatClick}
             >
               {content}
             </Layout>
