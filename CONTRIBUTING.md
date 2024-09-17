@@ -22,7 +22,7 @@ Before you can start contributing, please follow these steps to set up the devel
    npm start
    ```
 
-4. Add FIREBASE_API_KEY (for authentication) and OPENAI_API_KEY (for embedding data) to environment variables:
+4. Add FIREBASE_API_KEY (for authentication), update the ```firebaseConfig``` in ```firebase.js```, and OPENAI_API_KEY (for embedding data) to environment variables:
 
    On Windows:
    ```
