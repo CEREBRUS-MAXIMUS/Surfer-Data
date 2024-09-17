@@ -74,15 +74,13 @@ export async function similaritySearch(query) {
     // Get query embedding
     const queryEmbedding = await createEmbeddings([query]);
     const queryVector = queryEmbedding.data[0].embedding;
-    const queryMagnitude = calculateMagnitude(queryVector);
 
     // Get all documents
     const allDocs = await getAll();
 
-    // Calculate similarity scores
+    // Calculate similarity scores using cosine similarity
     const scoresPairs = allDocs.map(doc => {
-        const dotProduct = doc.vector.reduce((sum, val, i) => sum + val * queryVector[i], 0);
-        const score = dotProduct / (doc.vectorMag * queryMagnitude);
+        const score = cosineSimilarity(doc.vector, queryVector);
         return [doc, score];
     });
 
@@ -90,8 +88,8 @@ export async function similaritySearch(query) {
     const sortedPairs = scoresPairs.sort((a, b) => b[1] - a[1]);
     const results = sortedPairs.slice(0, 5).map(pair => ({
         ...pair[0],
-        score: (pair[1] + 1) / 2 // Normalize score
-    }));
+        score: pair[1] // Cosine similarity is already normalized between -1 and 1
+    })); 
 
     // Update hit counters
     const tx = db.transaction('documents', 'readwrite');
@@ -103,6 +101,14 @@ export async function similaritySearch(query) {
     await tx.done;
     console.log('results: ', results);
     return results;
+}
+
+// Helper function for cosine similarity
+function cosineSimilarity(a, b) {
+    const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
+    const magnitudeA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
+    const magnitudeB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
+    return dotProduct / (magnitudeA * magnitudeB);
 }
 
 // ... existing code ...
