@@ -22,6 +22,25 @@ Before you can start contributing, please follow these steps to set up the devel
    npm start
    ```
 
+4. Add FIREBASE_API_KEY (for authentication) and OPENAI_API_KEY (for embedding data) to environment variables:
+
+   On Windows:
+   ```
+   setx FIREBASE_API_KEY "your_firebase_api_key"
+   setx OPENAI_API_KEY "your_openai_api_key"
+   ```
+
+   On macOS and Linux:
+   ```
+   echo 'export FIREBASE_API_KEY="your_firebase_api_key"' >> ~/.bash_profile
+   echo 'export OPENAI_API_KEY="your_openai_api_key"' >> ~/.bash_profile
+   source ~/.bash_profile
+   ```
+
+   Note: On macOS, if you're using Zsh instead of Bash, replace `.bash_profile` with `.zshrc`.
+
+   After setting the environment variables, restart your terminal or command prompt for the changes to take effect.
+
 This will run the application in development mode, allowing you to test your changes and see the results in real-time.
 
 ## Contribution Guidelines
