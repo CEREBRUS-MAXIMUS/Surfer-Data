@@ -16,6 +16,9 @@ import { platform } from 'os';
 import { MoonLoader } from 'react-spinners';
 import ConfettiExplosion from 'react-confetti-explosion';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
+import { Info } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from "../ui/alert";
+import { Card } from "../ui/card";
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -441,27 +444,47 @@ const showLogs = (platform) => {
     <div className="w-full h-full flex-col px-[50px] pt-6 pb-6 select-none">
       <div className="flex-shrink-0 mb-4">
         <div className="relative w-full max-w-2xl">
-
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <Input
-            type="text"
-            placeholder="Search company or platform..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="pl-10 pr-10 w-full"
-          />
-          
-          {searchTerm && (
-            <button
-              onClick={clearSearch}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X size={20} />
-            </button>
-          )}
+          <div className="flex items-center mb-2 space-x-4">
+            <div className="flex justify-between items-center w-full">
+              <div className="relative flex-grow mr-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Input
+                  type="text"
+                  placeholder="Search company or platform..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="pl-10 pr-10 w-full"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X size={20} />
+                  </button>
+                )}
+              </div>
+              
+              {/* <Card className="p-4 flex items-center flex-shrink-0" style={{ maxWidth: '300px' }}>
+                <Info size={16} className="mr-2 flex-shrink-0" />
+                <div>
+                  <AlertTitle className="mb-2">Can't find a platform?</AlertTitle>
+                  <AlertDescription>
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto underline"
+                      onClick={() => window.electron.ipcRenderer.send('open-external', 'https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/blob/main/docs/ADD_PLATFORMS.md')}
+                    >
+                      Build a scraper for it!
+                    </Button>
+                  </AlertDescription>
+                </div>
+              </Card> */}
+            </div>
+          </div>
         </div>
       </div>
       {paginatedPlatforms.length > 0 ? (
@@ -564,7 +587,7 @@ const showLogs = (platform) => {
       ) : (
         <div className="flex-grow flex items-center justify-center">
           <div className="text-center py-8 bg-gray-100 rounded-md">
-            <p className="text-gray-500 text-lg">No platforms found matching "{searchTerm}"</p>
+            <p className="text-gray-500 text-lg">Didn't find anything? <a className="underline cursor-pointer" onClick={() => window.electron.ipcRenderer.send('open-external', 'https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/blob/main/docs/ADD_PLATFORMS.md')}>Build a scraper for "{searchTerm}"</a></p>
             <button
               onClick={clearSearch}
               className="mt-2 text-blue-500 hover:underline"

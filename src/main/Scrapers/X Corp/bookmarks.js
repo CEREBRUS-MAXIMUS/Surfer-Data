@@ -55,7 +55,7 @@ async function exportBookmarks(id, platformId, filename, company, name) {
   if (!window.location.href.includes('x.com')) {
     bigStepper(id, 'Navigating to Twitter');
     customConsoleLog(id, 'Navigating to Twitter');
-    window.location.assign('https://x.com/i/bookmarks');
+    window.location.assign('https://x.com/i/bookmarks/all');
   }
   await wait(5);
   if (document.body.innerText.toLowerCase().includes('sign in to x')) {

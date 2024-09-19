@@ -157,10 +157,6 @@ ipcMain.on('get-files-in-folder', (event, folderPath) => {
   event.reply('files-in-folder', files);
 });
 
-ipcMain.on('open-external', (event, url) => {
-  shell.openExternal(url);
-});
-
 ipcMain.on('get-version-number', (event) => {
   event.reply('version-number', app.getVersion());
 });

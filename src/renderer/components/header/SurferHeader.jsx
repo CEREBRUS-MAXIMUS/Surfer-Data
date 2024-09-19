@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Eye, Home } from 'lucide-react';
+import { Eye, Home, Moon, Sun } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "../ui/breadcrumb";
 import {
@@ -12,9 +12,10 @@ import {
 import { useTheme } from '../ui/theme-provider';
 import { setCurrentRoute, toggleRunVisibility, updateBreadcrumbToIndex, setIsMac, setIsFullScreen } from '../../state/actions';
 import { Button } from '../ui/button';
-import SettingsButton from './SettingsButton';
+import { Toggle } from '../ui/toggle';
 import { setIsRunLayerVisible } from '../../state/actions';
 import SupportButton from './SupportButton';
+import { Settings } from 'lucide-react';
 
 const getStyleHorizontalLock = (style) =>
   style?.transform
@@ -560,7 +561,7 @@ export const SurferHeader = () => {
   const runs = useSelector((state) => state.app.runs);
   const isFullScreen = useSelector((state) => state.app.isFullScreen);
   const isMac = useSelector((state) => state.app.isMac);
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const activeRuns = runs.filter((run) => run.status === 'running').length;
   const [allPlatforms, setAllPlatforms] = useState([]); 
   const [platformLogos, setPlatformLogos] = useState({});
@@ -691,7 +692,15 @@ export const SurferHeader = () => {
   };
 
   const handleViewRuns = () => {
-    dispatch(toggleRunVisibility());
+    dispatch(toggleRunVisibility()); 
+  };
+
+  const handleThemeToggle = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
+  const handleSettingsClick = () => {
+    dispatch(setCurrentRoute('/settings'));
   };
 
   return (
@@ -759,7 +768,30 @@ export const SurferHeader = () => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <SettingsButton />
+                <Toggle
+                  pressed={theme === 'dark'}
+                  onPressedChange={handleThemeToggle}
+                  aria-label="Toggle theme"
+                >
+                  {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Toggle {theme === 'dark' ? 'Light' : 'Dark'} Mode</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSettingsClick}
+                  className="history-button"
+                >
+                  <Settings size={18} />
+                </Button>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Settings</p>
