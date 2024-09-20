@@ -11,6 +11,8 @@ import { similaritySearch } from '../vector_db';
 import { useAuth } from '../auth/FirebaseAuth';
 import { getFirestore, collection, query, where, onSnapshot } from 'firebase/firestore';
 import app from '../../firebase'
+import { searchTypesense } from '../vector_db';
+
 
 const Chat = () => { 
   const [messages, setMessages] = useState([]);
@@ -65,7 +67,7 @@ const Chat = () => {
       setMessages(prevMessages => [...prevMessages, { text: inputMessage, sender: 'user' }]);
       setInputMessage('');
 
-      const similarData = await similaritySearch(inputMessage);
+      const similarData = await searchTypesense(inputMessage);
 
       console.log('similarData: ', similarData);
       // Add bot response with similar data

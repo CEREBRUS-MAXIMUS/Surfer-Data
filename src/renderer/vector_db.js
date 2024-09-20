@@ -3,17 +3,16 @@ import OpenAI from "openai";
 import Typesense from 'typesense';
 
 export async function addToTypesense(chunks, company, name, runID) {
-    const key = await window.electron.ipcRenderer.invoke('get-typesense-api-key');
-
+    const key = 'Bgh6oH5t0U4SsfL3Lt39AZx4pgfJWX1D'; // await window.electron.ipcRenderer.invoke('get-typesense-api-key');
   const typesenseClient = new Typesense.Client({
     nodes: [
       {
-        host: 'host_url',
+        host: 'xrgzqa67ylpk9vmjp-1.a1.typesense.net',
         port: 443,
         protocol: 'https',
       },
     ],
-    apiKey: 'insert_key',
+    apiKey: key,
   });
 
     const collections = await typesenseClient.collections().retrieve();
@@ -27,6 +26,7 @@ export async function addToTypesense(chunks, company, name, runID) {
                 { name: 'runID', type: 'string', facet: true },
                 { name: 'added_to_db', type: 'int64', facet: true },
                 { name: 'content', type: 'string' },
+                { name: 'embedding', type: 'float[]', embed: { from: ['content'], model_config: { model_name: 'ts/all-MiniLM-L12-v2' } } }
             ],
             default_sorting_field: 'added_to_db',
             enable_nested_fields: true,
@@ -35,15 +35,16 @@ export async function addToTypesense(chunks, company, name, runID) {
         await typesenseClient.collections().create(dataSchema);
     }
 
-    for (const chunk of chunks) {
-        await typesenseClient.collections('surfer_data').documents().upsert({
-            company,
-            name,
-            runID,
-            added_to_db: Date.now(),
-            content: chunk,
-        });
-    }
+    const documents = chunks.map(chunk => ({
+        company,
+        name,
+        runID,
+        added_to_db: Date.now(),
+        content: chunk,
+    }));
+
+    await typesenseClient.collections('surfer_data').documents().import(documents, { action: 'upsert' });
+
 
     // schema for each doc in collection:
     //  {
@@ -58,6 +59,27 @@ export async function addToTypesense(chunks, company, name, runID) {
 
     // add chunks to collection (split up array)
 
+}
+
+export async function searchTypesense(query) {
+    const key = 'lol';
+    const typesenseClient = new Typesense.Client({
+        nodes: [
+            { host: 'xrgzqa67ylpk9vmjp-1.a1.typesense.net', port: 443, protocol: 'https' },
+        ],
+        apiKey: key,
+    });
+
+
+
+    const results = await typesenseClient.collections('surfer_data').documents().search({
+        q: query,
+        query_by: 'embedding',
+        vector_query: 'embedding([], k: 5)',
+    });
+
+    console.log('results: ', results);
+    return results;
 }
 
 export async function addDocuments(chunks, company, name, runID, folderPath) {
