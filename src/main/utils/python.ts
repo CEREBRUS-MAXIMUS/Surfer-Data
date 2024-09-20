@@ -261,10 +261,10 @@ export class PythonUtils {
     name: string,
     id: string,
   ) {
-    const pythonPath = `"${this.SurferPythonPath}"`;
 
 
-    if (platform === 'win32') {
+
+    //if (platform === 'win32') {
       const requirementsPath = getAssetPath('imessage_windows_reqs.txt');
       const requirements = fs
         .readFileSync(requirementsPath, 'utf-8')
@@ -368,14 +368,14 @@ export class PythonUtils {
           });
         }
       }
-    } else if (platform === 'darwin') {
-      const scriptPath = getAssetPath('imessage_mac.py');
-      return spawn(pythonPath, [scriptPath, folderPath, company, name], {
-        shell: true,
-      });
-    } else {
-      throw new Error('Platform not supported');
-    }
+    // } else if (platform === 'darwin') {
+    //   const scriptPath = getAssetPath('imessage_mac.py');
+    //   return spawn(pythonPath, [scriptPath, folderPath, company, name], {
+    //     shell: true,
+    //   });
+    // } else {
+    //   throw new Error('Platform not supported');
+    // }
   }
 
   private showPasswordPrompt(): Promise<string | null> {

@@ -229,16 +229,19 @@ ipcMain.on('get-version-number', (event) => {
 });
 
 ipcMain.handle('get-imessage-data', async (event, company: string, name: string, id: string) => {
-  if (process.platform === 'win32') {
+  //if (process.platform === 'win32') {
     const username = process.env.USERNAME || process.env.USER;
-    const defaultPath = path.join(
-      'C:',
-      'Users',
-      username,
-      'Apple',
-      'MobileSync',
-      'Backup',
-    );
+    const defaultPath =
+      process.platform === 'win32'
+        ? path.join('C:', 'Users', username, 'Apple', 'MobileSync', 'Backup')
+        : path.join(
+            '/Users',
+            username,
+            'Library',
+            'Application Support',
+            'MobileSync',
+            'Backup',
+          );
 
     if (!fs.existsSync(defaultPath)) {
       console.log('NEED TO BACKUP YOUR IMESSAGE FOLDER!');
@@ -279,13 +282,13 @@ ipcMain.handle('get-imessage-data', async (event, company: string, name: string,
         return null;
       }
     }
-  } else if (process.platform === 'darwin') {
-    console.log('Mac is being added soon!');
-    return null;
-  } else {
-    console.log('Unsupported platform:', process.platform);
-    return null;
-  }
+  // } else if (process.platform === 'darwin') {
+  //   console.log('Mac is being added soon!');
+  //   return null;
+  // } else {
+  //   console.log('Unsupported platform:', process.platform);
+  //   return null;
+  // }
 });
 
 function getTotalFolderSize(folderPath: string): number {
