@@ -152,6 +152,7 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
       const platform = allPlatforms.find(p => p.id === id);
       console.log('PLATFORM: ', platform);
       if (platform) {
+        handleExportClick(platform);
         setConnectedPlatforms(prev => ({ ...prev, [platform.id]: true }));
       }
     };
@@ -524,7 +525,7 @@ const showLogs = (platform) => {
                     <TableHead>Platform</TableHead>
                     <TableHead></TableHead>
                     <TableHead>Results</TableHead>
-                    <TableHead></TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -536,7 +537,6 @@ const showLogs = (platform) => {
                     >
                       <TableCell className="font-medium">
                         <div className="flex items-center space-x-2">
-                          {/* Wrap the logo and text in a clickable div */}
                           <div
                             className="flex items-center space-x-2 cursor-pointer hover:underline"
                             onClick={() => onPlatformClick(platform)}
@@ -561,33 +561,28 @@ const showLogs = (platform) => {
                         {renderResults(platform)}
                       </TableCell>
                       <TableCell>
-
-                <div>
-        {!connectedPlatforms[platform.id] && platform.needsConnection && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => window.electron.ipcRenderer.send('connect-platform', platform)}
-          >
-            Connect
-          </Button>
-        )}
-                </div>
-
-        <div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleExportClick(platform)}
-            >
-              <HardDriveDownload size={16} className="mr-2" />
-              {getLatestRun(platform.id) ? (getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export') : 'Export'}
-            </Button>
-
-        </div>
-
+                        <div className="flex space-x-2">
+                          {!connectedPlatforms[platform.id] && platform.needsConnection ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.electron.ipcRenderer.send('connect-platform', platform)}
+                            >
+                              <Link size={16} className="mr-2" />
+                              Connect
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                            variant="outline"
+                            onClick={() => handleExportClick(platform)}
+                          >
+                            <HardDriveDownload size={16} className="mr-2" />
+                            {getLatestRun(platform.id) ? (getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export') : 'Export'}
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
-
                     </TableRow>
                   ))}
                 </TableBody>

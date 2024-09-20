@@ -196,12 +196,6 @@ else {
   customConsoleLog(id, 'Waiting for page to load');
   await wait(2);
 
-  if (document.querySelector('h1')) {
-    customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-    bigStepper(id, 'Export stopped, waiting for sign in');
-    ipcRenderer.send('connect-website', id);
-    return 'CONNECT_WEBSITE';
-  }
   const emails = []; // will add JSON structure later + handle multiple emails in same thread!
   bigStepper(id, 'Getting first email');
   const mailLink = await waitForElement(id, "div.xS[role='link']", 'Mail link');
