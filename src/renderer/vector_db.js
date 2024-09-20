@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import Typesense from 'typesense';
 
 export async function addToTypesense(chunks, company, name, runID) {
-    const key = 'Bgh6oH5t0U4SsfL3Lt39AZx4pgfJWX1D'; // await window.electron.ipcRenderer.invoke('get-typesense-api-key');
+    const key = 'lol'; // await window.electron.ipcRenderer.invoke('get-typesense-api-key');
   const typesenseClient = new Typesense.Client({
     nodes: [
       {
