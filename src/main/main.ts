@@ -53,6 +53,11 @@ ipcMain.handle('get-firebase-api-key', async () => {
   return process.env.FIREBASE_API_KEY;
 });
 
+ipcMain.handle('get-typesense-api-key', async () => {
+  console.log('TYPESENSE_API_KEY: ', process.env.TYPESENSE_API_KEY);
+  return process.env.TYPESENSE_API_KEY;
+});
+
 ipcMain.handle('get-similar-data', async (event, query: string) => {
   try {
     const embedding = await createEmbedding(query);

@@ -19,6 +19,7 @@ import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
 import { addDocuments } from '../../vector_db';
+import { addToTypesense } from '../../vector_db';
 import { VectorStorage } from 'vector-storage';
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
@@ -313,11 +314,13 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
        if (!isUpdate) {
 
       const texts = await window.electron.ipcRenderer.invoke('get-texts', folderPath, runToVectorize.filesToVectorize ? runToVectorize.filesToVectorize : []);
-      console.log('got texts!');
+      console.log('got texts! ', texts);
 
-      const documents = await addDocuments(texts, company, name, runID, folderPath);
+      //await addDocuments(texts, company, name, runID, folderPath);
 
-      console.log('finished vectorizing! ', documents);
+      await addToTypesense(texts, company, name, runID);
+
+      console.log('finished vectorizing!');
 
        }
     };

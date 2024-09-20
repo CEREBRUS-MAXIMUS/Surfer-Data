@@ -1,40 +1,105 @@
 import { openDB } from "idb";
 import OpenAI from "openai";
+import Typesense from 'typesense';
+
+export async function addToTypesense(chunks, company, name, runID) {
+    const key = await window.electron.ipcRenderer.invoke('get-typesense-api-key');
+
+  const typesenseClient = new Typesense.Client({
+    nodes: [
+      {
+        host: 'host_url',
+        port: 443,
+        protocol: 'https',
+      },
+    ],
+    apiKey: 'insert_key',
+  });
+
+    const collections = await typesenseClient.collections().retrieve();
+    
+    if (!collections.some(collection => collection.name === 'surfer_data')) {
+        const dataSchema = {
+            name: 'surfer_data',
+            fields: [
+                { name: 'company', type: 'string', facet: true },
+                { name: 'name', type: 'string', facet: true },
+                { name: 'runID', type: 'string', facet: true },
+                { name: 'added_to_db', type: 'int64', facet: true },
+                { name: 'content', type: 'string' },
+            ],
+            default_sorting_field: 'added_to_db',
+            enable_nested_fields: true,
+        };
+        
+        await typesenseClient.collections().create(dataSchema);
+    }
+
+    for (const chunk of chunks) {
+        await typesenseClient.collections('surfer_data').documents().upsert({
+            company,
+            name,
+            runID,
+            added_to_db: Date.now(),
+            content: chunk,
+        });
+    }
+
+    // schema for each doc in collection:
+    //  {
+    //     company,
+    //     name,
+    //     runID,
+    //     timestamp: Date.now(),
+    //     content: {
+    //         // object w diff keys depending on platform
+    //     },
+    // }
+
+    // add chunks to collection (split up array)
+
+}
 
 export async function addDocuments(chunks, company, name, runID, folderPath) {
     const db = await openDB('vectorDB', 1, {
         upgrade(db) {
-                const documentStore = db.createObjectStore('documents', {
-                    autoIncrement: true,
-                    keyPath: 'id',
-                });
+            const documentStore = db.createObjectStore('documents', {
+                autoIncrement: true,
+                keyPath: 'id',
+            });
         },
     });
 
+    const batchSize = 1000;
+    for (let i = 0; i < chunks.length; i += batchSize) {
+        const chunkBatch = chunks.slice(i, i + batchSize);
+        const embeddings = await createEmbeddings(chunkBatch);
 
-    const embeddings = await createEmbeddings(chunks);
+        const documents = chunkBatch.map((chunk, index) => ({
+            runID,
+            company,
+            name,
+            folderPath,
+            content: chunk,
+            vector: embeddings.data[index].embedding,
+            vectorMag: calculateMagnitude(embeddings.data[index].embedding),
+            timestamp: Date.now(),
+            hits: 0,
+        }));
 
-    // Map chunks and embeddings together
-    const documents = chunks.map((chunk, index) => ({
-        runID,
-        company,
-        name,
-        folderPath,
-        content: chunk,
-        vector: embeddings.data[index].embedding,
-        vectorMag: calculateMagnitude(embeddings.data[index].embedding),
-        timestamp: Date.now(),
-        hits: 0,
-    }));
+        await addBatchToDB(db, documents);
+    }
 
-      documents.map(async (doc) => {
-        const tx = db.transaction('documents', 'readwrite');
-        const store = tx.objectStore('documents');
+}
+
+async function addBatchToDB(db, documents) {
+    const tx = db.transaction('documents', 'readwrite');
+    const store = tx.objectStore('documents');
+    for (const doc of documents) {
         await store.put(doc);
-        await tx.done;
-      })
-
-    return documents;
+    }
+    console.log('documents added to DB: ', documents);
+    await tx.done;
 }
 
 // Helper function to calculate vector magnitude
@@ -45,20 +110,14 @@ function calculateMagnitude(vector) {
 async function createEmbeddings(chunks) {
     const apiKey = await window.electron.ipcRenderer.invoke('get-openai-api-key');
     const client = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-    const allEmbeddings = [];
-    const batchSize = 1000;
-    for (let i = 0; i < chunks.length; i += batchSize) {
-        const chunkBatch = chunks.slice(i, i + batchSize);
-        const embeddings = await client.embeddings.create({
-            input: chunkBatch,
-            model: 'text-embedding-3-small',
-        });
-        console.log('embeddings: ', embeddings);
-        allEmbeddings.push(...embeddings.data);
-    }
-    console.log('embedding this: ', chunks);
-    console.log('returning this: ', allEmbeddings);
-    return { data: allEmbeddings };
+    
+    const embeddings = await client.embeddings.create({
+        input: chunks,
+        model: 'text-embedding-3-small',
+    });
+    
+    console.log('embeddings: ', embeddings);
+    return embeddings;
 }
 
 async function getAll() {
@@ -68,7 +127,15 @@ async function getAll() {
 }
 
 export async function similaritySearch(query) {
-    const db = await openDB('vectorDB', 1);
+    const db = await openDB('vectorDB', 1, {
+      upgrade(db) {
+        const documentStore = db.createObjectStore('documents', {
+          autoIncrement: true,
+          keyPath: 'id',
+        });
+      },
+    });
+
     const store = db.transaction('documents').objectStore('documents');
 
     // Get query embedding
