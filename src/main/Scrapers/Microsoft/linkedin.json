@@ -1,4 +1,6 @@
 {
     "name": "LinkedIn",
-    "description": "Exports your profile."
+    "description": "Exports your profile.",
+    "connectURL": "https://linkedin.com/login",
+    "connectSelector": "img[alt*='Photo of']"
 }

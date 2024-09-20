@@ -37,6 +37,10 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const prevRunsRef = useRef({});
   const [hoveredPlatformId, setHoveredPlatformId] = useState(null);
   const [platformLogos, setPlatformLogos] = useState({});
+  const [connectedPlatforms, setConnectedPlatforms] = useState({});
+  const [filteredPlatforms, setFilteredPlatforms] = useState([]);
+  const [allPlatforms, setAllPlatforms] = useState([]);
+
 
   const LOGO_SIZE = 24; // Set a consistent size for all logos
 
@@ -109,9 +113,6 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     );
   };
 
-  const [filteredPlatforms, setFilteredPlatforms] = useState([]);
-  const [allPlatforms, setAllPlatforms] = useState([]);
-
   useEffect(() => {
     const loadScrapers = async () => {
       try {
@@ -135,6 +136,32 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
     ));
   }, [searchTerm, allPlatforms]);
 
+
+  useEffect(() => {
+    const checkConnectedPlatforms = async () => {
+      const connected = await window.electron.ipcRenderer.invoke('check-connected-platforms', allPlatforms);
+      console.log('CONNECTED PLATFORMS: ', connected);
+      setConnectedPlatforms(connected);
+    };
+
+    checkConnectedPlatforms();
+  }, [allPlatforms]);
+
+  useEffect(() => {
+    const handleElementFound = (id) => {
+      const platform = allPlatforms.find(p => p.id === id);
+      console.log('PLATFORM: ', platform);
+      if (platform) {
+        setConnectedPlatforms(prev => ({ ...prev, [platform.id]: true }));
+      }
+    };
+
+    window.electron.ipcRenderer.on('element-found', handleElementFound);
+
+    return () => {
+      window.electron.ipcRenderer.removeListener('element-found', handleElementFound);
+    };
+  }, [allPlatforms]);
 
   // useEffect(() => {
   //   const runisUpdateds = async () => {
@@ -399,7 +426,7 @@ const showLogs = (platform) => {
     <div id="log-container" className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '300px' }}>
       <pre className="font-mono text-xs whitespace-pre-wrap break-words">
         {logLines.map((line, index) => (
-          <span key={index} className={line === 'YOU NEED TO SIGN IN!' ? 'text-red-500' : ''}>
+          <span key={index} className={line === 'YOU NEED TO SIGN IN (click the eye in the top right)!' ? 'text-red-500' : ''}>
             {line}
             {index < logLines.length - 1 && '\n'}
           </span>
@@ -535,8 +562,19 @@ const showLogs = (platform) => {
                       </TableCell>
                       <TableCell>
 
+                <div>
+        {!connectedPlatforms[platform.id] && platform.needsConnection && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => window.electron.ipcRenderer.send('connect-platform', platform)}
+          >
+            Connect
+          </Button>
+        )}
+                </div>
+
         <div>
-          <Tooltip content={activeRuns.length > 0 ? "Wait for current run to finish" : ""}>
             <Button
               size="sm"
               variant="outline"
@@ -545,7 +583,7 @@ const showLogs = (platform) => {
               <HardDriveDownload size={16} className="mr-2" />
               {getLatestRun(platform.id) ? (getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export') : 'Export'}
             </Button>
-          </Tooltip>
+
         </div>
 
                       </TableCell>

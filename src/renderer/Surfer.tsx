@@ -210,7 +210,7 @@ function Surfer() {
             >
               <AlertTitle>Account not connected</AlertTitle>
               <AlertDescription>
-                Please sign into your account then hit the "I've signed in" button!
+                Please click the eye in the top right to sign into your account and then hit the "I've signed in" button!
               </AlertDescription>
             </Alert>
           )}

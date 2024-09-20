@@ -24,7 +24,7 @@ async function exportNotion(id, platformId, filename, company, name) {
   
     if (!dropdown) {
       bigStepper(id, 'Export stopped, waiting for sign in');
-      customConsoleLog(id, 'YOU NEED TO SIGN IN!');
+      customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';
     }

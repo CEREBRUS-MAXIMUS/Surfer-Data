@@ -56,6 +56,70 @@ try {
   console.error('Error loading config:', error);
 } 
 
+ipcMain.on('connect-platform', (event, platform: any) => {
+  const { company, name, connectURL, connectSelector, id } = platform;
+  //console.log('CONNECTING TO PLATFORM: ', company, name, connectURL, connectSelector);
+  const popupWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+    },
+  });
+
+  popupWindow.loadURL(connectURL);
+  popupWindow.show();
+
+  popupWindow.webContents.on('did-finish-load', async () => {
+    let elementFound = false;
+    let errorCount = 0;
+    while (!elementFound && errorCount < 3 && connectSelector) {
+      try {
+        const elementExists = await popupWindow.webContents.executeJavaScript(`
+          (() => {
+            const element = document.querySelector('${connectSelector.replace(/'/g, "\\'")}');
+            return !!element;
+          })();
+        `);
+
+        if (elementExists) {
+          console.log('ELEMENT FOUND, closing popup');
+          const platformPath = path.join(app.getPath('userData'), 'surfer_data', company, name);
+          fs.mkdirSync(platformPath, { recursive: true });
+          mainWindow?.webContents.send('element-found', id);
+          elementFound = true;
+          popupWindow.destroy();
+          
+        } else {
+          console.log('ELEMENT NOT FOUND, STILL LOOKING!');
+          mainWindow?.webContents.send('element-not-found', id);
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      } catch (error) {
+        errorCount++;
+        console.error('Error checking for element, debug:', error);
+        popupWindow.destroy();
+      }
+    }
+  });
+});
+
+ipcMain.handle('check-connected-platforms', async (event, platforms) => {
+  const userDataPath = app.getPath('userData');
+  const connectedPlatforms = {};
+
+  for (const platform of platforms) {
+    const { company, name } = platform;
+    const platformPath = path.join(userDataPath, 'surfer_data', company, name);
+    connectedPlatforms[platform.id] = fs.existsSync(platformPath);
+  }
+
+  return connectedPlatforms;
+});
+
+
 ipcMain.handle('get-scrapers', async () => {
   let scrapersDir;
   if (app.isPackaged) {
@@ -121,6 +185,9 @@ ipcMain.handle('get-scrapers', async () => {
           description: metadata && metadata.description ? metadata.description : 'No description available',
           isUpdated: metadata && metadata.isUpdated ? metadata.isUpdated : false,
           logoURL: metadata && metadata.logoURL ? metadata.logoURL : name,
+          needsConnection: metadata && metadata.needsConnection !== undefined ? metadata.needsConnection : true,
+          connectURL: metadata && metadata.connectURL ? metadata.connectURL : null,
+          connectSelector: metadata && metadata.connectSelector ? metadata.connectSelector : null,
         };
       }),
     );

@@ -1,4 +1,6 @@
 {
     "name": "Notion",
-    "description": "Exports your entire workspace."
+    "description": "Exports your entire workspace.",
+    "connectURL": "https://www.notion.so/login",
+    "connectSelector": ".notion-sidebar-switcher"
 }

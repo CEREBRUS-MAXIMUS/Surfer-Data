@@ -1,4 +1,6 @@
 {
     "name": "YouTube",
-    "description": "Exports the videos in your recommended feed."
+    "description": "Exports the videos in your recommended feed.",
+    "connectURL": "https://www.youtube.com",
+    "connectSelector": "img[alt='Avatar image']"
 }

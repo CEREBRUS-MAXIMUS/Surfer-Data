@@ -1,5 +1,7 @@
 {
     "name": "Google Calendar",
     "description": "Exports the events in your Google Calendar.",
-    "isUpdated": true
+    "isUpdated": true,
+    "connectURL": "https://calendar.google.com",
+    "connectSelector": ".GTG3wb"
 }

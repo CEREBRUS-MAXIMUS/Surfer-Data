@@ -6,7 +6,23 @@ To add support for a new platform in Surfer, follow these steps:
 
 2. **Create the platform file**: Inside the new directory, create a JavaScript file named after the platform (e.g., `slack.js`).
 
-3. **Create a JSON file (optional)**: Create a JSON file named after the platform (e.g., `slack.json`) in the specific company's folder (e.g., `Companies/Salesforce`). This file can contain the platform's name, description, logo URL (if necessary), and if the platform's data is updated daily/weekly/monthly/etc. 
+3. **Create a JSON file**: Create a JSON file named after the platform (e.g., `slack.json`) in the `src/main/Scrapers/[Company]` directory. This file should contain the following information:
+   - `name`: The name of the platform
+   - `description`: A brief description of what data the platform exports
+   - `connectURL`: The URL for the platform's login page
+   - `connectSelector`: A CSS selector for an element that indicates a successful login
+   - `isUpdated` (optional): A boolean indicating if the platform's data is regularly updated
+
+   Example JSON structure:
+   ```json
+   {
+     "name": "Platform Name",
+     "description": "Exports [specific data types].",
+     "connectURL": "https://platform.com/login",
+     "connectSelector": "CSS_SELECTOR_FOR_LOGGED_IN_STATE",
+     "isUpdated": true
+   }
+   ```
 
 4. **Implement and Export the scraping function**: In this file, implement the scraping function following the existing patterns in other platform modules. Make sure to export the function using `module.exports`
 

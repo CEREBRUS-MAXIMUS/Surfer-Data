@@ -60,7 +60,7 @@ async function exportGithub(id, platformId, filename, company, name) {
     !window.location.href.includes('tab=repositories')
   ) {
     if (document.querySelector('a[href="/login"]')) {
-      customConsoleLog(id, 'YOU NEED TO SIGN IN!');
+      customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
       bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';
@@ -72,7 +72,7 @@ async function exportGithub(id, platformId, filename, company, name) {
     );
 
     if (!tabButton) {
-      customConsoleLog(id, 'YOU NEED TO SIGN IN!');
+      customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
       bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';

@@ -2,5 +2,7 @@
     "name": "Twitter Posts",
     "description": "Exports all your tweets.",
     "isUpdated": true,
-    "logoURL": "https://logo.clearbit.com/twitter.com"
+    "logoURL": "https://logo.clearbit.com/twitter.com",
+    "connectURL": "https://twitter.com",
+     "connectSelector": "img.css-9pa8cd"
 }

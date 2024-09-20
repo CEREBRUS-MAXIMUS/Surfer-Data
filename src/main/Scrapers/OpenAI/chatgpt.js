@@ -20,7 +20,7 @@ async function exportChatgpt(id, platformId, filename, company, name) {
 
   if (window.location.href.includes('chatgpt.com')) {
     if (document.querySelector('button[data-testid="login-button"]')) {
-      customConsoleLog(id, 'YOU NEED TO SIGN IN!');
+      customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
       bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';
@@ -36,7 +36,7 @@ async function exportChatgpt(id, platformId, filename, company, name) {
     );
 
     if (!dialogBox) {
-      customConsoleLog(id, 'YOU NEED TO SIGN IN!');
+      customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
       bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';
@@ -70,7 +70,7 @@ async function exportChatgpt(id, platformId, filename, company, name) {
 
   if (window.location.href.includes('mail.google.com')) {
     if (document.querySelector('h1')) {
-      customConsoleLog(id, 'YOU NEED TO SIGN IN!');
+      customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
       bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';

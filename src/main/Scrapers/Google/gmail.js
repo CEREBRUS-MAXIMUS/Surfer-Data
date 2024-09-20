@@ -74,7 +74,7 @@ async function exportGmail(id, platformId, filename, company, name) {
     );
 
     if (!nextButton) {
-      customConsoleLog(id, 'YOU NEED TO SIGN IN!');
+      customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
       bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';
@@ -197,7 +197,7 @@ else {
   await wait(2);
 
   if (document.querySelector('h1')) {
-    customConsoleLog(id, 'YOU NEED TO SIGN IN!');
+    customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
     bigStepper(id, 'Export stopped, waiting for sign in');
     ipcRenderer.send('connect-website', id);
     return 'CONNECT_WEBSITE';
@@ -206,7 +206,7 @@ else {
   bigStepper(id, 'Getting first email');
   const mailLink = await waitForElement(id, "div.xS[role='link']", 'Mail link');
   if (!mailLink) {
-    customConsoleLog(id, 'YOU NEED TO SIGN IN!');
+    customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
     bigStepper(id, 'Export stopped, waiting for sign in');
     ipcRenderer.send('connect-website', id);
     return 'CONNECT_WEBSITE';

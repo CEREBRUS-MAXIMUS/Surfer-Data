@@ -1,5 +1,7 @@
 {
     "name": "GitHub",
     "description": "Exports repository names, links, and descriptions (if any).",
-    "isUpdated": true
+    "isUpdated": true,
+    "connectURL": "https://github.com/login",
+    "connectSelector": "button[aria-label='Open user navigation menu']"
 }
