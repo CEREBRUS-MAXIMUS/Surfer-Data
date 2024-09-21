@@ -57,6 +57,14 @@ ipcMain.handle('get-typesense-api-key', async () => {
   return process.env.TYPESENSE_API_KEY;
 }); 
 
+ipcMain.handle('get-supabase-url', async () => {
+  return process.env.SUPABASE_URL;
+});
+
+ipcMain.handle('get-supabase-anon-key', async () => {
+  return process.env.SUPABASE_ANON_KEY;
+});
+
 ipcMain.handle('get-scrapers', async () => {
   let scrapersDir;
   if (app.isPackaged) {
