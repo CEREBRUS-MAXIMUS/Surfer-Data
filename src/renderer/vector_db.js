@@ -1,86 +1,114 @@
 import { openDB } from "idb";
 import OpenAI from "openai";
 import Typesense from 'typesense';
+import { createClient } from '@supabase/supabase-js';
+import app from "../firebase";
+import { v4 as uuidv4 } from 'uuid';
 
-export async function addToTypesense(chunks, company, name, runID) {
-    const key = 'lol'; // await window.electron.ipcRenderer.invoke('get-typesense-api-key');
-  const typesenseClient = new Typesense.Client({
-    nodes: [
-      {
-        host: 'xrgzqa67ylpk9vmjp-1.a1.typesense.net',
-        port: 443,
-        protocol: 'https',
+const supabaseUrl = await window.electron.ipcRenderer.invoke('get-supabase-url');
+const supabaseAnonKey = await window.electron.ipcRenderer.invoke('get-supabase-anon-key');
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export async function addToSupabase(chunks, company, name) {
+    const local_db = await openDB('vectorDB', 1, {
+      upgrade(db) {
+        db.createObjectStore('documents', {
+          keyPath: 'chunk_id',
+        });
       },
-    ],
-    apiKey: key,
-  });
-
-    const collections = await typesenseClient.collections().retrieve();
+    });
     
-    if (!collections.some(collection => collection.name === 'surfer_data')) {
-        const dataSchema = {
-            name: 'surfer_data',
-            fields: [
-                { name: 'company', type: 'string', facet: true },
-                { name: 'name', type: 'string', facet: true },
-                { name: 'runID', type: 'string', facet: true },
-                { name: 'added_to_db', type: 'int64', facet: true },
-                { name: 'content', type: 'string' },
-                { name: 'embedding', type: 'float[]', embed: { from: ['content'], model_config: { model_name: 'ts/all-MiniLM-L12-v2' } } }
-            ],
-            default_sorting_field: 'added_to_db',
-            enable_nested_fields: true,
-        };
-        
-        await typesenseClient.collections().create(dataSchema);
+    const uid = app.auth().currentUser.uid;
+    const batchSize = 1000;
+
+    for (let i = 0; i < chunks.length; i += batchSize) {
+        const chunkBatch = chunks.slice(i, i + batchSize);
+        const embeddings = await createEmbeddings(chunkBatch);
+
+        // Prepare documents for local storage and Supabase
+        const documents = chunkBatch.map((chunk, index) => {
+            const chunk_id = uuidv4();
+            console.log('chunk id type: ', typeof chunk_id);
+            return {
+                chunk_id,
+                company,
+                name,
+                content: chunk
+            };
+        });
+
+        // Store in local IndexedDB
+        const tx = local_db.transaction('documents', 'readwrite');
+        const store = tx.objectStore('documents');
+        for (const doc of documents) {
+            await store.put(doc);
+        }
+        await tx.done;
+
+        // Prepare cloud documents using the same chunk_id
+        const cloudDocuments = documents.map((doc, index) => ({
+            firebase_id: uid,
+            chunk_id: doc.chunk_id,
+            company,
+            name,
+            vector: embeddings.data[index].embedding
+        }));
+ 
+        // Store in Supabase
+        const { data, error } = await supabase
+            .from('surfer_data')
+            .insert(cloudDocuments);
+
+        if (error) {
+            console.error('Error inserting data into Supabase:', error);
+            throw error;
+        }
     }
 
-    const documents = chunks.map(chunk => ({
-        company,
-        name,
-        runID,
-        added_to_db: Date.now(),
-        content: chunk,
-    }));
-
-    await typesenseClient.collections('surfer_data').documents().import(documents, { action: 'upsert' });
-
-
-    // schema for each doc in collection:
-    //  {
-    //     company,
-    //     name,
-    //     runID,
-    //     timestamp: Date.now(),
-    //     content: {
-    //         // object w diff keys depending on platform
-    //     },
-    // }
-
-    // add chunks to collection (split up array)
-
+    console.log('All chunks added to local DB and Supabase successfully');
 }
 
-export async function searchTypesense(query) {
-    const key = 'lol';
-    const typesenseClient = new Typesense.Client({
-        nodes: [
-            { host: 'xrgzqa67ylpk9vmjp-1.a1.typesense.net', port: 443, protocol: 'https' },
-        ],
-        apiKey: key,
-    });
+export async function supabaseSearch(query) {
+  // Get query embedding
+  const queryEmbedding = await createEmbeddings([query]);
+  const queryVector = queryEmbedding.data[0].embedding;
 
+  // Get the current user's Firebase ID
+  const uid = app.auth().currentUser.uid;
 
+  const { data, error } = await supabase.rpc('get_similar_docs', {
+    p_vector: queryVector,
+    p_firebase_id: uid,
+  });
 
-    const results = await typesenseClient.collections('surfer_data').documents().search({
-        q: query,
-        query_by: 'embedding',
-        vector_query: 'embedding([], k: 5)',
-    });
+  if (error) {
+    console.error('Error calling similar_documents:', error);
+    throw error;
+  }
 
-    console.log('results: ', results);
-    return results;
-}
+  // Open local IndexedDB
+  const local_db = await openDB('vectorDB', 1);
+  const store = local_db.transaction('documents').objectStore('documents');
+
+  // Fetch local data for matching chunk_ids
+  const localResults = await Promise.all(
+    data.map(async (item) => {
+      const localDoc = await store.get(item.chunk_id);
+      return { ...item, content: localDoc ? localDoc.content : null };
+    })
+  );
+
+  console.log('Similarity search results with local content:', localResults);
+  return localResults;
+} 
+
+// export async function searchSupabase(query) {
+//   const { data, error } = await supabase
+//     .from('surfer_data')
+//     .select('*')
+//     .textSearch('content', query);
+//   return data;
+// }
 
 export async function addDocuments(chunks, company, name, runID, folderPath) {
     const db = await openDB('vectorDB', 1, {
@@ -147,6 +175,7 @@ async function getAll() {
     const store = db.transaction('documents').objectStore('documents');
     return await store.getAll();
 }
+
 
 export async function similaritySearch(query) {
     const db = await openDB('vectorDB', 1, {

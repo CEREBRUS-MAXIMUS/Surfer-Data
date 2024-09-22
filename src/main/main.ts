@@ -62,7 +62,7 @@ ipcMain.handle('get-supabase-url', async () => {
 });
 
 ipcMain.handle('get-supabase-anon-key', async () => {
-  return process.env.SUPABASE_ANON_KEY;
+  return process.env.SUPABASE_ANON_KEY; 
 });
 
 ipcMain.handle('get-scrapers', async () => {

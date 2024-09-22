@@ -7,11 +7,10 @@ import { ScrollArea } from "../../renderer/components/ui/scroll-area";
 import { Badge } from "../../renderer/components/ui/badge";
 import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
 import SubscribeCard from '../components/subscribe/SubscribeCard';
-import { similaritySearch } from '../vector_db';
+import { supabaseSearch } from '../vector_db';
 import { useAuth } from '../auth/FirebaseAuth';
 import { getFirestore, collection, query, where, onSnapshot } from 'firebase/firestore';
 import app from '../../firebase'
-import { searchTypesense } from '../vector_db';
 
 
 const Chat = () => { 
@@ -67,7 +66,7 @@ const Chat = () => {
       setMessages(prevMessages => [...prevMessages, { text: inputMessage, sender: 'user' }]);
       setInputMessage('');
 
-      const similarData = await searchTypesense(inputMessage);
+      const similarData = await supabaseSearch(inputMessage); //[]; //await searchTypesense(inputMessage);
 
       console.log('similarData: ', similarData);
       // Add bot response with similar data
@@ -81,7 +80,7 @@ const Chat = () => {
                     <CardTitle>{item.name}</CardTitle>
                     <CardDescription> 
                       <Badge variant="secondary">
-                        Similarity: {(item.score * 100).toFixed(2)}%
+                        Similarity: {(item.similarity * 100).toFixed(2)}%
                       </Badge>
                     </CardDescription>
                   </CardHeader>

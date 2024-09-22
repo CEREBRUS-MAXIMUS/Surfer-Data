@@ -19,8 +19,7 @@ import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
 import { addDocuments } from '../../vector_db';
-import { addToTypesense } from '../../vector_db';
-import { VectorStorage } from 'vector-storage';
+import { addToSupabase } from '../../vector_db';
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
   position: fixed;
@@ -318,7 +317,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
       //await addDocuments(texts, company, name, runID, folderPath);
 
-      await addToTypesense(texts, company, name, runID);
+      await addToSupabase(texts, company, name);
 
       console.log('finished vectorizing!');
 
