@@ -19,7 +19,8 @@ export async function addToSupabase(chunks, company, name) {
     });
     
     const uid = app.auth().currentUser.uid;
-    const batchSize = 1000;
+    const batchSize = 2048; // Reduced batch size
+    const maxRetries = 3;
 
     for (let i = 0; i < chunks.length; i += batchSize) {
         const chunkBatch = chunks.slice(i, i + batchSize);
@@ -28,7 +29,6 @@ export async function addToSupabase(chunks, company, name) {
         // Prepare documents for local storage and Supabase
         const documents = chunkBatch.map((chunk, index) => {
             const chunk_id = uuidv4();
-            console.log('chunk id type: ', typeof chunk_id);
             return {
                 chunk_id,
                 company,
@@ -38,14 +38,9 @@ export async function addToSupabase(chunks, company, name) {
         });
 
         // Store in local IndexedDB
-        const tx = local_db.transaction('documents', 'readwrite');
-        const store = tx.objectStore('documents');
-        for (const doc of documents) {
-            await store.put(doc);
-        }
-        await tx.done;
+        await storeInLocalDB(local_db, documents);
 
-        // Prepare cloud documents using the same chunk_id
+        // Prepare cloud documents
         const cloudDocuments = documents.map((doc, index) => ({
             firebase_id: uid,
             chunk_id: doc.chunk_id,
@@ -54,21 +49,50 @@ export async function addToSupabase(chunks, company, name) {
             vector: embeddings.data[index].embedding
         }));
  
-        // Store in Supabase
-        const { data, error } = await supabase
-            .from('surfer_data')
-            .insert(cloudDocuments);
-
-        if (error) {
-            console.error('Error inserting data into Supabase:', error);
-            throw error;
-        }
+        // Store in Supabase with retries
+        await storeInSupabaseWithRetry(cloudDocuments, maxRetries);
     }
 
     console.log('All chunks added to local DB and Supabase successfully');
 }
 
-export async function supabaseSearch(query) {
+async function storeInLocalDB(local_db, documents) {
+    console.log('Storing batch in local db');
+    const tx = local_db.transaction('documents', 'readwrite');
+    const store = tx.objectStore('documents');
+    for (const doc of documents) {
+        await store.put(doc);
+    }
+    await tx.done;
+    console.log('Successfully stored in local db');
+}
+
+async function storeInSupabaseWithRetry(cloudDocuments, maxRetries) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`Storing in Supabase (attempt ${attempt})`);
+            const { data, error } = await supabase
+                .from('surfer_data')
+                .insert(cloudDocuments);
+
+            if (error) {
+                throw error;
+            }
+
+            console.log('Successfully stored in Supabase');
+            return;
+        } catch (error) {
+            console.error(`Error inserting data into Supabase (attempt ${attempt}):`, error);
+            if (attempt === maxRetries) {
+                throw error;
+            }
+            // Wait before retrying (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
+        }
+    }
+}
+
+export async function supabaseSearch(query, platformName = null) {
   // Get query embedding
   const queryEmbedding = await createEmbeddings([query]);
   const queryVector = queryEmbedding.data[0].embedding;
@@ -76,17 +100,25 @@ export async function supabaseSearch(query) {
   // Get the current user's Firebase ID
   const uid = app.auth().currentUser.uid;
 
-  const { data, error } = await supabase.rpc('get_similar_docs', {
+  // Prepare the parameters for the RPC call
+  let rpcParams = {
     p_vector: queryVector,
-    p_firebase_id: uid,
-  });
+    p_firebase_id: uid
+  };
+
+  // Only add p_name if platformName is not null
+  if (platformName !== null) {
+    rpcParams.p_name = platformName;
+  }
+
+  let { data, error } = await supabase.rpc('get_similar_docs', rpcParams);
 
   if (error) {
     console.error('Error calling similar_documents:', error);
     throw error;
   }
 
-  // Open local IndexedDB
+  // Open local IndexedDB 
   const local_db = await openDB('vectorDB', 1);
   const store = local_db.transaction('documents').objectStore('documents');
 
@@ -164,6 +196,7 @@ async function createEmbeddings(chunks) {
     const embeddings = await client.embeddings.create({
         input: chunks,
         model: 'text-embedding-3-small',
+        dimensions: 256
     });
     
     console.log('embeddings: ', embeddings);

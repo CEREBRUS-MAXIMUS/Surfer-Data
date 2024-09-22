@@ -54,8 +54,8 @@ ipcMain.handle('get-firebase-api-key', async () => {
 });
 
 ipcMain.handle('get-typesense-api-key', async () => {
-  return process.env.TYPESENSE_API_KEY;
-}); 
+  return process.env.TYPESENSE_API_KEY; 
+});
 
 ipcMain.handle('get-supabase-url', async () => {
   return process.env.SUPABASE_URL;
@@ -143,6 +143,28 @@ ipcMain.handle('get-scrapers', async () => {
   }
 });
 
+ipcMain.handle('get-indexed-folders', async () => {
+  const indexedFoldersPath = path.join(app.getPath('userData'), 'surfer_data');
+  console.log('indexedFoldersPath: ', indexedFoldersPath);
+  try {
+    const companyFolders = fs.readdirSync(indexedFoldersPath);
+    console.log('companyFolders: ', companyFolders);
+    const platformFolders = [];
+
+    for (const company of companyFolders) {
+      const companyPath = path.join(indexedFoldersPath, company);
+      if (fs.statSync(companyPath).isDirectory()) {
+        const platforms = fs.readdirSync(companyPath);
+        platformFolders.push(...platforms);
+      }
+    }
+    console.log('platformFolders: ', platformFolders);
+    return platformFolders;
+  } catch (error) {
+    console.error('Error reading indexed folders:', error);
+    return [];
+  }
+});
 ipcMain.handle('get-user-data-path', () => {
   return app.getPath('userData');
 })
