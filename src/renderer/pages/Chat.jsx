@@ -7,7 +7,7 @@ import { ScrollArea } from "../../renderer/components/ui/scroll-area";
 import { Badge } from "../../renderer/components/ui/badge";
 import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
 import SubscribeCard from '../components/subscribe/SubscribeCard';
-import { supabaseSearch } from '../vector_db';
+import { similaritySearch } from '../vector_db';
 import { useAuth } from '../auth/FirebaseAuth';
 import { getFirestore, collection, query, where, onSnapshot } from 'firebase/firestore';
 import app from '../../firebase';
@@ -99,7 +99,7 @@ const Chat = () => {
 
       const platformName = selectedPlatform ? selectedPlatform : null;
       console.log('platformName: ', platformName);
-      const similarData = await supabaseSearch(inputMessage, platformName);
+      const similarData = await similaritySearch(inputMessage, platformName);
       setSelectedPlatform(null);
 
       console.log('similarData: ', similarData);

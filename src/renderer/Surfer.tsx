@@ -13,8 +13,8 @@ import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs, update
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
 import { Progress } from './components/ui/progress';
-import { addToSupabase } from './vector_db';
 import { useAuth } from './auth/FirebaseAuth';
+import { addDocuments } from './vector_db';
 
 function Surfer() {
   const dispatch = useDispatch();
@@ -47,7 +47,7 @@ function Surfer() {
   useEffect(() => {
     const handleAddTexts = async (chunks: string[], company: string, name: string, runID: string, folderPath: string) => {
       console.log('Received chunks:', chunks);
-      await addToSupabase(chunks, company, name);
+      await addDocuments(chunks, company, name);
       console.log('finished vectorizing!')
     };
 

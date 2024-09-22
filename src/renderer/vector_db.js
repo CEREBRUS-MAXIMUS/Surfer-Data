@@ -9,7 +9,7 @@ const supabaseUrl = await window.electron.ipcRenderer.invoke('get-supabase-url')
 const supabaseAnonKey = await window.electron.ipcRenderer.invoke('get-supabase-anon-key');
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export async function addToSupabase(chunks, company, name) {
+export async function addDocuments(chunks, company, name) {
     const local_db = await openDB('vectorDB', 1, {
       upgrade(db) {
         db.createObjectStore('documents', {
@@ -19,41 +19,51 @@ export async function addToSupabase(chunks, company, name) {
     });
     
     const uid = app.auth().currentUser.uid;
-    const batchSize = 2048; // Reduced batch size
+    const batchSize = 1000; // Increased batch size
     const maxRetries = 3;
+    const maxConcurrentBatches = 5; // Adjust based on your system's capabilities
 
-    for (let i = 0; i < chunks.length; i += batchSize) {
-        const chunkBatch = chunks.slice(i, i + batchSize);
-        const embeddings = await createEmbeddings(chunkBatch);
+    for (let i = 0; i < chunks.length; i += batchSize * maxConcurrentBatches) {
+        const batchPromises = [];
 
-        // Prepare documents for local storage and Supabase
-        const documents = chunkBatch.map((chunk, index) => {
-            const chunk_id = uuidv4();
-            return {
-                chunk_id,
-                company,
-                name,
-                content: chunk
-            };
-        });
+        for (let j = 0; j < maxConcurrentBatches; j++) {
+            const start = i + j * batchSize;
+            const end = start + batchSize;
+            if (start < chunks.length) {
+                batchPromises.push(processBatch(chunks.slice(start, end), company, name, uid, maxRetries));
+            }
+        }
 
-        // Store in local IndexedDB
-        await storeInLocalDB(local_db, documents);
-
-        // Prepare cloud documents
-        const cloudDocuments = documents.map((doc, index) => ({
-            firebase_id: uid,
-            chunk_id: doc.chunk_id,
-            company,
-            name,
-            vector: embeddings.data[index].embedding
-        }));
- 
-        // Store in Supabase with retries
-        await storeInSupabaseWithRetry(cloudDocuments, maxRetries);
+        await Promise.all(batchPromises);
     }
 
     console.log('All chunks added to local DB and Supabase successfully');
+}
+
+async function processBatch(chunkBatch, company, name, uid, maxRetries) {
+    const embeddings = await createEmbeddings(chunkBatch);
+
+    const documents = chunkBatch.map((chunk, index) => {
+        const chunk_id = uuidv4();
+        return {
+            chunk_id,
+            company,
+            name,
+            content: chunk
+        };
+    });
+
+    await storeInLocalDB(await openDB('vectorDB', 1), documents);
+
+    const cloudDocuments = documents.map((doc, index) => ({
+        firebase_id: uid,
+        chunk_id: doc.chunk_id,
+        company,
+        name,
+        vector: embeddings.data[index].embedding
+    }));
+
+    await storeInSupabaseWithRetry(cloudDocuments, maxRetries);
 }
 
 async function storeInLocalDB(local_db, documents) {
@@ -73,7 +83,7 @@ async function storeInSupabaseWithRetry(cloudDocuments, maxRetries) {
             console.log(`Storing in Supabase (attempt ${attempt})`);
             const { data, error } = await supabase
                 .from('surfer_data')
-                .insert(cloudDocuments);
+                .upsert(cloudDocuments);
 
             if (error) {
                 throw error;
@@ -92,7 +102,7 @@ async function storeInSupabaseWithRetry(cloudDocuments, maxRetries) {
     }
 }
 
-export async function supabaseSearch(query, platformName = null) {
+export async function similaritySearch(query, platformName = null) {
   // Get query embedding
   const queryEmbedding = await createEmbeddings([query]);
   const queryVector = queryEmbedding.data[0].embedding;
@@ -100,10 +110,11 @@ export async function supabaseSearch(query, platformName = null) {
   // Get the current user's Firebase ID
   const uid = app.auth().currentUser.uid;
 
-  // Prepare the parameters for the RPC call
+  // Prepare the parameters for the RPC call 
   let rpcParams = {
     p_vector: queryVector,
-    p_firebase_id: uid
+    p_firebase_id: uid,
+    p_num_docs: 7
   };
 
   // Only add p_name if platformName is not null
@@ -134,45 +145,6 @@ export async function supabaseSearch(query, platformName = null) {
   return localResults;
 } 
 
-// export async function searchSupabase(query) {
-//   const { data, error } = await supabase
-//     .from('surfer_data')
-//     .select('*')
-//     .textSearch('content', query);
-//   return data;
-// }
-
-export async function addDocuments(chunks, company, name, runID, folderPath) {
-    const db = await openDB('vectorDB', 1, {
-        upgrade(db) {
-            const documentStore = db.createObjectStore('documents', {
-                autoIncrement: true,
-                keyPath: 'id',
-            });
-        },
-    });
-
-    const batchSize = 1000;
-    for (let i = 0; i < chunks.length; i += batchSize) {
-        const chunkBatch = chunks.slice(i, i + batchSize);
-        const embeddings = await createEmbeddings(chunkBatch);
-
-        const documents = chunkBatch.map((chunk, index) => ({
-            runID,
-            company,
-            name,
-            folderPath,
-            content: chunk,
-            vector: embeddings.data[index].embedding,
-            vectorMag: calculateMagnitude(embeddings.data[index].embedding),
-            timestamp: Date.now(),
-            hits: 0,
-        }));
-
-        await addBatchToDB(db, documents);
-    }
-
-}
 
 async function addBatchToDB(db, documents) {
     const tx = db.transaction('documents', 'readwrite');
@@ -184,10 +156,6 @@ async function addBatchToDB(db, documents) {
     await tx.done;
 }
 
-// Helper function to calculate vector magnitude
-function calculateMagnitude(vector) {
-    return Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
-}
 
 async function createEmbeddings(chunks) {
     const apiKey = await window.electron.ipcRenderer.invoke('get-openai-api-key');
@@ -202,64 +170,3 @@ async function createEmbeddings(chunks) {
     console.log('embeddings: ', embeddings);
     return embeddings;
 }
-
-async function getAll() {
-    const db = await openDB('vectorDB', 1);
-    const store = db.transaction('documents').objectStore('documents');
-    return await store.getAll();
-}
-
-
-export async function similaritySearch(query) {
-    const db = await openDB('vectorDB', 1, {
-      upgrade(db) {
-        const documentStore = db.createObjectStore('documents', {
-          autoIncrement: true,
-          keyPath: 'id',
-        });
-      },
-    });
-
-    const store = db.transaction('documents').objectStore('documents');
-
-    // Get query embedding
-    const queryEmbedding = await createEmbeddings([query]);
-    const queryVector = queryEmbedding.data[0].embedding;
-
-    // Get all documents
-    const allDocs = await getAll();
-
-    // Calculate similarity scores using cosine similarity
-    const scoresPairs = allDocs.map(doc => {
-        const score = cosineSimilarity(doc.vector, queryVector);
-        return [doc, score];
-    });
-
-    // Sort by score and get top k results
-    const sortedPairs = scoresPairs.sort((a, b) => b[1] - a[1]);
-    const results = sortedPairs.slice(0, 5).map(pair => ({
-        ...pair[0],
-        score: pair[1] // Cosine similarity is already normalized between -1 and 1
-    })); 
-
-    // Update hit counters
-    const tx = db.transaction('documents', 'readwrite');
-    const updateStore = tx.objectStore('documents');
-    for (const result of results) {
-        result.hits = (result.hits || 0) + 1;
-        await updateStore.put(result);
-    }
-    await tx.done;
-    console.log('results: ', results);
-    return results;
-}
-
-// Helper function for cosine similarity
-function cosineSimilarity(a, b) {
-    const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
-    const magnitudeA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
-    const magnitudeB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
-    return dotProduct / (magnitudeA * magnitudeB);
-}
-
-// ... existing code ...

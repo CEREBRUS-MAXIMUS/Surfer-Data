@@ -15,11 +15,9 @@ import {
   updateRunLogs,
   updateRunConnected
 } from '../../state/actions';
-import { useTheme } from '../ui/theme-provider';
 import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
 import { addDocuments } from '../../vector_db';
-import { addToSupabase } from '../../vector_db';
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
   position: fixed;
@@ -317,7 +315,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
       //await addDocuments(texts, company, name, runID, folderPath);
 
-      await addToSupabase(texts, company, name);
+      await addDocuments(texts, company, name);
 
       console.log('finished vectorizing!');
 
@@ -367,18 +365,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       dispatch(closeRun(activeRun.id));
     }
   };
-
-const addDocumentsToDB = async (documents: object) => {
-  const db = await openDB('vectorDB', 1, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains('documents')) {
-        db.createObjectStore('documents', { keyPath: 'id', autoIncrement: true });
-      }
-    },
-  });
-  await db.add('documents', documents);
-  console.log('added documents to db');
-}
 
   // Update active run index whenever runs change
   useEffect(() => {
