@@ -1,4 +1,9 @@
-const { customConsoleLog, wait, waitForElement, bigStepper } = require('../../preloadFunctions');
+const {
+  customConsoleLog,
+  wait,
+  waitForElement,
+  bigStepper,
+} = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
@@ -55,7 +60,10 @@ async function exportTwitter(id, platformId, filename, company, name) {
   await wait(5);
   if (document.body.innerText.toLowerCase().includes('sign in to x')) {
     bigStepper(id, 'Export stopped, waiting for sign in');
-    customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
+    customConsoleLog(
+      id,
+      'YOU NEED TO SIGN IN (click the eye in the top right)!',
+    );
     ipcRenderer.send('connect-website', id);
     return 'CONNECT_WEBSITE';
   }
@@ -70,14 +78,17 @@ async function exportTwitter(id, platformId, filename, company, name) {
   customConsoleLog(id, 'Got profile picture!');
 
   if (!profilePics) {
-    customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
+    customConsoleLog(
+      id,
+      'YOU NEED TO SIGN IN (click the eye in the top right)!',
+    );
     ipcRenderer.send('connect-website', id);
     return 'CONNECT_WEBSITE';
   }
 
   bigStepper(id, 'Clicking on Profile Picture');
   profilePics[1].click();
-  await wait(2); 
+  await wait(2);
 
   const tweetArray = [];
   let noNewTweetsCount = 0;
@@ -100,11 +111,11 @@ async function exportTwitter(id, platformId, filename, company, name) {
       await wait(2);
       noNewTweetsCount++;
       continue;
-    } 
+    }
 
     customConsoleLog(id, 'Processing new tweets');
     const initialSize = tweetArray.length;
-    
+
     for (const tweet of tweets) {
       tweet.scrollIntoView({
         behavior: 'instant',
@@ -117,12 +128,29 @@ async function exportTwitter(id, platformId, filename, company, name) {
           timestamp: tweet.querySelector('time').getAttribute('datetime'),
         };
 
-        if (!tweetArray.some(t => t.timestamp === jsonTweet.timestamp && t.text === jsonTweet.text)) {
-          const tweetExists = await checkIfTweetExists(id, platformId, company, name, jsonTweet);
+        if (
+          !tweetArray.some(
+            (t) =>
+              t.timestamp === jsonTweet.timestamp && t.text === jsonTweet.text,
+          )
+        ) {
+          const tweetExists = await checkIfTweetExists(
+            id,
+            platformId,
+            company,
+            name,
+            jsonTweet,
+          );
 
-          if (tweetExists) { 
+          if (tweetExists) {
             customConsoleLog(id, 'Tweet already exists, skipping');
-  ipcRenderer.send('handle-update-complete', id, platformId, company, name);
+            ipcRenderer.send(
+              'handle-update-complete',
+              id,
+              platformId,
+              company,
+              name,
+            );
             return 'HANDLE_UPDATE_COMPLETE';
           } else {
             ipcRenderer.send(
@@ -158,13 +186,7 @@ async function exportTwitter(id, platformId, filename, company, name) {
 
   customConsoleLog(id, `Exporting ${tweetArray.length} tweets`);
   bigStepper(id, 'Exporting data');
-  ipcRenderer.send(
-    'handle-update-complete',
-    id,
-    platformId,
-    company,
-    name,
-  );
+  ipcRenderer.send('handle-update-complete', id, platformId, company, name);
   return 'HANDLE_UPDATE_COMPLETE';
 }
 
