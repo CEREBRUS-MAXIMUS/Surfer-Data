@@ -17,6 +17,7 @@ import {
   Tray,
   powerMonitor,
   dialog,
+  session
 } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
@@ -104,6 +105,18 @@ ipcMain.on('connect-platform', (event, platform: any) => {
       }
     }
   });
+});
+
+ipcMain.handle('get-big-data', async (event, id) => {
+  session.defaultSession.webRequest.onBeforeSendHeaders(
+    { urls: ['*://*.twitter.com/*', '*://*.x.com/*'] },
+    (details, callback) => {
+      console.log('details: ', details);
+    return details
+    },
+  );
+
+
 });
 
 ipcMain.handle('check-connected-platforms', async (event, platforms) => {

@@ -4,7 +4,7 @@ const {
   waitForElement,
   bigStepper,
 } = require('../../preloadFunctions');
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, session } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
@@ -58,6 +58,14 @@ async function exportBookmarks(id, platformId, filename, company, name) {
     window.location.assign('https://x.com/i/bookmarks/all');
   }
   await wait(5);
+  
+  // get the cookies, apiId, csrf, and other thing
+
+  const bigData = await ipcRenderer.invoke('get-big-data');
+  customConsoleLog(id, 'Big data:', bigData);
+
+  // run api requests to get bookmarks
+  
   if (document.body.innerText.toLowerCase().includes('sign in to x')) {
     bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
