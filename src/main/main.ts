@@ -145,10 +145,8 @@ ipcMain.handle('get-scrapers', async () => {
 
 ipcMain.handle('get-indexed-folders', async () => {
   const indexedFoldersPath = path.join(app.getPath('userData'), 'surfer_data');
-  console.log('indexedFoldersPath: ', indexedFoldersPath);
   try {
     const companyFolders = fs.readdirSync(indexedFoldersPath);
-    console.log('companyFolders: ', companyFolders);
     const platformFolders = [];
 
     for (const company of companyFolders) {
@@ -157,8 +155,7 @@ ipcMain.handle('get-indexed-folders', async () => {
         const platforms = fs.readdirSync(companyPath);
         platformFolders.push(...platforms);
       }
-    }
-    console.log('platformFolders: ', platformFolders);
+        }
     return platformFolders;
   } catch (error) {
     console.error('Error reading indexed folders:', error);

@@ -12,6 +12,7 @@ import { useAuth } from '../auth/FirebaseAuth';
 import { getFirestore, collection, query, where, onSnapshot } from 'firebase/firestore';
 import app from '../../firebase';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+import OpenAI from 'openai';
 
 const Chat = () => { 
   const [messages, setMessages] = useState([]);
@@ -26,6 +27,7 @@ const Chat = () => {
   const inputRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => { 
     if (!currentUser) {
@@ -96,39 +98,54 @@ const Chat = () => {
       // Add user message
       setMessages(prevMessages => [...prevMessages, { text: inputMessage, sender: 'user' }]);
       setInputMessage('');
+      setIsTyping(true);
 
       const platformName = selectedPlatform ? selectedPlatform : null;
-      console.log('platformName: ', platformName);
       const similarData = await similaritySearch(inputMessage, platformName);
       setSelectedPlatform(null);
 
-      console.log('similarData: ', similarData);
-      // Add bot response with similar data
+      let contextData = '';
       if (similarData.length > 0) {
-        const botResponse = (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {similarData.map((item, index) => (
-                <Card key={index} className="w-full">
-                  <CardHeader>
-                    <CardTitle>{item.name}</CardTitle>
-                    <CardDescription> 
-                      <Badge variant="secondary">
-                        Similarity: {(item.similarity * 100).toFixed(2)}%
-                      </Badge>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{item.content}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        );
-        setMessages(prevMessages => [...prevMessages, { content: botResponse, sender: 'bot' }]);
-      } else {
-        setMessages(prevMessages => [...prevMessages, { text: "I couldn't find any similar data.", sender: 'bot' }]);
+        contextData = similarData.map(item => `${item.name}:\n${item.content}`).join('\n\n');
+      }
+
+      const systemMessage = `You are an AI assistant with access to a knowledge base. 
+      Use the following context to answer the user's question. If the context doesn't 
+      provide enough information, use your general knowledge but make it clear when you're 
+      doing so. Context:\n\n${contextData}`;
+
+      try {
+        const key = await window.electron.ipcRenderer.invoke('get-openai-api-key');
+        const openai = new OpenAI({
+          apiKey: key,
+          dangerouslyAllowBrowser: true,
+        });
+        const stream = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: systemMessage },
+            { role: 'user', content: inputMessage }
+          ],
+          stream: true,
+        });
+
+        let fullResponse = '';
+        setMessages(prevMessages => [...prevMessages, { text: '', sender: 'bot' }]);
+
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content || '';
+          fullResponse += content;
+          setMessages(prevMessages => {
+            const updatedMessages = [...prevMessages];
+            updatedMessages[updatedMessages.length - 1].text = fullResponse;
+            return updatedMessages;
+          });
+        }
+      } catch (error) {
+        console.error('Error calling OpenAI:', error);
+        setMessages(prevMessages => [...prevMessages, { text: "Sorry, I encountered an error while processing your request.", sender: 'bot' }]);
+      } finally {
+        setIsTyping(false);
       }
     }
   };
@@ -141,7 +158,6 @@ const Chat = () => {
             <CardContent className="p-4">
               <ScrollArea className="h-[calc(100vh-200px)]" ref={scrollAreaRef}>
                 {messages.map((message, index) => (
-                  // Add key prop to the outer div 
                   <div key={`message-${index}`} className={`mb-4 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
                     <div className={`inline-block rounded-lg py-2 px-3 ${
                       message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
@@ -150,6 +166,13 @@ const Chat = () => {
                     </div>
                   </div>
                 ))}
+                {isTyping && (
+                  <div className="mb-4 text-left">
+                    <div className="inline-block rounded-lg py-2 px-3 bg-secondary text-secondary-foreground">
+                      Typing...
+                    </div>
+                  </div>
+                )}
               </ScrollArea>
             </CardContent>
           </Card>
