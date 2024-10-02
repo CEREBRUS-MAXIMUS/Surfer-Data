@@ -1,6 +1,6 @@
 {
     "name": "Twitter Feed",
-    "description": "Exports 100 posts in you feed.",
+    "description": "Exports 100 posts in your feed.",
     "isUpdated": true,
     "logoURL": "https://logo.clearbit.com/twitter.com",
     "connectURL": "https://twitter.com",

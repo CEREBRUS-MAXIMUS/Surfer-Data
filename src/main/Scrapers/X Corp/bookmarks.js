@@ -3,8 +3,9 @@ const {
   wait,
   waitForElement,
   bigStepper,
+  features,
 } = require('../../preloadFunctions');
-const { ipcRenderer, session } = require('electron');
+const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
@@ -18,30 +19,29 @@ async function checkIfBookmarkExists(id, platformId, company, name, currentBookm
     platformId,
     `${platformId}.json`,
   );
-  console.log(id, `Checking if file exists at ${filePath}`);
+  customConsoleLog(id, id, `Checking if file exists at ${filePath}`);
   const fileExists = await fs.existsSync(filePath);
   if (fileExists) {
-    console.log(id, `File exists, reading file`);
+    customConsoleLog(id, `File exists, reading file`);
     try {
       const fileContent = fs.readFileSync(filePath, 'utf-8');
       if (fileContent.trim() === '') {
-        console.log(id, 'File is empty');
+        customConsoleLog(id, 'File is empty');
         return false;
       }
       const bookmarks = JSON.parse(fileContent);
-      console.log(id, 'Bookmarks: ', bookmarks);
       if (bookmarks && bookmarks.content && Array.isArray(bookmarks.content)) {
         for (const bookmark of bookmarks.content) {
           if (
             bookmark.timestamp === currentBookmark.timestamp &&
             bookmark.text === currentBookmark.text
           ) {
-            console.log(id, 'Bookmark already exists, skipping');
+            customConsoleLog(id, 'Bookmark already exists, skipping');
             return true;
           }
         }
       } else {
-        console.log(id, 'Invalid or empty bookmarks structure');
+        customConsoleLog(id, 'Invalid or empty bookmarks structure');
       }
     } catch (error) {
       console.error(id, `Error reading or parsing file: ${error.message}`);
@@ -51,125 +51,219 @@ async function checkIfBookmarkExists(id, platformId, company, name, currentBookm
   return false;
 }
 
+async function checkBigData(company, name) {
+  const userData = await ipcRenderer.invoke('get-user-data-path');
+  const bigDataPath = path.join(
+    userData,
+    'surfer_data',
+    company,
+    name,
+    'bigData.json',
+  );
+  const fileExists = await fs.existsSync(bigDataPath);
+  if (fileExists) {
+    const fileContent = fs.readFileSync(bigDataPath, 'utf-8');
+    return JSON.parse(fileContent);
+  }
+  return null;
+};
+
 async function exportBookmarks(id, platformId, filename, company, name) {
+  let bigData;
   if (!window.location.href.includes('x.com')) {
     bigStepper(id, 'Navigating to Twitter');
     customConsoleLog(id, 'Navigating to Twitter');
     window.location.assign('https://x.com/i/bookmarks/all');
-  }
-  await wait(5);
-  
-  // get the cookies, apiId, csrf, and other thing
-
-  const bigData = await ipcRenderer.invoke('get-big-data');
-  customConsoleLog(id, 'Big data:', bigData);
-
-  // run api requests to get bookmarks
-  
-  if (document.body.innerText.toLowerCase().includes('sign in to x')) {
-    bigStepper(id, 'Export stopped, waiting for sign in');
-    customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-    ipcRenderer.send('connect-website', id);
-    return 'CONNECT_WEBSITE';
+    ipcRenderer.send('get-big-data', company, name);
   }
 
-  const bookmarkArray = [];
-  let noNewBookmarksCount = 0;
+  // Wait for bigData to be available
+  while (!bigData) {
+    await wait(0.5);
+    bigData = await checkBigData(company, name);
+  }
 
-  bigStepper(id, 'Getting bookmarks...');
-  customConsoleLog(id, 'Starting bookmark collection');
+  customConsoleLog(id, 'bigData obtained!')
 
-  while (noNewBookmarksCount < 3) {
-    const bookmarks = await waitForElement(
-      id,
-      'div[data-testid="cellInnerDiv"]',
-      'Bookmarks',
-      true,
-    );
-    customConsoleLog(id, `Found ${bookmarks.length} bookmarks on the page`);
+  // Run API requests to get bookmarks
+  try {
+    const bookmarks = await getBookmarks(id, bigData);
+    customConsoleLog(id, `Retrieved ${bookmarks.length} bookmarks`);
 
-    if (bookmarks.length === 0) {
-      customConsoleLog(id, 'No bookmarks found, waiting 2 seconds before retry');
-      await wait(2);
-      noNewBookmarksCount++;
-      continue;
-    }
-
-    customConsoleLog(id, 'Processing new bookmarks');
-    const initialSize = bookmarkArray.length;
+    let bookmarkArray = [];
+    let noNewBookmarksCount = 0;
 
     for (const bookmark of bookmarks) {
-      bookmark.scrollIntoView({
-        behavior: 'instant',
-        block: 'end',
-      });
 
-      if (bookmark.querySelector('time')) {
-        const jsonBookmark = {
-          text: bookmark.innerText.replace(/\n/g, ' '),
-          timestamp: bookmark.querySelector('time').getAttribute('datetime'),
-        };
 
-        if (
-          !bookmarkArray.some(
-            (t) =>
-              t.timestamp === jsonBookmark.timestamp && t.text === jsonBookmark.text,
-          )
-        ) {
-          const bookmarkExists = await checkIfBookmarkExists(
-            id,
-            platformId,
+      if (!bookmarkArray.some(
+        (t) => t.timestamp === bookmark.timestamp && t.text === bookmark.text
+      )) {
+        const bookmarkExists = await checkIfBookmarkExists(
+          id,
+          platformId,
+          company,
+          name,
+          bookmark
+        );
+
+        if (bookmarkExists) {
+          customConsoleLog(id, 'Bookmark already exists, skipping');
+          noNewBookmarksCount++;
+        } else {
+          ipcRenderer.send(
+            'handle-update',
             company,
             name,
-            jsonBookmark,
+            platformId,
+            JSON.stringify(bookmark),
+            id
           );
-
-          if (bookmarkExists) {
-            customConsoleLog(id, 'Bookmark already exists, skipping');
-            ipcRenderer.send(
-              'handle-update-complete',
-              id,
-              platformId,
-              company,
-              name,
-            );
-            return 'HANDLE_UPDATE_COMPLETE';
-          } else {
-            ipcRenderer.send(
-              'handle-update',
-              company,
-              name,
-              platformId,
-              JSON.stringify(jsonBookmark),
-              id,
-            );
-            bookmarkArray.push(jsonBookmark);
-          }
+          bookmarkArray.push(bookmark);
+          noNewBookmarksCount = 0;
         }
+      } else {
+        noNewBookmarksCount++;
+      }
+
+      if (noNewBookmarksCount >= 3) {
+        customConsoleLog(id, 'No new bookmarks found in the last 3 iterations, stopping');
+        break;
       }
     }
 
-    const newBookmarksAdded = bookmarkArray.length - initialSize;
-    customConsoleLog(
-      id,
-      `Added ${newBookmarksAdded} new unique bookmarks. Total: ${bookmarkArray.length}`,
-    );
+    customConsoleLog(id, `Exporting ${bookmarkArray.length} bookmarks`);
+    bigStepper(id, 'Exporting data');
+    ipcRenderer.send('handle-update-complete', id, platformId, company, name);
+    return 'HANDLE_UPDATE_COMPLETE';
 
-    if (newBookmarksAdded === 0) {
-      customConsoleLog(id, 'NO NEW TWEETS ADDED, TRYING AGAIN!');
-      noNewBookmarksCount++;
-    } else {
-      noNewBookmarksCount = 0;
+  } catch (error) {
+    console.error(id, `Error fetching bookmarks: ${error.message}`);
+    return 'ERROR';
+  }
+}
+
+async function getBookmarks(id, bigData, cursor = "", totalImported = 0, allBookmarks = []) {
+  const headers = new Headers();
+  headers.append('Cookie', bigData.cookie);
+  headers.append('X-Csrf-token', bigData.csrf);
+  headers.append('Authorization', bigData.auth);
+  const variables = {
+    count: 100,
+    cursor: cursor,
+    includePromotedContent: false,
+  };
+  const API_URL = `https://x.com/i/api/graphql/${
+    bigData.bookmarksApiId
+  }/Bookmarks?features=${encodeURIComponent(
+    JSON.stringify(features)
+  )}&variables=${encodeURIComponent(JSON.stringify(variables))}`;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "GET",
+      headers: headers,
+      redirect: "follow",
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    customConsoleLog(id, 'Waiting 2 seconds before getting more bookmarks');
-    await wait(2);
-  }
+    const data = await response.json();
+    const entries =
+      data.data?.bookmark_timeline_v2?.timeline?.instructions?.[0]
+        ?.entries || [];
 
-  customConsoleLog(id, `Exporting ${bookmarkArray.length} bookmarks`);
-  bigStepper(id, 'Exporting data');
-  ipcRenderer.send('handle-update-complete', id, platformId, company, name);
-  return 'HANDLE_UPDATE_COMPLETE';
+    const tweetEntries = entries.filter((entry) =>
+      entry.entryId.startsWith('tweet-'),
+    );
+
+    const parsedTweets = tweetEntries.map(parseTweet);
+
+    allBookmarks = allBookmarks.concat(parsedTweets);
+
+    const newBookmarksCount = parsedTweets.length;
+    totalImported += newBookmarksCount;
+
+    customConsoleLog(id, 'New bookmarks in this batch:', newBookmarksCount);
+    customConsoleLog(id, 'Current total imported:', totalImported);
+
+    const nextCursor = getNextCursor(entries);
+    console.log('nextCursor:', nextCursor);
+
+    if (nextCursor && newBookmarksCount > 0) {
+      console.log('TRYING TO GET MORE BOOKMARKS!!!')
+      return await getBookmarks(id, bigData, nextCursor, totalImported, allBookmarks);
+    }
+    else {
+      customConsoleLog(id, 'No new bookmarks found, returning all bookmarks');
+      return allBookmarks;
+    }
+
+    //return data; // or return processed data
+  } catch (error) {
+    console.error(id, `Error fetching bookmarks: ${error.message}`);
+    throw error; // Re-throw the error if you want to handle it in the calling function
+  }
 }
+
+const parseTweet = (entry) => {
+  const tweet =
+    entry.content?.itemContent?.tweet_results?.result?.tweet ||
+    entry.content?.itemContent?.tweet_results?.result;
+
+  const media = tweet?.legacy?.entities?.media?.[0] || null;
+
+  const getBestVideoVariant = (variants) => {
+    if (!variants || variants.length === 0) return null;
+    const mp4Variants = variants.filter((v) => v.content_type === 'video/mp4');
+    return mp4Variants.reduce((best, current) => {
+      if (!best || (current.bitrate && current.bitrate > best.bitrate)) {
+        return current;
+      }
+      return best;
+    }, null);
+  };
+
+  const getMediaInfo = (media) => {
+    if (!media) return null;
+
+    if (media.type === 'video' || media.type === 'animated_gif') {
+      const videoInfo =
+        tweet?.legacy?.extended_entities?.media?.[0]?.video_info;
+      const bestVariant = getBestVideoVariant(videoInfo?.variants);
+      return {
+        type: media.type,
+        source: bestVariant?.url || media.media_url_https,
+      };
+    }
+
+    return {
+      type: media.type,
+      source: media.media_url_https,
+    };
+  };
+
+  return {
+    id: entry.entryId,
+    text: tweet?.legacy?.full_text,
+    timestamp: tweet?.legacy?.created_at,
+    media: getMediaInfo(media),
+    // favorite_count: tweet?.legacy?.favorite_count,
+    // retweet_count: tweet?.legacy?.retweet_count,
+    // reply_count: tweet?.legacy?.reply_count,
+    // quote_count: tweet?.legacy?.quote_count,
+    // lang: tweet?.legacy?.lang
+  };
+};
+
+const getNextCursor = (entries) => {
+  const cursorEntry = entries.find((entry) =>
+    entry.entryId.startsWith('cursor-bottom-'),
+  );
+  return cursorEntry ? cursorEntry.content.value : null;
+};
+
 
 module.exports = exportBookmarks;

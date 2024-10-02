@@ -107,16 +107,63 @@ ipcMain.on('connect-platform', (event, platform: any) => {
   });
 });
 
-ipcMain.handle('get-big-data', async (event, id) => {
-  session.defaultSession.webRequest.onBeforeSendHeaders(
-    { urls: ['*://*.twitter.com/*', '*://*.x.com/*'] },
-    (details, callback) => {
-      console.log('details: ', details);
-    return details
-    },
+ipcMain.on('get-big-data', async (event, company, name) => {
+  const userData = app.getPath('userData');
+  const bigDataPath = path.join(
+    userData,
+    'surfer_data',
+    company,
+    name,
+    'bigData.json',
   );
 
+  return new Promise((resolve) => {
+    session.defaultSession.webRequest.onBeforeSendHeaders(
+      { urls: ['*://*.twitter.com/*', '*://*.x.com/*'] },
+      (details: any, callback) => {
+        if (details.url.includes('/Bookmarks?variables')) {
+          console.log('getting big data!');
+          const bookmarksUrlPattern =
+            /https:\/\/x\.com\/i\/api\/graphql\/([^/]+)\/Bookmarks\?/;
+          const match = details.url.match(bookmarksUrlPattern);
 
+          let result = {
+            bookmarksApiId: null as string | null,
+            auth: null as string | null,
+            cookie: null as string | null,
+            csrf: null as string | null,
+          };
+
+          if (match) {
+            result.bookmarksApiId = match[1];
+          }
+
+          result.auth = details.requestHeaders['authorization'] || null;
+          result.cookie = details.requestHeaders['Cookie'] || null;
+          result.csrf = details.requestHeaders['x-csrf-token'] || null;
+
+          if (
+            result.bookmarksApiId &&
+            result.auth &&
+            result.cookie &&
+            result.csrf
+          ) {
+            console.log('returning result: ', result);
+
+            // Create the directory if it doesn't exist
+            fs.mkdirSync(path.dirname(bigDataPath), { recursive: true });
+
+            // Write the bigData to the file
+            fs.writeFileSync(bigDataPath, JSON.stringify(result, null, 2));
+
+            event.sender.send('got-big-data', result);
+          }
+        }
+
+        callback({ requestHeaders: details.requestHeaders });
+      },
+    );
+  });
 });
 
 ipcMain.handle('check-connected-platforms', async (event, platforms) => {
