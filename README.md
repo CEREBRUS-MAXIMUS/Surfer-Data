@@ -1,11 +1,15 @@
 # Surfer: Export your personal data in one click
 
+# 🆕 **RECENT UPDATES (10/28/24): Surfer is evolving! We're currently working on a [new protocol](https://surferprotocol.org) to document personal data exporting. For the latest updates, visit our [project page](https://surferprotocol.org) or the [GitHub repo](https://github.com/surfer-protocol/protocol).** 🆕
+
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![](https://dcbadge.vercel.app/api/server/5KQkWApkYC)](https://discord.gg/5KQkWApkYC)
+[![RECENT UPDATES](https://img.shields.io/badge/RECENT%20UPDATES-10%2F20%2F24-brightgreen)](https://surferprotocol.org)
+
 
 <!-- TABLE OF CONTENTS -->
 <details>
