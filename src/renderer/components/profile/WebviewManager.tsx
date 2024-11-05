@@ -157,6 +157,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
   const handleNewRun = async (id: string | null = null, isSignIn: boolean = false) => {
     const newRun = id ? runs.find((run) => run.id === id) : runs[runs.length - 1];
+    window.electron.ipcRenderer.send('run-started', newRun);
     if (!newRun) return;
 
     if (isSignIn) {
@@ -284,7 +285,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
         )[0];
 
         console.log('stopping download run: ', downloadRun); 
-
+        window.electron.ipcRenderer.send('run-finished', company, name, runID.toString(), folderPath);
         dispatch(updateExportStatus(company, name, downloadRun.id, folderPath, exportSize));
       }
 
@@ -298,7 +299,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           runID,
         );
 
-     
+        window.electron.ipcRenderer.send('run-finished', company, name, runID.toString(), folderPath);
         dispatch(updateExportStatus(company, name, runID.toString(), folderPath, exportSize));
        }
 

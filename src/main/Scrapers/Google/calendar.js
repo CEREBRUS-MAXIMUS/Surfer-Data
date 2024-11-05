@@ -16,7 +16,6 @@ async function exportCalendar(id, platformId, filename, company, name) {
     company,
     name,
     platformId,
-    'extracted',
     `${platformId}.json`,
   );
 

@@ -65,6 +65,7 @@ async function exportGithub(id, platformId, filename, company, name) {
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';
     }
+
     const tabButton = await waitForElement(
       id,
       'button[aria-label="Open user navigation menu"]',

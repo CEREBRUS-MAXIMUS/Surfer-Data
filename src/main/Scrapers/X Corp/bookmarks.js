@@ -90,52 +90,52 @@ async function exportBookmarks(id, platformId, filename, company, name) {
     const bookmarks = await getBookmarks(id, bigData);
     customConsoleLog(id, `Retrieved ${bookmarks.length} bookmarks`);
 
-    let bookmarkArray = [];
-    let noNewBookmarksCount = 0;
+    // let bookmarkArray = [];
+    // let noNewBookmarksCount = 0;
 
-    for (const bookmark of bookmarks) {
+    // for (const bookmark of bookmarks) {
 
 
-      if (!bookmarkArray.some(
-        (t) => t.timestamp === bookmark.timestamp && t.text === bookmark.text
-      )) {
-        const bookmarkExists = await checkIfBookmarkExists(
-          id,
-          platformId,
-          company,
-          name,
-          bookmark
-        );
+    //   if (!bookmarkArray.some(
+    //     (t) => t.timestamp === bookmark.timestamp && t.text === bookmark.text
+    //   )) {
+    //     const bookmarkExists = await checkIfBookmarkExists(
+    //       id,
+    //       platformId,
+    //       company,
+    //       name,
+    //       bookmark
+    //     );
 
-        if (bookmarkExists) {
-          customConsoleLog(id, 'Bookmark already exists, skipping');
-          noNewBookmarksCount++;
-        } else {
-          ipcRenderer.send(
-            'handle-update',
-            company,
-            name,
-            platformId,
-            JSON.stringify(bookmark),
-            id
-          );
-          bookmarkArray.push(bookmark);
-          noNewBookmarksCount = 0;
-        }
-      } else {
-        noNewBookmarksCount++;
-      }
+    //     if (bookmarkExists) {
+    //       customConsoleLog(id, 'Bookmark already exists, skipping');
+    //       noNewBookmarksCount++;
+    //     } else {
+    //       ipcRenderer.send(
+    //         'handle-update',
+    //         company,
+    //         name,
+    //         platformId,
+    //         JSON.stringify(bookmark),
+    //         id
+    //       );
+    //       bookmarkArray.push(bookmark);
+    //       noNewBookmarksCount = 0;
+    //     }
+    //   } else {
+    //     noNewBookmarksCount++;
+    //   }
 
-      if (noNewBookmarksCount >= 3) {
-        customConsoleLog(id, 'No new bookmarks found in the last 3 iterations, stopping');
-        break;
-      }
-    }
+    //   if (noNewBookmarksCount >= 3) {
+    //     customConsoleLog(id, 'No new bookmarks found in the last 3 iterations, stopping');
+    //     break;
+    //   }
+    // }
 
     customConsoleLog(id, `Exporting ${bookmarkArray.length} bookmarks`);
     bigStepper(id, 'Exporting data');
-    ipcRenderer.send('handle-update-complete', id, platformId, company, name);
-    return 'HANDLE_UPDATE_COMPLETE';
+    // ipcRenderer.send('handle-update-complete', id, platformId, company, name);
+    return bookmarks;
 
   } catch (error) {
     console.error(id, `Error fetching bookmarks: ${error.message}`);
