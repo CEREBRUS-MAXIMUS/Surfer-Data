@@ -51,43 +51,43 @@ async function checkIfBookmarkExists(id, platformId, company, name, currentBookm
   return false;
 }
 
-async function checkBigData(company, name) {
+async function checkTwitterCredentials(company, name) {
   const userData = await ipcRenderer.invoke('get-user-data-path');
-  const bigDataPath = path.join(
+  const twitterCredentialsPath = path.join(
     userData,
     'surfer_data',
     company,
     name,
-    'bigData.json',
+    'twitterCredentials.json',
   );
-  const fileExists = await fs.existsSync(bigDataPath);
+  const fileExists = await fs.existsSync(twitterCredentialsPath);
   if (fileExists) {
-    const fileContent = fs.readFileSync(bigDataPath, 'utf-8');
+    const fileContent = fs.readFileSync(twitterCredentialsPath, 'utf-8');
     return JSON.parse(fileContent);
   }
   return null;
 };
 
 async function exportBookmarks(id, platformId, filename, company, name) {
-  let bigData;
+  let twitterCredentials;
   if (!window.location.href.includes('x.com')) {
     bigStepper(id, 'Navigating to Twitter');
     customConsoleLog(id, 'Navigating to Twitter');
     window.location.assign('https://x.com/i/bookmarks/all');
-    ipcRenderer.send('get-big-data', company, name);
+    ipcRenderer.send('get-twitter-credentials', company, name);
   }
 
   // Wait for bigData to be available
-  while (!bigData) {
+  while (!twitterCredentials) {
     await wait(0.5);
-    bigData = await checkBigData(company, name);
+    twitterCredentials = await checkTwitterCredentials(company, name);
   }
 
-  customConsoleLog(id, 'bigData obtained!')
+  customConsoleLog(id, 'twitterCredentials obtained!')
 
   // Run API requests to get bookmarks
   try {
-    const bookmarks = await getBookmarks(id, bigData);
+    const bookmarks = await getBookmarks(id, twitterCredentials);
     customConsoleLog(id, `Retrieved ${bookmarks.length} bookmarks`);
 
     // let bookmarkArray = [];
@@ -132,29 +132,28 @@ async function exportBookmarks(id, platformId, filename, company, name) {
     //   }
     // }
 
-    customConsoleLog(id, `Exporting ${bookmarkArray.length} bookmarks`);
     bigStepper(id, 'Exporting data');
     // ipcRenderer.send('handle-update-complete', id, platformId, company, name);
     return bookmarks;
 
   } catch (error) {
-    console.error(id, `Error fetching bookmarks: ${error.message}`);
+    customConsoleLog(id, `Error fetching bookmarks: ${error.message}`);
     return 'ERROR';
   }
 }
 
-async function getBookmarks(id, bigData, cursor = "", totalImported = 0, allBookmarks = []) {
+async function getBookmarks(id, twitterCredentials, cursor = "", totalImported = 0, allBookmarks = []) {
   const headers = new Headers();
-  headers.append('Cookie', bigData.cookie);
-  headers.append('X-Csrf-token', bigData.csrf);
-  headers.append('Authorization', bigData.auth);
+  headers.append('Cookie', twitterCredentials.cookie);
+  headers.append('X-Csrf-token', twitterCredentials.csrf);
+  headers.append('Authorization', twitterCredentials.auth);
   const variables = {
     count: 100,
     cursor: cursor,
     includePromotedContent: false,
   };
   const API_URL = `https://x.com/i/api/graphql/${
-    bigData.bookmarksApiId
+    twitterCredentials.bookmarksApiId
   }/Bookmarks?features=${encodeURIComponent(
     JSON.stringify(features)
   )}&variables=${encodeURIComponent(JSON.stringify(variables))}`;
@@ -194,7 +193,7 @@ async function getBookmarks(id, bigData, cursor = "", totalImported = 0, allBook
 
     if (nextCursor && newBookmarksCount > 0) {
       console.log('TRYING TO GET MORE BOOKMARKS!!!')
-      return await getBookmarks(id, bigData, nextCursor, totalImported, allBookmarks);
+      return await getBookmarks(id, twitterCredentials, nextCursor, totalImported, allBookmarks);
     }
     else {
       customConsoleLog(id, 'No new bookmarks found, returning all bookmarks');

@@ -43,6 +43,22 @@ const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
 
 
   const LOGO_SIZE = 24; // Set a consistent size for all logos
+  
+
+useEffect(() => {
+  // Listen for runs request from main process
+  const handleGetRunsRequest = () => {
+    // Get runs from IndexedDB
+    window.electron.ipcRenderer.send('get-runs-response', runs);
+  };
+
+  window.electron.ipcRenderer.on('get-runs-request', handleGetRunsRequest);
+
+  // Cleanup listener
+  return () => {
+    window.electron.ipcRenderer.removeAllListeners('get-runs-request', handleGetRunsRequest);
+  };
+}, [runs]);
 
   const loadRuns = useCallback(async () => {
     const db = await openDB('dataExtractionDB', 1, {

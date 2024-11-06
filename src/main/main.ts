@@ -3,7 +3,6 @@ dotenv.config();
 import {} from '../../';
 import path from 'path';
 import MenuBuilder from './utils/menu';
-import yauzl from 'yauzl';
 import { getFilesInFolder } from './utils/util';
 import {
   app,
@@ -22,13 +21,9 @@ import {
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
-import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
-import { PythonUtils } from './utils/python';
-import { mboxParser } from 'mbox-parser';
-
-
-const pythonUtils = new PythonUtils();
+import { convertMboxToJson, findMboxFile, extractZip, getTotalFolderSize } from './utils/helpers';
+import { getImessageData } from './utils/imessage';
 
 let appIcon: Tray | null = null;
 
@@ -43,6 +38,7 @@ let downloadingItems = new Map();
 
 import express from 'express';
 import cors from 'cors';
+import { getTwitterCredentials } from './utils/network';
 const expressApp = express();
 expressApp.use(cors());
 expressApp.use(express.json());
@@ -69,109 +65,56 @@ expressApp.post('/api/get', async (req, res) => {
 expressApp.post('/api/export', async (req, res) => {
   console.log('EXPORT REQUEST: ', req.body);
   const { platformId } = req.body;
+
   try {
+
+
+    // Start export
     mainWindow?.webContents.send('element-found', platformId);
 
-    let currentRun = null;
-    const startTime = Date.now();
-    const timeout = 180000; // Increased to 30 seconds to allow for export completion
+    // Get initial run with timeout
+    const currentRun: any = await new Promise((resolve) => {
+      ipcMain.once('run-started', (event, run) => resolve(run));
+    });
 
-    // First, wait for the run to start
-    while (!currentRun && Date.now() - startTime < timeout) {
-      const currentRuns = JSON.parse(
-        fs.readFileSync(
-          path.join(app.getPath('userData'), 'runs.json'),
-          'utf8',
-        ),
-      );
-      currentRun = currentRuns
-        .filter(
-          (r: any) => r.platformId === platformId && r.status === 'running',
-        )
-        .sort(
-          (a: any, b: any) =>
-            new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
-        )[0];
+    console.log('Found current run:', currentRun.id);
 
-      if (!currentRun) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-    }
+    // Monitor run status with timeout
+    const finalRun = await new Promise((resolve) => {
+        const checkRunStatus = async () => {
+          mainWindow?.webContents.send('get-runs-request');
+          const runsResponse: any = await new Promise((resolve) => {
+            ipcMain.on('get-runs-response', (event, runs) => resolve(runs));
+          });
 
-    if (!currentRun) {
-      throw new Error('Timed out waiting for run to start');
-    }
+          const finalRun = runsResponse.find(
+            (r: any) => r.id === currentRun.id,
+          );
+          if (finalRun?.status === 'success') {
+            clearInterval(statusInterval);
+            resolve(finalRun);
+          }
+        };
 
-    console.log('Found running run:', currentRun);
-
-    // Now wait for the run to complete
-    let finalRun = null;
-    while (!finalRun && Date.now() - startTime < timeout) {
-      const currentRuns = JSON.parse(
-        fs.readFileSync(
-          path.join(app.getPath('userData'), 'runs.json'),
-          'utf8',
-        ),
-      );
-      finalRun = currentRuns.filter(
-        (r: any) => r.name === currentRun.name && r.company === currentRun.company && r.status === 'success',
-      ).pop();
-
-      console.log('finalRun: ', finalRun);
-
-      if (!finalRun) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-    }
-
-    if (!finalRun) {
-      throw new Error('Timed out waiting for run to complete');
-    }
-
-    console.log('Run completed, waiting for file to be created');
-
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-
-    // // Read the exported file
-    // const folderPath = path.join(
-    //   app.getPath('userData'),
-    //   'surfer_data', 
-    //   finalRun.company,
-    //   finalRun.name,
-    // );
-    // // Get all platform folders (e.g. bookmarks-001-timestamp)
-    // const platformFolders = fs.readdirSync(folderPath);
-    
-    // // Filter to folders matching the platform ID and sort by timestamp
-    // const runFolders = platformFolders
-    //   .filter(folder => folder.startsWith(finalRun.platformId))
-    //   .sort((a, b) => {
-    //     const timestampA = parseInt(a.split('-').pop() || '0');
-    //     const timestampB = parseInt(b.split('-').pop() || '0'); 
-    //     return timestampB - timestampA;
-    //   });
-
-      // if (runFolders.length === 0) {
-      //   throw new Error('No export folders found');
-      // }
-
-    // Get the latest run folder
+        const statusInterval = setInterval(checkRunStatus, 1000);
+      });
+      
+    console.log('final run status: ', finalRun.status);
+    // Process results
     const latestRunPath = finalRun.exportPath;
-    
-    // Find the JSON file in that folder
+    if (!fs.existsSync(latestRunPath)) {
+      throw new Error('Export path not found');
+    }
+
     const files = fs.readdirSync(latestRunPath);
-    const jsonFile = files.find(file => file.endsWith('.json'));
+    const jsonFile = files.find((file) => file.endsWith('.json'));
     if (!jsonFile) {
-      throw new Error('No JSON file found in latest export folder');
+      throw new Error('No JSON file found in export folder');
     }
 
     const filePath = path.join(latestRunPath, jsonFile);
-
-    if (!fs.existsSync(filePath)) {
-      throw new Error('Export file not found');
-    }
-
     const fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
     res.json({
       success: true,
       data: fileData,
@@ -180,38 +123,16 @@ expressApp.post('/api/export', async (req, res) => {
     });
   } catch (error) {
     console.error('Export error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Unknown export error',
+    });
   }
 });
 
 
 expressApp.listen(port, () => {
   console.log(`Server is running on port ${port}`);
-});
-
-
-ipcMain.on('run-started', (event, run) => {
-  const runsPath = path.join(app.getPath('userData'), 'runs.json');
-  if (!fs.existsSync(runsPath)) {
-    fs.writeFileSync(runsPath, JSON.stringify([]));
-  }
-  const runs = JSON.parse(fs.readFileSync(runsPath, 'utf8'));
-  if (!runs.find((r: any) => r.id === run.id)) {
-    runs.push(run);
-    fs.writeFileSync(runsPath, JSON.stringify(runs, null, 2));
-  }
-});
-
-
-ipcMain.on('run-finished', (event, company, name, runID, folderPath) => {
-  const runsPath = path.join(app.getPath('userData'), 'runs.json');
-  const runs = JSON.parse(fs.readFileSync(runsPath, 'utf8'));
-  const run = runs.filter((r: any) => r.name === name && r.company === company && r.status === 'running').pop();
-  console.log('this run: ', run);
-  run.status = 'success';
-  run.exportPath = folderPath;
-  console.log('folder/filepath for run: ', folderPath);
-  fs.writeFileSync(runsPath, JSON.stringify(runs, null, 2));
 });
 
 
@@ -265,64 +186,8 @@ ipcMain.on('connect-platform', (event, platform: any) => {
   });
 });
 
-ipcMain.on('get-big-data', async (event, company, name) => {
-  const userData = app.getPath('userData');
-  const bigDataPath = path.join(
-    userData,
-    'surfer_data',
-    company,
-    name,
-    'bigData.json',
-  );
-  console.log('CALLING GET BIG DATA!!!!!!!!')
-  return new Promise((resolve) => {
-    session.defaultSession.webRequest.onBeforeSendHeaders(
-      { urls: ['*://*.twitter.com/*', '*://*.x.com/*'] },
-      (details: any, callback) => {
-        console.log('getting twitter requests ig')
-        if (details.url.includes('/Bookmarks?variables')) {
-          console.log('getting big data!');
-          const bookmarksUrlPattern =
-            /https:\/\/x\.com\/i\/api\/graphql\/([^/]+)\/Bookmarks\?/;
-          const match = details.url.match(bookmarksUrlPattern);
-
-          let result = {
-            bookmarksApiId: null as string | null,
-            auth: null as string | null,
-            cookie: null as string | null,
-            csrf: null as string | null,
-          };
-
-          if (match) {
-            result.bookmarksApiId = match[1];
-          }
-
-          result.auth = details.requestHeaders['authorization'] || null;
-          result.cookie = details.requestHeaders['Cookie'] || null;
-          result.csrf = details.requestHeaders['x-csrf-token'] || null;
-
-          if (
-            result.bookmarksApiId &&
-            result.auth &&
-            result.cookie &&
-            result.csrf
-          ) {
-            console.log('got twitter credentials!');
-
-            // Create the directory if it doesn't exist
-            fs.mkdirSync(path.dirname(bigDataPath), { recursive: true });
-
-            // Write the bigData to the file
-            fs.writeFileSync(bigDataPath, JSON.stringify(result, null, 2));
-
-            event.sender.send('got-big-data', result);
-          }
-        }
-
-        callback({ requestHeaders: details.requestHeaders });
-      },
-    );
-  });
+ipcMain.on('get-twitter-credentials', async (event, company, name) => {
+  return await getTwitterCredentials(company, name);
 });
 
 ipcMain.handle('check-connected-platforms', async (event, platforms) => {
@@ -467,84 +332,9 @@ ipcMain.on('get-version-number', (event) => {
 
 ipcMain.handle('get-imessage-data', async (event, company: string, name: string, id: string) => {
   //if (process.platform === 'win32') {
-    const username = process.env.USERNAME || process.env.USER;
-    const defaultPath =
-      process.platform === 'win32'
-        ? path.join('C:', 'Users', username, 'Apple', 'MobileSync', 'Backup')
-        : path.join(
-            '/Users',
-            username,
-            'Library',
-            'Application Support',
-            'MobileSync',
-            'Backup',
-          );
-
-    if (!fs.existsSync(defaultPath)) {
-      console.log('NEED TO BACKUP YOUR IMESSAGE FOLDER!');
-      return null;
-    }
-
-    const result = await dialog.showOpenDialog({
-      properties: ['openDirectory'],
-      title: 'Select iMessages Folder',
-      buttonLabel: 'Select',
-      defaultPath: defaultPath,
-    });
-
-    if (result.filePaths.length > 0) {
-      const selectedFolder = result.filePaths[0];
-      mainWindow?.webContents.send('console-log', id, 'Got folder, now exporting iMessages (will take a few minutes)');
-
-      try {
-        const scriptOutput = await pythonUtils.iMessageScript(
-          process.platform,
-          selectedFolder,
-          company,
-          name,
-          id,
-        );
-        mainWindow?.webContents.send(
-          'console-log',
-          id,
-          'iMessage export complete!'
-        );
-        // Assuming the last line of the output is the JSON file path
-        const folderPath = scriptOutput.split('\n').pop()?.trim();
-        console.log('JSON file path:', folderPath);
-        mainWindow?.webContents.send('export-complete', company, name, id, folderPath, getTotalFolderSize(folderPath));
-        return folderPath;
-      } catch (error) {
-        console.error('Error running iMessage script:', error);
-        return null;
-      }
-    }
-  // } else if (process.platform === 'darwin') {
-  //   console.log('Mac is being added soon!');
-  //   return null;
-  // } else {
-  //   console.log('Unsupported platform:', process.platform);
-  //   return null;
-  // }
+  return getImessageData(event, company, name, id);
 });
 
-function getTotalFolderSize(folderPath: string): number {
-  let totalSize = 0;
-  const files = fs.readdirSync(folderPath);
-
-  for (const file of files) {
-    const filePath = path.join(folderPath, file);
-    const stats = fs.statSync(filePath);
-
-    if (stats.isFile()) {
-      totalSize += stats.size;
-    } else if (stats.isDirectory()) {
-      totalSize += getTotalFolderSize(filePath);
-    }
-  }
-
-  return totalSize;
-}
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -560,7 +350,7 @@ class AppUpdater {
   }
 }
 
-let mainWindow: BrowserWindow | null = null;
+export let mainWindow: BrowserWindow | null = null;
 
 const isDebug =
   process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
@@ -729,151 +519,6 @@ export const createWindow = async (visible: boolean = true) => {
     mainWindow.webContents.send('update-web-artifact', data);
   });
 
-  function extractZip(source, target) {
-    return new Promise((resolve, reject) => {
-      yauzl.open(source, { lazyEntries: true }, (err, zipfile) => {
-        if (err) return reject(err);
-
-        zipfile.readEntry();
-        zipfile.on('entry', (entry) => {
-          const fullPath = path.join(target, entry.fileName);
-          const directory = path.dirname(fullPath);
-
-          if (/\/$/.test(entry.fileName)) {
-            // Directory entry
-            try {
-              fs.mkdirSync(fullPath, { recursive: true });
-              zipfile.readEntry();
-            } catch (err) {
-              reject(err);
-            }
-          } else {
-            // File entry
-            try {
-              fs.mkdirSync(directory, { recursive: true });
-              zipfile.openReadStream(entry, (err, readStream) => {
-                if (err) return reject(err);
-                const writeStream = fs.createWriteStream(fullPath);
-                readStream.on('end', () => {
-                  writeStream.end();
-                  zipfile.readEntry();
-                });
-                readStream.pipe(writeStream);
-              });
-            } catch (err) {
-              reject(err);
-            }
-          }
-        });
-
-        zipfile.on('end', resolve);
-        zipfile.on('error', reject);
-      });
-    });
-  }
-
-async function parseConversationsJSON(extractPath: string) {
-  const conversationsFilePath = path.join(extractPath, 'conversations.json');
-  const parsedConversationsFilePath = path.join(
-    extractPath,
-    'basic_conversations.json',
-  );
-  console.log('Parsing conversations.json...');
-
-  let formattedConversations = [];
-
-  if (fs.existsSync(conversationsFilePath)) {
-    const conversationsData = fs.readFileSync(conversationsFilePath, 'utf8');
-    const parsedData = JSON.parse(conversationsData);
-
-    formattedConversations = parsedData.map((conversation: any) => {
-      const messages = Object.values(conversation.mapping)
-        .filter(
-          (node: any) => node.message && node.message.author.role !== 'system',
-        )
-        .sort((a: any, b: any) => {
-          const timeA = a.message.create_time || 0;
-          const timeB = b.message.create_time || 0;
-          return timeA - timeB;
-        })
-        .map((node: any) => ({
-          message: node.message.content.parts.join('\n'),
-          role: node.message.author.role === 'assistant' ? 'AI' : 'human',
-        }))
-        .filter(msg => msg.message.trim() !== ''); // Filter out blank or whitespace-only messages
-
-      return {
-        title: conversation.title,
-        timestamp: conversation.create_time,
-        conversation: messages,
-      };
-    });
-
-    console.log('Conversations parsed successfully');
-  } else {
-    console.warn('Conversations.json file not found in:', extractPath);
-  }
-
-  // Write the formatted conversations to parsed_conversations.json
-  try {
-    fs.writeFileSync(
-      parsedConversationsFilePath,
-      JSON.stringify(formattedConversations, null, 2),
-    );
-    console.log('Parsed conversations written to parsed_conversations.json');
-  } catch (error) {
-    console.error('Error writing to parsed_conversations.json:', error);
-  }
-
-  return formattedConversations;
-}
-
-async function convertMboxToJson(
-  mboxFilePath: string,
-  jsonOutputPath: string,
-  id: string,
-  company: string,
-  name: string,
-  runID: string,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const readStream = fs.createReadStream(mboxFilePath);
-
-    const data = {
-      company,
-      name,
-      runID,
-      timestamp: Date.now(),
-      content: [],
-    };
-
-    mboxParser(readStream)
-      .then((messages) => {
-        messages.forEach((message) => {
-          const jsonMessage = {
-            accountID: id,
-            from: message.from?.text,
-            to: message.to?.text || message.to,
-            subject: message.subject,
-            timestamp: message.date,
-            body: message.text,
-            added_to_db: new Date().toISOString(),
-          };
-
-          data.content.push(jsonMessage);
-        });
-
-        fs.writeFileSync(jsonOutputPath, JSON.stringify(data, null, 2));
-        console.log('MBOX to JSON conversion completed');
-        resolve();
-      })
-      .catch((error) => {
-        console.error('Error parsing MBOX:', error);
-        reject(error);
-      });
-  });
-}
-
   let lastDownloadUrl = '';
   let lastDownloadTime = 0;
 
@@ -981,12 +626,6 @@ async function convertMboxToJson(
               await extractZip(filePath, extractPath);
               console.log('Outer ZIP extracted to:', extractPath);
 
-              // // parsing conversations.json  
-
-              // if (extractPath.includes('ChatGPT')) {
-              //   await parseConversationsJSON(extractPath)
-              // }
-              // Find the inner ZIP file
               const innerZipFile = fs.readdirSync(extractPath).find(file => file.endsWith('.zip'));
               
               if (innerZipFile) {
@@ -1005,20 +644,7 @@ async function convertMboxToJson(
 
               if (url.includes('takeout-download.usercontent.google.com')) {
                 // Function to recursively find the MBOX file
-                const findMboxFile = (dir) => {
-                  const files = fs.readdirSync(dir);
-                  for (const file of files) {
-                    const filePath = path.join(dir, file);
-                    const stat = fs.statSync(filePath);
-                    if (stat.isDirectory()) {
-                      const result = findMboxFile(filePath);
-                      if (result) return result;
-                    } else if (file.toLowerCase().endsWith('.mbox')) {
-                      return filePath;
-                    }
-                  }
-                  return null;
-                };
+
 
                 const mboxFilePath = findMboxFile(extractPath);
               if (mboxFilePath) {
@@ -1252,22 +878,12 @@ ipcMain.on('handle-update-complete', (event, runID, platformId, company, name, c
 
 
 ipcMain.on('handle-export', (event, runID, platformId, filename, company, name, content, isUpdated) => {
-  console.log(
-    'handling export for: ',
-    company,
-    ', specific name: ',
-    name,
-    ', runID: ',
-    runID,
-  );
-
   const userData = app.getPath('userData');
   const surferDataPath = path.join(userData, 'surfer_data');
   const platformPath = path.join(surferDataPath, company);
   const namePath = path.join(platformPath, name);
   const idPath = path.join(namePath, runID);
   
-
   // Create necessary folders
   [surferDataPath, platformPath, namePath, idPath].forEach((dir) => {
     if (!fs.existsSync(dir)) {
@@ -1277,15 +893,12 @@ ipcMain.on('handle-export', (event, runID, platformId, filename, company, name, 
 
   const timestamp = Date.now();
   let fileName;
-
-    fileName = `${platformId}.json`;
-
-
+// if (isUpdated) {
+//     fileName = `${platformId}.json`;
+// }
+// else {
     fileName = `${platformId}_${timestamp}.json`;
-
   const filePath = path.join(idPath, fileName);
-
-  console.log('exporting this for twitter: ', content);
   // Prepare the data object
   const exportData = {
     company,
@@ -1388,10 +1001,6 @@ ipcMain.handle('restart-app', () => {
 });
 
 app.on('window-all-closed', () => {
-  // Terminate the llamafile server if it's running
-
-  // killNitroServer();
-
   try {
     downloadingItems.forEach((item, key) => {
       if (item) {
@@ -1403,8 +1012,6 @@ app.on('window-all-closed', () => {
     console.log('DOWNLOAD CANCEL ERROR: ', error);
   }
 
-  // Respect the OSX convention of having the application in memory even
-  // after all windows have been closed
   if (process.platform !== 'darwin') {
     app.quit();
   }

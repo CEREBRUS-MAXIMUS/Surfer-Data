@@ -194,6 +194,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
   }, [dispatch, runs]);
 
   const handleLogs = useCallback((runId: string, ...logs: any[]) => {
+    console.log('these are the logs: ', logs)
     const run = runs.find((run) => run.id === runId);
     if (!run) return;
     dispatch(updateRunLogs(runId, logs));
@@ -332,6 +333,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       activeRun &&
       (activeRun.status === 'pending' || activeRun.status === 'running')
     ) {
+      window.electron.ipcRenderer.send('run-finished', activeRun.company, activeRun.name, activeRun.id.toString(), '');
       dispatch(stopRun(activeRun.id));
       console.log('Stopping run:', activeRun.id);
 
@@ -377,6 +379,10 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     }
   };
 
+  // useEffect(() => {
+  //   handleOpenDevTools();
+  // }, [webviewRefs.length]);
+  
   function modifyUserAgent(userAgent) {
     // Regular expression to match the Chrome version
     const chromeVersionRegex = /(Chrome\/)\d+(\.\d+){3}/;
