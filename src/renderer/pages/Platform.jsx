@@ -3,34 +3,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { Button } from "../components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { Folder } from 'lucide-react';
-import { openDB } from 'idb';
 import RunDetails from '../components/RunDetails';
 import { useTheme } from '../components/ui/theme-provider';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../components/ui/alert-dialog";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { deleteRunsForPlatform } from '../state/actions';
 import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
 import { formatLastRunTime } from '../helpers';
 
 const Platform = ({ platform }) => {
-  const [runs, setRuns] = useState([]);
-  
+  const allRuns = useSelector(state => state.app.runs);
+  const runs = allRuns
+    .filter(run => run.platformId === platform.id)
+    .sort((a, b) => {
+      const dateA = new Date(a.exportDate || a.startDate);
+      const dateB = new Date(b.exportDate || b.startDate);
+      return dateB - dateA;
+    });
+
   const [expandedRuns, setExpandedRuns] = useState({});
   const [selectedRunId, setSelectedRunId] = useState(null);
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    const loadRuns = async () => {
-      const db = await openDB('dataExtractionDB', 1, {
-        upgrade(db) {
-          db.createObjectStore('runs', { keyPath: 'id' });
-        },
-      });
-      const loadedRuns = await db.getAll('runs');
-      setRuns(loadedRuns.filter(run => run.platformId === platform.id));
-    };
-    loadRuns();
-  }, [platform.id]);
 
   const toggleRunExpansion = (runId) => {
     setExpandedRuns(prev => ({ ...prev, [runId]: !prev[runId] }));

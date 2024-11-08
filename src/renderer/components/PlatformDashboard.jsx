@@ -17,6 +17,7 @@ import { Info } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 import { Card } from "./ui/card";
 import { formatLastRunTime, formatExportSize } from '../helpers';
+import { MoonLoader } from 'react-spinners';
 
 const PlatformDashboard = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -297,8 +298,9 @@ const renderResults = (platform) => {
 };
 
   const renderRunStatus = (latestRun, platform) => {
-      if (!latestRun || !latestRun.logs) return null;
-
+    if (!latestRun || !latestRun.logs || latestRun.logs.length === 0) {
+      return <div><MoonLoader size={16} /></div>
+    }
   const logLines = latestRun.logs.split('\n');
     switch (latestRun.status) {
       case 'running':
@@ -307,15 +309,15 @@ const renderResults = (platform) => {
           <div className="flex-grow">
             <div className="flex items-center space-x-2 group">
         <div id="log-container" className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '500px' }}>
-      <pre className="font-mono text-xs whitespace-pre-wrap break-words">
-        {logLines.map((line, index) => (
-          <span key={index} className={line === 'YOU NEED TO SIGN IN (click the eye in the top right)!' ? 'text-red-500' : ''}>
-            {line}
-            {index < logLines.length - 1 && '\n'}
-          </span>
-        ))}
-      </pre>
-    </div>
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words">
+                {logLines.map((line, index) => (
+                  <span key={index} className={line === 'YOU NEED TO SIGN IN (click the eye in the top right)!' ? 'text-red-500' : ''}>
+                    {line}
+                    {index < logLines.length - 1 && '\n'}
+                  </span>
+                ))}
+              </pre>
+            </div>
             </div>
           </div>
         </div>

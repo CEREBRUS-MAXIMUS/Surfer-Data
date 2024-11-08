@@ -1,6 +1,6 @@
 # Surfer: Export your personal data in one click
 
-# 🆕 **RECENT UPDATES (10/28/24): Surfer is evolving! We're currently working on a [new protocol](https://surferprotocol.org) to document personal data exporting. For the latest updates, visit our [project page](https://surferprotocol.org) or the [GitHub repo](https://github.com/surfer-protocol/protocol).** 🆕
+# 🆕 **RECENT UPDATES (10/28/24): Surfer is evolving! We're currently working on a [new protocol](https://surferprotocol.org) to document personal data exporting. For the latest updates, visit our [project page](https://surferprotocol.org) or the [GitHub repo](https://github.com/surfer-org/protocol).** 🆕
 
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
