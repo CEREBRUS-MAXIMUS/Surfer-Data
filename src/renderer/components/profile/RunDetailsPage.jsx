@@ -29,7 +29,7 @@ const StatusIndicator = ({ status }) => {
   }
 };
 
-const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
+const RunDetailsPage = ({ runId, onClose, platform }) => {
   const dispatch = useDispatch();
   const reduxRuns = useSelector(state => state.app.runs);
   const activeRunIndex = useSelector((state) => state.app.activeRunIndex);
@@ -119,12 +119,6 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
     if (activeRun && (activeRun.status === 'pending' || activeRun.status === 'running')) {
       dispatch(stopRun(activeRun.id));
       console.log("Stopping run:", activeRun.id);
-
-      // Update the run in IndexedDB
-      const db = await openDB('dataExtractionDB', 1);
-      const updatedRun = { ...activeRun, status: 'stopped', endDate: new Date().toISOString() };
-      await db.put('runs', updatedRun);
-
       // Remove the run from Redux state
       dispatch(closeRun(activeRun.id));
 
@@ -144,8 +138,6 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
 
   const handleDeleteRun = async () => {
     dispatch(deleteRun(runId));
-    const db = await openDB('dataExtractionDB', 1);
-    await db.delete('runs', runId);
     setIsDeleteDialogOpen(false);
     onClose(); // Close the main dialog after deletion
   };
@@ -174,9 +166,6 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-[70vw] h-[80vh] overflow-y-auto bg-background">
-        <DialogHeader>
-          <DialogTitle>{run?.subRunId} Extraction</DialogTitle>
-        </DialogHeader>
 
         {run.status === 'success' && artifacts.length > 0 && (
           <div className="mt-4">
@@ -242,7 +231,7 @@ const RunDetailsPage = ({ runId, onClose, platform, subRun }) => {
           </div>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>{run.subRunId} Extraction</CardTitle>
+              <CardTitle>Extraction</CardTitle>
               <div className="flex items-center space-x-2">
                 <StatusIndicator status={run.status} />
                 <span>{run.status}</span>

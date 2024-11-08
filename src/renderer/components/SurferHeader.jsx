@@ -1,21 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Eye, Home, Moon, Sun } from 'lucide-react';
+import { Eye, Home, Moon, Sun, Users, GithubIcon } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "../ui/breadcrumb";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "./ui/breadcrumb";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '../ui/tooltip';
-import { useTheme } from '../ui/theme-provider';
-import { setCurrentRoute, toggleRunVisibility, updateBreadcrumbToIndex, setIsMac, setIsFullScreen } from '../../state/actions';
-import { Button } from '../ui/button';
-import { Toggle } from '../ui/toggle';
-import { setIsRunLayerVisible } from '../../state/actions';
-import SupportButton from './SupportButton';
-import { Settings } from 'lucide-react';
+} from './ui/tooltip';
+import { useTheme } from './ui/theme-provider';
+import { setCurrentRoute, toggleRunVisibility, updateBreadcrumbToIndex, setIsMac, setIsFullScreen } from '../state/actions';
+import { Button } from './ui/button';
+import { Toggle } from './ui/toggle';
+import { setIsRunLayerVisible } from '../state/actions';
 
 const getStyleHorizontalLock = (style) =>
   style?.transform
@@ -448,20 +446,6 @@ const StyledSurferHeader = styled.div`
     // margin-right: 2px;
   }
 
-  & .support-button {
-    align-items: center;
-    display: inline-flex;
-    flex: 0 0 auto;
-    gap: 6px;
-    height: 32px;
-    cursor: pointer;
-    padding: 0 10px;
-  }
-
-  & .support-button:hover {
-    background-color: #ffffff13;
-  }
-
   & .SVG {
     height: 16px;
     position: relative;
@@ -515,12 +499,6 @@ const StyledSurferHeader = styled.div`
     object-fit: fill;
     cursor: pointer;
     background-color: hsl(var(--secondary));
-  }
-
-  & .settings-button {
-    flex: 0 0 auto;
-    position: relative;
-    transition: background-color 0.2s ease;
   }
 
   & .tab-wrapper {
@@ -614,6 +592,27 @@ export const SurferHeader = () => {
     }
   };
 
+  const [versionNumber, setVersionNumber] = useState(null);
+
+  useEffect(() => {
+    window.electron.ipcRenderer.send('get-version-number');
+    const versionNumberListener = (event) => {
+      if (event) {
+        console.log('Version number:', event);
+        setVersionNumber(event);
+      }
+    };
+
+    window.electron.ipcRenderer.on('version-number', versionNumberListener);
+
+    return () => {
+      window.electron.ipcRenderer.removeListener(
+        'version-number',
+        versionNumberListener,
+      );
+    };
+  }, []);
+
   const getIconForBreadcrumb = (item) => {
     if (item.text === 'Home') {
       return <Home size={16} className="mr-2" color={theme === 'dark' ? '#ffffff' : '#000000'} />;
@@ -637,9 +636,6 @@ export const SurferHeader = () => {
           return null; // Return null or a placeholder while loading
         }
       }
-    }
-    if (item.link.startsWith('/subrun/')) {
-      return null;
     }
     return null;
   };
@@ -679,11 +675,6 @@ export const SurferHeader = () => {
       view = parts[1];
       if (view === 'platform' && parts.length > 2) {
         const platform = allPlatforms.find(p => p.id === parts[2]);
-      } else if (view === 'subrun' && parts.length > 3) {
-        const platformId = parts[2];
-        const subRunId = parts[3];
-        const platform = allPlatforms.find(p => p.id === platformId);
-        const subRun = platform?.subRuns.find(sr => sr.id === subRunId);
       }
     }
 
@@ -701,6 +692,10 @@ export const SurferHeader = () => {
 
   const handleSettingsClick = () => {
     dispatch(setCurrentRoute('/settings'));
+  };
+
+  const handleOpenLink = (url) => {
+    window.electron.ipcRenderer.send('open-external', url);
   };
 
   return (
@@ -735,10 +730,46 @@ export const SurferHeader = () => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <SupportButton />
+                <div className="bg-blue-500 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white">
+                  v{versionNumber}
+                </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Support</p>
+                <p>Version {versionNumber}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenLink('https://discord.gg/5KQkWApkYC')}
+                  className="flex items-center gap-2"
+                >
+                  <Users size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Join the Surfer Community</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenLink('https://github.com/CEREBRUS-MAXIMUS/Surfer-Data')}
+                  className="flex items-center gap-2"
+                >
+                  <GithubIcon size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Contribute to Surfer</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -778,23 +809,6 @@ export const SurferHeader = () => {
               </TooltipTrigger>
               <TooltipContent>
                 <p>Toggle {theme === 'dark' ? 'Light' : 'Dark'} Mode</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleSettingsClick}
-                  className="history-button"
-                >
-                  <Settings size={18} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Settings</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

@@ -4,7 +4,7 @@ import {
   IPreferences,
   IRun,
 } from '../types/interfaces';
-import { initialAppState } from '../config/initialStates';
+import { initialAppState } from './initialStates';
 
 const preferencesReducer = (
   state: IPreferences = initialAppState.preferences,

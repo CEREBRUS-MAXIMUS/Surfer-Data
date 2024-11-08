@@ -22,7 +22,7 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
 import fs from 'fs';
-import { convertMboxToJson, findMboxFile, extractZip, getTotalFolderSize } from './utils/helpers';
+import { convertMboxToJson, findMboxFile, extractZip, getTotalFolderSize } from './helpers/scrapers';
 import { getImessageData } from './utils/imessage';
 
 let appIcon: Tray | null = null;
@@ -38,7 +38,7 @@ let downloadingItems = new Map();
 
 import express from 'express';
 import cors from 'cors';
-import { getTwitterCredentials } from './utils/network';
+import { getNotionCredentials, getTwitterCredentials } from './utils/network';
 const expressApp = express();
 expressApp.use(cors());
 expressApp.use(express.json());
@@ -59,7 +59,38 @@ expressApp.get('/api/health', (req, res) => {
 
 expressApp.post('/api/get', async (req, res) => {
   console.log('GET REQUEST: ', req.body);
-  res.json({ success: true, data: req.body });
+  const { platformId } = req.body;
+  
+  mainWindow?.webContents.send('get-runs-request');
+  const runsResponse: any = await new Promise((resolve) => {
+    ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
+  });
+
+  // Filter runs for this platform with successful status
+  const successfulRuns = runsResponse.filter((r: any) => 
+    r.platformId === platformId && r.status === 'success'
+  );
+
+  // Sort by startDate descending and get latest
+  const latestRun = successfulRuns.sort((a: any, b: any) => 
+    new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+  )[0];
+
+  if (!latestRun) {
+    return res.status(404).json({ success: false, error: 'No successful runs found for this platform' });
+  }
+
+  console.log('latest run: ', latestRun.id);
+  const exportPath = fs.readdirSync(latestRun.exportPath);
+  const jsonFile = exportPath.find((file: any) => file.endsWith('.json'));
+  
+  if (!jsonFile) {
+    return res.status(404).json({ success: false, error: 'No JSON file found in export path' });
+  }
+
+  const filePath = path.join(latestRun.exportPath, jsonFile);
+  const fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  res.json({ success: true, data: fileData });
 });
 
 expressApp.post('/api/export', async (req, res) => {
@@ -84,7 +115,7 @@ expressApp.post('/api/export', async (req, res) => {
         const checkRunStatus = async () => {
           mainWindow?.webContents.send('get-runs-request');
           const runsResponse: any = await new Promise((resolve) => {
-            ipcMain.on('get-runs-response', (event, runs) => resolve(runs));
+            ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
           });
 
           const finalRun = runsResponse.find(
@@ -190,6 +221,10 @@ ipcMain.on('get-twitter-credentials', async (event, company, name) => {
   return await getTwitterCredentials(company, name);
 });
 
+ipcMain.on('get-notion-credentials', async (event, company, name) => {
+  return await getNotionCredentials(company, name);
+});
+
 ipcMain.handle('check-connected-platforms', async (event, platforms) => {
   const userDataPath = app.getPath('userData');
   const connectedPlatforms = {};
@@ -223,6 +258,8 @@ ipcMain.handle('check-connected-platforms', async (event, platforms) => {
         'feed.js',
         'github.js',
         'twitter.js',
+        'linkedin.js',
+        'youtube.js',
       ];
 
       const entries = await fs.promises.readdir(dir, { withFileTypes: true });
@@ -483,7 +520,7 @@ export const createWindow = async (visible: boolean = true) => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
-    mainWindow.minimize()
+    mainWindow.show()
     // if (process.env.START_MINIMIZED) {
     //   mainWindow.minimize();
     // } else {
@@ -597,7 +634,6 @@ export const createWindow = async (visible: boolean = true) => {
         directory: idPath,
         filename: fileName,
         onStarted: (downloadItem: Electron.DownloadItem) => {
-          console.log('Download started:', url);
           downloadItem.on('done', (event: Electron.Event, state: string) => {
             if (state === 'completed') {
               console.log('Download completed successfully:', url);
@@ -607,7 +643,6 @@ export const createWindow = async (visible: boolean = true) => {
           });
         },
         onProgress: (percent: number) => {
-          console.log(`Download progress for ${url}: ${percent}%`);
           mainWindow?.webContents.send('download-progress', {
             fileName,
             percent,

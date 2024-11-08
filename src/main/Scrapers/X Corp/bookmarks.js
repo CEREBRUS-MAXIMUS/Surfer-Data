@@ -178,6 +178,8 @@ async function getBookmarks(id, twitterCredentials, cursor = "", totalImported =
       entry.entryId.startsWith('tweet-'),
     );
 
+    console.log(id, `Tweet entries: ${JSON.stringify(tweetEntries[0], null, 2)}`);
+
     const parsedTweets = tweetEntries.map(parseTweet);
 
     allBookmarks = allBookmarks.concat(parsedTweets);
@@ -185,7 +187,6 @@ async function getBookmarks(id, twitterCredentials, cursor = "", totalImported =
     const newBookmarksCount = parsedTweets.length;
     totalImported += newBookmarksCount;
 
-    customConsoleLog(id, 'New bookmarks in this batch:', newBookmarksCount);
     customConsoleLog(id, 'Current total imported:', totalImported);
 
     const nextCursor = getNextCursor(entries);
@@ -212,6 +213,7 @@ const parseTweet = (entry) => {
     entry.content?.itemContent?.tweet_results?.result?.tweet ||
     entry.content?.itemContent?.tweet_results?.result;
 
+  const user = tweet?.core?.user_results?.result?.legacy;
   const media = tweet?.legacy?.entities?.media?.[0] || null;
 
   const getBestVideoVariant = (variants) => {
@@ -249,6 +251,8 @@ const parseTweet = (entry) => {
     text: tweet?.legacy?.full_text,
     timestamp: tweet?.legacy?.created_at,
     media: getMediaInfo(media),
+    username: user?.screen_name,
+    // displayName: user?.name,
     // favorite_count: tweet?.legacy?.favorite_count,
     // retweet_count: tweet?.legacy?.retweet_count,
     // reply_count: tweet?.legacy?.reply_count,

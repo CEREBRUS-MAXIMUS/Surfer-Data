@@ -16,7 +16,6 @@ import {
   updateRunConnected
 } from '../../state/actions';
 import { useTheme } from '../ui/theme-provider';
-import { openDB } from 'idb'; // Import openDB for IndexedDB operations
 import { Button } from '../ui/button';
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
@@ -146,7 +145,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     (state: IAppState) => state.app.isRunLayerVisible,
   );
 
-  const { theme } = useTheme();
 
   useEffect(() => {
     if (activeRuns.length === 0 && isRunLayerVisible) {
@@ -336,15 +334,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       window.electron.ipcRenderer.send('run-finished', activeRun.company, activeRun.name, activeRun.id.toString(), '');
       dispatch(stopRun(activeRun.id));
       console.log('Stopping run:', activeRun.id);
-
-      // Update the run in IndexedDB
-      const db = await openDB('dataExtractionDB', 1);
-      const updatedRun = {
-        ...activeRun,
-        status: 'stopped',
-        endDate: new Date().toISOString(),
-      };
-      await db.put('runs', updatedRun);
 
       // Remove the run from Redux state
       dispatch(closeRun(activeRun.id));

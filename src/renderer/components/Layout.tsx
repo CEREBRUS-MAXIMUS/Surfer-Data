@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { SurferHeader } from './header/SurferHeader';
+import { SurferHeader } from './SurferHeader';
 import WebviewManager from './profile/WebviewManager';
 
 interface LayoutProps {
@@ -20,7 +20,7 @@ const Layout: React.FC<LayoutProps> = ({
 }) => {
   return (
     <div className="h-screen flex flex-col w-full">
-      <SurferHeader className="flex-shrink-0 h-[55px] w-full" onHomeClick={onHomeClick} />
+      <SurferHeader />
       <main className="flex-grow overflow-hidden relative w-full max-w-full min-w-full bg-background">
         <div
           className="absolute top-0 left-0 w-full h-full overflow-auto"

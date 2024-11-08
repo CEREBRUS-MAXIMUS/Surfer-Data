@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 import { MoonLoader } from 'react-spinners';
 import { ArrowUpRight, HardDriveDownload, Folder, X } from 'lucide-react';
 import ConfettiExplosion from 'react-confetti-explosion';
-import { formatLastRunTime } from '../../lib/formatting';
+import { formatLastRunTime } from '../../helpers';
 
 const RunResultEntry = ({ run, platform, onViewDetails, onExport, isHovered }) => {
   const [showConfetti, setShowConfetti] = useState(false);

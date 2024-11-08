@@ -115,6 +115,8 @@
     "crypto-browserify": "^3.12.0",
     "css-loader": "^6.10.0",
     "date-fns": "^3.6.0",
+    "dayjs": "^1.11.13",
+    "dayjs-ext": "^2.2.0",
     "dexie": "^4.0.1",
     "dotenv": "^16.4.5",
     "electron-debug": "^3.2.0",

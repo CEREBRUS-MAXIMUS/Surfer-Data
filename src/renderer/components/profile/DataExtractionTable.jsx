@@ -9,16 +9,14 @@ import { openDB } from 'idb';
 import { Input } from "../ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
 import { Checkbox } from "../ui/checkbox";
-import { formatDistanceToNow, parseISO, format, isToday, isYesterday } from 'date-fns';
 import { Progress } from "../ui/progress";
 import RunDetailsPage from './RunDetailsPage';
-import { platform } from 'os';
-import { MoonLoader } from 'react-spinners';
 import ConfettiExplosion from 'react-confetti-explosion';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import { Info } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert";
 import { Card } from "../ui/card";
+import { formatLastRunTime, formatExportSize } from '../../helpers';
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -92,13 +90,6 @@ useEffect(() => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   console.log('opening dev tools')
-  //   window.electron.ipcRenderer.send('show-dev-tools')
-  // }, [])
-
-
-
   const getLatestRun = useCallback((platformId) => {
     const platformRuns = runs.filter(run => run.platformId === platformId);
     if (platformRuns.length === 0) return null;
@@ -110,24 +101,6 @@ useEffect(() => {
     });
   }, [runs]);
 
-  const renderSubRuns = (subRuns) => {
-    const displayCount = 2;
-    const displayedRuns = subRuns.slice(0, displayCount);
-    const remainingCount = subRuns.length - displayCount;
-
-    return (
-      <div>
-        {displayedRuns.map((subRun, index) => (
-          <span key={subRun.id} className="text-sm text-gray-600">
-            {subRun.name}{index < displayedRuns.length - 1 ? ', ' : ''}
-          </span>
-        ))}
-        {remainingCount > 0 && (
-          <span className="text-sm text-gray-600"> +{remainingCount} more</span>
-        )}
-      </div>
-    );
-  };
 
   useEffect(() => {
     const loadScrapers = async () => {
@@ -178,7 +151,7 @@ useEffect(() => {
     return () => {
       window.electron.ipcRenderer.removeListener('element-found', handleElementFound);
     };
-  }, [allPlatforms]);
+  }, [connectedPlatforms.length]);
 
   // useEffect(() => {
   //   const runisUpdateds = async () => {
@@ -246,19 +219,6 @@ useEffect(() => {
     dispatch(setExportRunning(newRun.id, true));
   };
 
-  const formatLastRunTime = (run) => {
-    const dateString = run.exportDate || run.startDate;
-    if (!dateString) return 'Never';
-    const date = parseISO(dateString);
-    if (isToday(date)) {
-      return `Today at ${format(date, 'h:mm a')}`;
-    } else if (isYesterday(date)) {
-      return `Yesterday at ${format(date, 'h:mm a')}`;
-    } else {
-      return format(date, 'MMM d, yyyy \'at\' h:mm a');
-    }
-  };
-
   const getPlatformLogo = async (platform) => {
     try {
       const response = await fetch(`https://logo.clearbit.com/${platform.name}.com`);
@@ -309,31 +269,6 @@ useEffect(() => {
     setSelectedRun(null);
   };
 
-  const formatExportSize = (sizeInBits) => {
-    if (!sizeInBits) return 'Unknown size';
-
-    const units = ['KB', 'MB', 'GB', 'TB'];
-    let size = sizeInBits / (8 * 1024); // Convert bits to KB
-    let unitIndex = 0;
-
-    while (size >= 1000 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-
-    // Format to a maximum of 4 digits
-    let formattedSize;
-    if (size >= 100) {
-      formattedSize = Math.round(size).toString();
-    } else if (size >= 10) {
-      formattedSize = size.toFixed(1);
-    } else {
-      formattedSize = size.toFixed(2);
-    }
-
-    return `${formattedSize} ${units[unitIndex]}`;
-  };
-
 const renderResults = (platform) => {
   const latestRun = getLatestRun(platform.id);
   const exportRunning = isExportRunning(platform.id);
@@ -351,38 +286,38 @@ const renderResults = (platform) => {
             renderRunStatus(latestRun, platform)
           )}
         </div>
-        {latestRun && latestRun.status === 'running' && (
+        {/* {latestRun && latestRun.status === 'running' && (
           <div className="flex-grow overflow-hidden">
             {showLogs(platform)}
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );
 };
 
   const renderRunStatus = (latestRun, platform) => {
+      if (!latestRun || !latestRun.logs) return null;
+
+  const logLines = latestRun.logs.split('\n');
     switch (latestRun.status) {
       case 'running':
       return (
         <div className="flex items-center space-x-2">
           <div className="flex-grow">
             <div className="flex items-center space-x-2 group">
-              <MoonLoader size={16} color="#000" speedMultiplier={1.4} />
-              <span className="group-hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
-                {latestRun.currentStep ? latestRun.currentStep : 'Running...'}
-              </span>
-              <span
-                className="cursor-pointer flex items-center hover:underline"
-                onClick={() => onViewRunDetails(latestRun, platform)}
-              >
-                <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
-              </span>
+        <div id="log-container" className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '500px' }}>
+      <pre className="font-mono text-xs whitespace-pre-wrap break-words">
+        {logLines.map((line, index) => (
+          <span key={index} className={line === 'YOU NEED TO SIGN IN (click the eye in the top right)!' ? 'text-red-500' : ''}>
+            {line}
+            {index < logLines.length - 1 && '\n'}
+          </span>
+        ))}
+      </pre>
+    </div>
             </div>
           </div>
-          {/* <div className="flex-grow ml-4">
-            {showLogs(platform)}
-          </div> */}
         </div>
       );
       case 'success':
@@ -400,20 +335,15 @@ const renderResults = (platform) => {
               onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
               style={{ cursor: 'pointer' }}
             >
-              <Folder size={17} color="#5a5a5a" />
+              <Folder size={17} />
             </div>
-            <span
-              className="cursor-pointer hover:underline"
-              onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
-            >
-              {formatExportSize(latestRun.exportSize)}
-            </span>
+
             <span className="text-gray-500">-</span>
             <span
               className="cursor-pointer flex items-center hover:underline"
               onClick={() => onViewRunDetails(latestRun, platform)}
             >
-              {formatLastRunTime(latestRun)}
+              {formatLastRunTime(latestRun.exportDate || latestRun.startDate)}
               <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
             </span>
           </div>
@@ -432,26 +362,6 @@ const renderResults = (platform) => {
         return <span>Unknown status</span>;
     }
   };
-
-const showLogs = (platform) => {
-  const latestRun = activeRuns.find(run => run.platformId === platform.id);
-  if (!latestRun || !latestRun.logs) return null;
-
-  const logLines = latestRun.logs.split('\n');
-
-  return (
-    <div id="log-container" className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '300px' }}>
-      <pre className="font-mono text-xs whitespace-pre-wrap break-words">
-        {logLines.map((line, index) => (
-          <span key={index} className={line === 'YOU NEED TO SIGN IN (click the eye in the top right)!' ? 'text-red-500' : ''}>
-            {line}
-            {index < logLines.length - 1 && '\n'}
-          </span>
-        ))}
-      </pre>
-    </div>
-  );
-}
 
   useEffect(() => {
     const logContainers = document.querySelectorAll('#log-container');
@@ -511,22 +421,6 @@ const showLogs = (platform) => {
                   </button>
                 )}
               </div>
-              
-              {/* <Card className="p-4 flex items-center flex-shrink-0" style={{ maxWidth: '300px' }}>
-                <Info size={16} className="mr-2 flex-shrink-0" />
-                <div>
-                  <AlertTitle className="mb-2">Can't find a platform?</AlertTitle>
-                  <AlertDescription>
-                    <Button
-                      variant="link"
-                      className="p-0 h-auto underline"
-                      onClick={() => window.electron.ipcRenderer.send('open-external', 'https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/blob/main/docs/ADD_PLATFORMS.md')}
-                    >
-                      Build a scraper for it!
-                    </Button>
-                  </AlertDescription>
-                </div>
-              </Card> */}
             </div>
           </div>
         </div>
@@ -651,7 +545,6 @@ const showLogs = (platform) => {
           runId={selectedRun.run.id}
           onClose={handleCloseDetails}
           platform={selectedRun.platform}
-          subRun={{ id: 'export', name: 'Export' }}
         />
       )}
     </div>

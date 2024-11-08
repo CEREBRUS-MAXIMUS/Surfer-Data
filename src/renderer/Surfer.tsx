@@ -5,9 +5,6 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import Platform from './pages/Platform'; 
-import SubRun from './pages/SubRun';
-import Settings from './pages/Settings';
-import RunDetailsPage from './components/profile/RunDetailsPage';
 import { setContentScale, setCurrentRoute, updateBreadcrumb, stopAllJobs, updateRunConnected } from './state/actions';
 import { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 import { Toaster } from './components/ui/toaster';
@@ -122,9 +119,6 @@ function Surfer() {
       case 'home':
         newContent = <Home />;
         break;
-      case 'settings':
-        newContent = <Settings />;
-        break;
       case 'platform':
         if (routeParts.length > 1) {
           const platformId = routeParts[1];
@@ -139,27 +133,6 @@ function Surfer() {
         } else {
           newContent = <Home />;
         }
-        break;
-      case 'subrun':
-        if (routeParts.length > 2) {
-          const platformId = routeParts[1];
-          const subRunId = routeParts[2];
-          const scrapers = await window.electron.ipcRenderer.invoke('get-scrapers');
-          const platform = scrapers.find((p: any) => p.id === platformId);
-          if (platform) {
-            const subRun = platform.subRuns.find(sr => sr.id === subRunId);
-            if (subRun) {
-              newContent = <SubRun platform={platform} subRun={subRun} />;
-            } else {
-              console.warn(`SubRun not found for id: ${subRunId}`);
-              newContent = <Platform platform={platform} />;
-            }
-          } else {
-            console.warn(`Platform not found for id: ${platformId}`);
-            newContent = <Home />;
-          }
-        }
-        newContent = <Home />;
         break;
       default:
         console.warn('Unknown route:', currentRoute);
@@ -190,18 +163,14 @@ function Surfer() {
     <div className={`flex h-screen`}>
       <div className="flex-1 transition-all duration-300">
         <div className="w-full h-full bg-background">
-          {(route === '/' || route === undefined) ? (
-            <Landing />
-          ) : (
-            <Layout
-              webviewRefs={webviewRefs.current}
-              getWebviewRef={getWebviewRef}
-              contentScale={safeContentScale}
-              onHomeClick={handleHomeClick}
+          <Layout
+            webviewRefs={webviewRefs.current}
+            getWebviewRef={getWebviewRef}
+            contentScale={safeContentScale}
+            onHomeClick={handleHomeClick}
             >
-              {content}
-            </Layout>
-          )}
+            {content}
+          </Layout>
           <Toaster />
           {showNotConnectedAlert && (
             <Alert

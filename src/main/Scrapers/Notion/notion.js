@@ -1,163 +1,121 @@
 const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
+const fs = require('fs');
+const path = require('path');
+
+async function checkNotionCredentials(company, name) {
+  const userData = await ipcRenderer.invoke('get-user-data-path');
+  const notionCredentialsPath = path.join(
+    userData,
+    'surfer_data',
+    company,
+    name,
+    'notionCredentials.json',
+  );
+  const fileExists = await fs.existsSync(notionCredentialsPath);
+  if (fileExists) {
+    const fileContent = fs.readFileSync(notionCredentialsPath, 'utf-8');
+    return JSON.parse(fileContent);
+  }
+  return null;
+};
 
 async function exportNotion(id, platformId, filename, company, name) {
   try {
+    let notionCredentials;
     if (!window.location.href.includes('notion.so')) {
       bigStepper(id, 'Navigating to Notion');
       customConsoleLog(id, 'Navigating to Notion');
       window.location.assign('https://notion.so/');
+      ipcRenderer.send('get-notion-credentials', company, name);
     }
-    await wait(5);
-    if (
-    document.querySelector('input[aria-label="Enter your email address..."]')
-  ) {
-      bigStepper(id, 'Export stopped, waiting for sign in');
-      ipcRenderer.send('connect-website', id);
-      return 'CONNECT_WEBSITE';
+
+    while (!notionCredentials) {
+      await wait(0.5);
+      notionCredentials = await checkNotionCredentials(company, name);
     }
-    const dropdown = await waitForElement(
-    id,
-    '.notion-sidebar-switcher',
-    'Dropdown',
-  );
-  
-    if (!dropdown) {
-      bigStepper(id, 'Export stopped, waiting for sign in');
-      customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-      ipcRenderer.send('connect-website', id);
-      return 'CONNECT_WEBSITE';
-    }
-  
-    bigStepper(id, 'Clicking on dropdown');
-    dropdown.scrollIntoView({ behavior: 'instant', block: 'center' });
-    dropdown.click();
-    await wait(5);
-  
-    // First Settings button
-    bigStepper(id, 'Waiting for First settings button');
-    const settingsButton = await waitForElement(
-    id,
-    'div[role="button"]',
-    'First settings button',
-    true,
-  );
-    if (!settingsButton) {
-      throw new Error('First settings button not found.');
-    }
-    let foundSettings = false;
-    if (settingsButton) {
-      customConsoleLog(id, 'Got first settings button');
-      for (const btn of settingsButton) {
-        if (btn.textContent.includes('Settings') && btn.querySelector('svg')) {
-          btn.scrollIntoView({ behavior: 'instant', block: 'center' });
-          bigStepper(id, 'Clicking on First settings button');
-          btn.click();
-          foundSettings = true;
-          break;
+
+    customConsoleLog(id, 'notionCredentials obtained!');
+    
+    // Start the export process
+    const enqueueUrl = 'https://www.notion.so/api/v3/enqueueTask';
+    const tasksUrl = 'https://www.notion.so/api/v3/getTasks';
+    
+    // Prepare the export request
+    const exportData = {
+      task: {
+        eventName: 'exportSpace',
+        request: {
+          spaceId: notionCredentials.spaceId,
+          exportOptions: {
+            exportType: 'markdown',
+            timeZone: notionCredentials.timezone,
+            collectionViewExportType: 'currentView',
+            flattenExportFiletree: true,
+          },
+          shouldExportComments: false
         }
       }
+    };
+
+    // Enqueue the export task
+    bigStepper(id, 'Starting Notion export');
+    const response = await fetch(enqueueUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'cookie': notionCredentials.cookie
+      },
+      body: JSON.stringify(exportData)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to enqueue task: ${response.status}`);
     }
 
-    if (!foundSettings) {
-      throw new Error('First settings button not found.');
-    }
+    const { taskId } = await response.json();
+    customConsoleLog(id, `Export task enqueued with ID: ${taskId}`);
 
-    await wait(4);
-    // Second Settings button
-    bigStepper(id, 'Waiting for Second settings button');
-    const newButtons = await waitForElement(
-    id,
-    'div[role="button"]',
-    'Second settings button',
-    true,
-  );
-    if (!newButtons) {
-      throw new Error('Second settings button not found.');
-    }
-    foundSettings = false;
-    if (newButtons) {
-      for (const newBtn of newButtons) {
-        const childDivs = newBtn.querySelectorAll('div');
-        for (const childDiv of childDivs) {
-          const grandchildDivs = childDiv.querySelectorAll('div');
-          for (const grandchildDiv of grandchildDivs) {
-            if (grandchildDiv.textContent === 'Settings') {
-              customConsoleLog(id, 'Got second settings button');
-              grandchildDiv.scrollIntoView({
-              behavior: 'instant',
-              block: 'center',
-            });
-              bigStepper(id, 'Clicking on Second settings button');
-              grandchildDiv.click();
-              await wait(2);
-              foundSettings = true;
-              break;
-            }
-          }
-          if (foundSettings) break;
-        }
-        if (foundSettings) break;
+    // Poll for export completion
+    while (true) {
+      const taskResponse = await fetch(tasksUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'cookie': notionCredentials.cookie
+        },
+        body: JSON.stringify({ taskIds: [taskId] })
+      });
+
+      if (!taskResponse.ok) {
+        throw new Error(`Failed to check task status: ${taskResponse.status}`);
       }
-    }
 
-    if (!foundSettings) {
-      throw new Error('Second settings button not found after scrolling.');
-    }
-  
-    // Export all workspace content button
-    bigStepper(id, 'Waiting for Export all workspace content button');
-    const exportButton = await waitForElement(
-    id,
-    'div[role="button"]',
-    'Export all workspace content button',
-    true,
-  );
-    let foundExport = false;
-    if (exportButton) {
-      for (const btn of exportButton) {
-        if (btn.textContent.includes('Export all workspace content')) {
-          btn.scrollIntoView({ behavior: 'instant', block: 'center' });
-          bigStepper(id, 'Clicking on Export all workspace content button');
-          customConsoleLog(id, 'Got export all workspace content button');
-          btn.click();
-          foundExport = true;
-          await wait(2);
-          break;
+      const taskData = await taskResponse.json();
+      const taskResult = taskData.results?.[0];
+
+      if (taskResult) {
+        const { state, status } = taskResult;
+        if (!state || !status) {
+          customConsoleLog(id, "This is taskData: ", taskData);
+          customConsoleLog(id, "This is state and status: ", state, status);
         }
-      }
-    }
+        if (status && status.pagesExported) {
+          customConsoleLog(id, `Export progress: ${status.pagesExported || 0} pages exported`);
+        }
 
-    if (!foundExport) {
-      throw new Error('Export all workspace content button not found after scrolling.');
-    }
-  
-    // Final Export button
-    bigStepper(id, 'Waiting for Final Export button');
-    const finalExportButton = await waitForElement(
-    id,
-    'div[role="button"]',
-    'Final Export button',
-    true,
-  );
-    let foundFinalExport = false;
-    if (finalExportButton) {
-      for (const btn of finalExportButton) {
-        if (btn.textContent === 'Export') {
-          btn.scrollIntoView({ behavior: 'instant', block: 'center' });
-          bigStepper(id, 'Downloading data');
-          customConsoleLog(id, 'Got final export button');
-          btn.click();
-          await wait(2);
-          foundFinalExport = true;
-          return 'DOWNLOADING';
+        if (state === 'success' && status.type === 'complete') {
+          const exportUrl = status.exportURL;
+          customConsoleLog(id, 'Export completed successfully!');
+          window.location.assign(exportUrl);
+          // You might want to download the file here or send the URL somewhere
+          return "DOWNLOADING";
         }
       }
 
-      if (!foundFinalExport) {
-        throw new Error('Final Export button not found after scrolling.');
-      }
+      await wait(2);
     }
+    
   } catch (error) {
     customConsoleLog(id, `Error during Notion export: ${error.message}`);
     ipcRenderer.sendToHost('console-error', { id, error: error.message });

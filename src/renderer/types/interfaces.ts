@@ -76,7 +76,6 @@ export interface IRun {
   platformId: string;
   filename: string;
   isConnected: boolean;
-  subRunId: string;
   startDate: string;
   endDate?: string;
   status: 'pending' | 'running' | 'success' | 'error' | 'stopped';

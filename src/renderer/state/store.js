@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import rootReducer from './reducers';
-import { initialAppState } from '../config/initialStates';
+import { initialAppState } from './initialStates';
 
 // Load saved state from localStorage
 let savedState = localStorage.getItem('userState');

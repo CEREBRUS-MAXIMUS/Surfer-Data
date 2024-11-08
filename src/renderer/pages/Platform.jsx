@@ -5,18 +5,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Download, ChevronRight, ChevronDown, Folder } from 'lucide-react';
 import { openDB } from 'idb';
 import RunDetailsPage from '../components/profile/RunDetailsPage';
-import SubRun from './SubRun';
 import { useTheme } from '../components/ui/theme-provider';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../components/ui/alert-dialog";
 import { useDispatch } from 'react-redux';
 import { deleteRunsForPlatform } from '../state/actions';
-import { deleteRunsForPlatformFromDB } from '../lib/databases';
 import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
 import RunResultEntry from '../components/profile/RunResultEntry';
-import { formatLastRunTime } from '../lib/formatting';
+import { formatLastRunTime } from '../helpers';
 
 const Platform = ({ platform }) => {
   const [runs, setRuns] = useState([]);
+  
   const [expandedRuns, setExpandedRuns] = useState({});
   const [selectedRunId, setSelectedRunId] = useState(null);
   const { theme } = useTheme();
@@ -49,14 +48,6 @@ const Platform = ({ platform }) => {
     setSelectedRunId(null);
   };
 
-  const handleSubRunClick = (subRun) => {
-    dispatch(setCurrentRoute(`/subrun/${platform.id}/${subRun.id}`));
-    dispatch(updateBreadcrumb([
-      { icon: 'Home', text: 'Home', link: '/home' },
-      { text: platform.name, link: `/platform/${platform.id}` },
-      { text: subRun.name, link: `/subrun/${platform.id}/${subRun.id}` }
-    ]));
-  };
 
   const handleDeleteAllData = async () => {
     try {
@@ -84,27 +75,6 @@ const Platform = ({ platform }) => {
 
   return (
     <div className="space-y-8 px-[50px] pt-6">
-          {/* {getPlatformLogo()}
-          <div>
-            <CardTitle className="text-2xl">{platform.name}</CardTitle>
-          </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Data Extraction Options</CardTitle>
-          <CardDescription>Select the type of data you want to extract from {platform.name}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {platform.subRuns.map((subRun) => (
-              <Button key={subRun.id} variant="outline" className="flex items-center" onClick={() => handleSubRunClick(subRun)}>
-                {subRun.icon && <subRun.icon size={16} />}
-                <span className="ml-2">{subRun.name}</span>
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card> */}
-
           <div className="flex justify-between items-center">
             <CardTitle>{platform.name} History</CardTitle>
             <Button
@@ -131,7 +101,7 @@ const Platform = ({ platform }) => {
                   <React.Fragment key={run.id}>
                     <TableRow>
                       <TableCell>
-                        {formatLastRunTime(run.startDate)}
+                        {formatLastRunTime(run.exportDate || run.startDate)}
                       </TableCell>
                       <TableCell className="font-medium">
                       <RunResultEntry
