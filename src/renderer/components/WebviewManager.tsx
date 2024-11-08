@@ -284,7 +284,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
         )[0];
 
         console.log('stopping download run: ', downloadRun); 
-        window.electron.ipcRenderer.send('run-finished', company, name, runID.toString(), folderPath);
         dispatch(updateExportStatus(company, name, downloadRun.id, folderPath, exportSize));
       }
 
@@ -298,7 +297,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
           runID,
         );
 
-        window.electron.ipcRenderer.send('run-finished', company, name, runID.toString(), folderPath);
         dispatch(updateExportStatus(company, name, runID.toString(), folderPath, exportSize));
        }
 
@@ -331,7 +329,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       activeRun &&
       (activeRun.status === 'pending' || activeRun.status === 'running')
     ) {
-      window.electron.ipcRenderer.send('run-finished', activeRun.company, activeRun.name, activeRun.id.toString(), '');
       dispatch(stopRun(activeRun.id));
       console.log('Stopping run:', activeRun.id);
 

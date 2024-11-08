@@ -29,7 +29,7 @@ const StatusIndicator = ({ status }) => {
   }
 };
 
-const RunDetailsPage = ({ runId, onClose, platform }) => {
+const RunDetails = ({ runId, onClose, platform }) => {
   const dispatch = useDispatch();
   const reduxRuns = useSelector(state => state.app.runs);
   const activeRunIndex = useSelector((state) => state.app.activeRunIndex);
@@ -293,4 +293,4 @@ const RunDetailsPage = ({ runId, onClose, platform }) => {
   );
 };
 
-export default RunDetailsPage;
+export default RunDetails;

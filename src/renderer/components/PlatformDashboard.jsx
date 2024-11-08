@@ -10,7 +10,7 @@ import { Input } from "./ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 import { Checkbox } from "./ui/checkbox";
 import { Progress } from "./ui/progress";
-import RunDetailsPage from './RunDetailsPage';
+import RunDetailsPage from './RunDetails';
 import ConfettiExplosion from 'react-confetti-explosion';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "./ui/tooltip";
 import { Info } from 'lucide-react';
@@ -18,7 +18,7 @@ import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 import { Card } from "./ui/card";
 import { formatLastRunTime, formatExportSize } from '../helpers';
 
-const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
+const PlatformDashboard = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
   const runs = useSelector(state => state.app.runs);
     const activeRuns = runs.filter(
@@ -151,7 +151,7 @@ useEffect(() => {
     return () => {
       window.electron.ipcRenderer.removeListener('element-found', handleElementFound);
     };
-  }, [connectedPlatforms.length]);
+  }, [connectedPlatforms]);
 
   // useEffect(() => {
   //   const runisUpdateds = async () => {
@@ -551,4 +551,4 @@ const renderResults = (platform) => {
   );
 };
 
-export default DataExtractionTable;
+export default PlatformDashboard;

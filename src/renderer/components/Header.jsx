@@ -532,7 +532,7 @@ const StyledSurferHeader = styled.div`
   }
 `;
 
-export const SurferHeader = () => {
+export const Header = () => {
   const dispatch = useDispatch();
   const breadcrumb = useSelector((state) => state.app.breadcrumb);
   const isRunLayerVisible = useSelector((state) => state.app.isRunLayerVisible);
@@ -646,20 +646,12 @@ export const SurferHeader = () => {
       dispatch(setIsMac(platform === 'darwin'));
     };
 
-    const handleFullscreenChange = (isFullScreen) => {
-      console.log('Fullscreen:', isFullScreen);
-      dispatch(setIsFullScreen(isFullScreen));
-    };
-
     window.electron.ipcRenderer.on('platform', handlePlatformReply);
-    window.electron.ipcRenderer.on('fullscreen-changed', handleFullscreenChange);
 
     window.electron.ipcRenderer.send('get-platform');
-    window.electron.ipcRenderer.send('get-fullscreen-state');
-
+    
     return () => {
       window.electron.ipcRenderer.removeListener('platform', handlePlatformReply);
-      window.electron.ipcRenderer.removeListener('fullscreen-changed', handleFullscreenChange);
     };
   }, [dispatch]);
 
@@ -688,14 +680,6 @@ export const SurferHeader = () => {
 
   const handleThemeToggle = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
-
-  const handleSettingsClick = () => {
-    dispatch(setCurrentRoute('/settings'));
-  };
-
-  const handleOpenLink = (url) => {
-    window.electron.ipcRenderer.send('open-external', url);
   };
 
   return (
@@ -745,7 +729,7 @@ export const SurferHeader = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleOpenLink('https://discord.gg/5KQkWApkYC')}
+                  onClick={() => window.electron.ipcRenderer.send('open-external', 'https://discord.gg/5KQkWApkYC')}
                   className="flex items-center gap-2"
                 >
                   <Users size={16} />
@@ -762,7 +746,7 @@ export const SurferHeader = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleOpenLink('https://github.com/CEREBRUS-MAXIMUS/Surfer-Data')}
+                  onClick={() => window.electron.ipcRenderer.send('open-external', 'https://github.com/CEREBRUS-MAXIMUS/Surfer-Data')}
                   className="flex items-center gap-2"
                 >
                   <GithubIcon size={16} />

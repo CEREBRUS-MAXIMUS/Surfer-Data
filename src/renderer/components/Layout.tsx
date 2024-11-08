@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { SurferHeader } from './SurferHeader';
+import { Header } from './Header';
 import WebviewManager from './WebviewManager';
 
 interface LayoutProps {
@@ -20,7 +20,7 @@ const Layout: React.FC<LayoutProps> = ({
 }) => {
   return (
     <div className="h-screen flex flex-col w-full">
-      <SurferHeader />
+      <Header />
       <main className="flex-grow overflow-hidden relative w-full max-w-full min-w-full bg-background">
         <div
           className="absolute top-0 left-0 w-full h-full overflow-auto"

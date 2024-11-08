@@ -84,13 +84,11 @@ expressApp.post('/api/get', async (req, res) => {
 });
 
 expressApp.post('/api/export', async (req, res) => {
-  console.log('EXPORT REQUEST: ', req.body);
+  console.log('Export request: ', req.body);
   const { platformId } = req.body;
 
   try {
 
-
-    // Start export
     mainWindow?.webContents.send('element-found', platformId);
 
     // Get initial run with timeout
@@ -460,9 +458,6 @@ export const createWindow = async (visible: boolean = true) => {
     }
   });
 
-  ipcMain.on('close-url', (event) => {
-    mainWindow.removeBrowserView(mainWindow.getBrowserView());
-  });
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
