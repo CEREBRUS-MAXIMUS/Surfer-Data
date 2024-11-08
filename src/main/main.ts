@@ -9,14 +9,10 @@ import {
   BrowserWindow,
   shell,
   ipcMain,
-  protocol,
   Menu,
-  net,
   nativeImage,
   Tray,
-  powerMonitor,
   dialog,
-  session
 } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
@@ -24,11 +20,10 @@ import { resolveHtmlPath } from './utils/util';
 import fs from 'fs';
 import { convertMboxToJson, findMboxFile, extractZip, getTotalFolderSize } from './helpers/scrapers';
 import { getImessageData } from './utils/imessage';
-
-let appIcon: Tray | null = null;
-
-require('dotenv').config();
 const { download } = require('electron-dl');
+import express from 'express';
+import cors from 'cors';
+import { getNotionCredentials, getTwitterCredentials } from './utils/network';
 
 autoUpdater.autoDownload = false; // Prevent auto-download
 autoUpdater.autoInstallOnAppQuit = false;
@@ -36,9 +31,7 @@ autoUpdater.autoRunAppAfterInstall = true;
 
 let downloadingItems = new Map();
 
-import express from 'express';
-import cors from 'cors';
-import { getNotionCredentials, getTwitterCredentials } from './utils/network';
+
 const expressApp = express();
 expressApp.use(cors());
 expressApp.use(express.json());
@@ -53,9 +46,6 @@ expressApp.get('/', (req, res) => { // this would be the surferClient.connect()
 expressApp.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
-
-// Export endpoint
-// ... existing code ...
 
 expressApp.post('/api/get', async (req, res) => {
   console.log('GET REQUEST: ', req.body);
@@ -238,99 +228,88 @@ ipcMain.handle('check-connected-platforms', async (event, platforms) => {
   return connectedPlatforms;
 });
 
-  const getScrapers = async () => {
-    let scrapersDir;
-    if (app.isPackaged) {
-      scrapersDir = path.join(__dirname);
-    } else {
-      scrapersDir = path.join(__dirname, 'Scrapers');
+const getScrapers = async () => {
+  const scrapersDir = app.isPackaged
+    ? path.join(__dirname)
+    : path.join(__dirname, 'Scrapers');
+
+  // Helper function to get JS files
+  const getAllJsFiles = async (dir: string): Promise<string[]> => {
+    const excludedFiles = [
+      '248.js',
+      'main.js',
+      'preload.js',
+      'preloadElectron.js',
+      'preloadFunctions.js',
+      'preloadWebview.js',
+      'calendar.js',
+      'feed.js',
+      'github.js',
+      'twitter.js',
+      'linkedin.js',
+      'youtube.js',
+    ];
+
+    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    const files = await Promise.all(
+      entries.map((entry) => {
+        const res = path.resolve(dir, entry.name);
+        return entry.isDirectory() ? getAllJsFiles(res) : res;
+      }),
+    );
+
+    return files
+      .flat()
+      .filter(
+        (file) =>
+          file.endsWith('.js') && !excludedFiles.includes(path.basename(file)),
+      );
+  };
+
+  // Helper function to get metadata with default values
+  const getMetadata = async (company: string, name: string) => {
+    const metadataPath = path.join(scrapersDir, company, `${name}.json`);
+    try {
+      return fs.existsSync(metadataPath)
+        ? JSON.parse(fs.readFileSync(metadataPath, 'utf-8'))
+        : {};
+    } catch {
+      return {};
+    }
+  };
+
+  try {
+    if (!fs.existsSync(scrapersDir)) {
+      console.error('Scrapers directory does not exist:', scrapersDir);
+      return [];
     }
 
-    const getAllJsFiles = async (dir: string): Promise<string[]> => {
-      const excludedFiles = [
-        '248.js',
-        'main.js',
-        'preload.js',
-        'preloadElectron.js',
-        'preloadFunctions.js',
-        'preloadWebview.js',
-        'calendar.js',
-        'feed.js',
-        'github.js',
-        'twitter.js',
-        'linkedin.js',
-        'youtube.js',
-      ];
+    const jsFiles = await getAllJsFiles(scrapersDir);
 
-      const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-      const files = await Promise.all(
-        entries.map(async (entry) => {
-          const res = path.resolve(dir, entry.name);
-          return entry.isDirectory() ? getAllJsFiles(res) : res;
-        }),
-      );
-      return files
-        .flat()
-        .filter(
-          (file) =>
-            file.endsWith('.js') &&
-            !excludedFiles.includes(path.basename(file)),
-        );
-    };
+    return Promise.all(
+      jsFiles.map(async (file) => {
+        const relativePath = path.relative(scrapersDir, file);
+        const name = path.basename(file, '.js');
+        const company = relativePath.split(path.sep)[0] || 'Scraper';
+        const metadata = await getMetadata(company, name);
 
-    const getMetadataFile = async (company: string, name: string) => {
-      const metadataFilePath = path.join(scrapersDir, company, `${name}.json`);
-      if (fs.existsSync(metadataFilePath)) {
-        return JSON.parse(fs.readFileSync(metadataFilePath, 'utf-8'));
-      }
-      return null;
-    };
-
-    try {
-      if (!fs.existsSync(scrapersDir)) {
-        console.error('Scrapers directory does not exist:', scrapersDir);
-        return [];
-      }
-
-      const jsFiles = await getAllJsFiles(scrapersDir);
-      const scrapers = await Promise.all(
-        jsFiles.map(async (file) => {
-          const relativePath = path.relative(scrapersDir, file);
-          const name = path.basename(file, '.js');
-          const companyMatch = relativePath.split(path.sep);
-          const company = companyMatch.length > 1 ? companyMatch[0] : 'Scraper';
-          const metadata = await getMetadataFile(company, name);
-
-          return {
-            id: metadata && metadata.id ? metadata.id : `${name}-001`,
-            company: metadata && metadata.company ? metadata.company : company,
-            name: metadata && metadata.name ? metadata.name : name,
-            filename: name,
-            description:
-              metadata && metadata.description
-                ? metadata.description
-                : 'No description available',
-            isUpdated:
-              metadata && metadata.isUpdated ? metadata.isUpdated : false,
-            logoURL: metadata && metadata.logoURL ? metadata.logoURL : name,
-            needsConnection:
-              metadata && metadata.needsConnection !== undefined
-                ? metadata.needsConnection
-                : true,
-            connectURL:
-              metadata && metadata.connectURL ? metadata.connectURL : null,
-            connectSelector:
-              metadata && metadata.connectSelector
-                ? metadata.connectSelector
-                : null,
-          };
-        }),
-      );
-
-      return scrapers;
-    } catch (error) {
-      console.error('Error reading scrapers directory:', error);
-      return [];
+        return {
+          id: metadata.id || `${name}-001`,
+          company: metadata.company || company,
+          name: metadata.name || name,
+          filename: name,
+          description: metadata.description || 'No description available',
+          isUpdated: Boolean(metadata.isUpdated),
+          logoURL: metadata.logoURL || name,
+          needsConnection: metadata.needsConnection ?? true,
+          connectURL: metadata.connectURL || null,
+          connectSelector: metadata.connectSelector || null,
+        };
+      }),
+    );
+  } catch (error) {
+    console.error('Error reading scrapers directory:', error);
+    return [];
   }
 };
 
@@ -395,9 +374,6 @@ const isDebug =
 if (isDebug) {
   require('electron-debug')();
 }
-
-let scrapingManager: ScrapingManager;
- 
 
 export const createWindow = async (visible: boolean = true) => {
   if (mainWindow) {
@@ -476,34 +452,6 @@ export const createWindow = async (visible: boolean = true) => {
     });
   });
 
-  mainWindow.on('enter-full-screen', () => {
-    console.log('ENTER FULL SCREEN');
-    //if were on windows, say true all the time
-    if (process.platform !== 'win32') {
-      mainWindow?.webContents.send('fullscreen-changed', true);
-    }
-  });
-
-  //on take screenshot
-  mainWindow?.webContents.on('take-screenshot', (event, url, workspaceId) => {
-    console.log('TAKE SCREENSHOT FROM MAIN');
-    console.log('URL: ', url);
-    console.log('WORKSPACE ID: ', workspaceId);
-
-    //take screenshot of the page
-    mainWindow?.webContents.capturePage().then((image) => {
-      console.log('IMAGE: ', image);
-      //save the image to the workspace folder
-      // fs.writeFileSync(path.join(workspaceFolderPath, workspaceId, 'screenshot.png'), image);
-    });
-  });
-
-  mainWindow.on('leave-full-screen', () => {
-    console.log('LEAVE FULL SCREEN');
-    if (process.platform !== 'win32') {
-      mainWindow?.webContents.send('fullscreen-changed', false);
-    }
-  });
 
   app.on('open-url', (event, url) => {
     event.preventDefault();
@@ -607,24 +555,7 @@ export const createWindow = async (visible: boolean = true) => {
         return;
       }
 
-      // Create surfer_data folder if it doesn't exist
-      if (!fs.existsSync(surferDataPath)) {
-        fs.mkdirSync(surferDataPath);
-      }
-
-      // Create company folder if it doesn't exist
-      if (!fs.existsSync(companyPath)) {
-        fs.mkdirSync(companyPath);
-      }
-
-      // Create or clear company folder
-      if (!fs.existsSync(platformPath)) {
-        fs.mkdirSync(platformPath);
-      }
-
-      if (!fs.existsSync(idPath)) {
-        fs.mkdirSync(idPath);
-      }
+      fs.mkdirSync(idPath, { recursive: true });
 
       event.preventDefault();
 
@@ -803,14 +734,6 @@ ipcMain.on('check-for-updates', () => {
 });
 
 ipcMain.on('handle-update', (event, company, name, platformId, data, runID, customFilePath = null) => {
-  // console.log(
-  //   'handling update for: ',
-  //   company,
-  //   ', specific name: ',
-  //   name,
-  //   ', runID: ',
-  //   runID,
-  // );
 
   const userData = app.getPath('userData');
   const filePath = customFilePath ? customFilePath : path.join(
@@ -822,9 +745,6 @@ ipcMain.on('handle-update', (event, company, name, platformId, data, runID, cust
     `${platformId}.json`
   );
 
-  // console.log('filePath: ', filePath);
-
-  // Read existing data if available
 let existingData;
 if (fs.existsSync(filePath)) {
   try {
@@ -911,53 +831,47 @@ ipcMain.on('handle-update-complete', (event, runID, platformId, company, name, c
   }
 })
 
-
 ipcMain.on('handle-export', (event, runID, platformId, filename, company, name, content, isUpdated) => {
-  const userData = app.getPath('userData');
-  const surferDataPath = path.join(userData, 'surfer_data');
-  const platformPath = path.join(surferDataPath, company);
-  const namePath = path.join(platformPath, name);
-  const idPath = path.join(namePath, runID);
-  
-  // Create necessary folders
-  [surferDataPath, platformPath, namePath, idPath].forEach((dir) => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  });
+  // Create export path
+  const exportPath = path.join(
+    app.getPath('userData'),
+    'surfer_data',
+    company,
+    name,
+    runID
+  );
 
-  const timestamp = Date.now();
-  let fileName;
-// if (isUpdated) {
-//     fileName = `${platformId}.json`;
-// }
-// else {
-    fileName = `${platformId}_${timestamp}.json`;
-  const filePath = path.join(idPath, fileName);
-  // Prepare the data object
-  const exportData = {
+  // Create directory structure
+  fs.mkdirSync(exportPath, { recursive: true });
+
+  // let fileName;
+  // // if (isUpdated) {
+  // //     fileName = `${platformId}.json`;
+  // // }
+  // // else {
+  // fileName = `${platformId}_${timestamp}.json`;
+  const filePath = path.join(exportPath, `${platformId}_${Date.now()}.json`);
+  
+  // Write data
+  fs.writeFileSync(filePath, JSON.stringify({
     company,
     name,
     runID,
-    timestamp,
+    timestamp: Date.now(),
     content: Array.isArray(content) ? content : [content],
-  };
+  }, null, 2));
 
-  // Write the JSON file
-  fs.writeFileSync(filePath, JSON.stringify(exportData, null, 2));
-
-  console.log(`Export saved to: ${filePath}`);
-  //get the size of the export
-
+  // Notify completion
   mainWindow?.webContents.send(
     'export-complete',
     company,
     name,
     runID,
-    idPath,
-    getTotalFolderSize(idPath),
+    exportPath,
+    getTotalFolderSize(exportPath)
   );
 });
+
 
 ipcMain.on('connect-website', (event, company) => {
   mainWindow?.webContents.send('connect-website', company);
@@ -1084,25 +998,7 @@ app
       if (mainWindow === null) createWindow();
     });
 
-    powerMonitor.on('resume', () => {
-      console.log('System resumed from sleep, checking for missed jobs.');
-    });
 
-    protocol.handle('media', (req) => {
-      let pathToMedia = new URL(req.url).pathname;
-
-      // Remove leading slash on Windows
-      if (process.platform === 'win32') {
-        pathToMedia = pathToMedia.replace(/^\//, '');
-      }
-
-      // Decode the URI component to handle spaces and special characters
-      pathToMedia = decodeURIComponent(pathToMedia);
-
-      return net.fetch(`file://${pathToMedia}`);
-    });
-
-    try {
       let iconPath = !isDebug
         ? path.join(__dirname, 'assets/icon.png')
         : path.join(__dirname, '../../assets/icon.png');
@@ -1112,10 +1008,7 @@ app
         height: 16,
         width: 16,
       });
-      appIcon = new Tray(icon);
-    } catch (error) {
-      console.error('Error creating icon: ', error);
-    }
+      const appIcon = new Tray(icon);
 
     const contextMenu = Menu.buildFromTemplate([
       {

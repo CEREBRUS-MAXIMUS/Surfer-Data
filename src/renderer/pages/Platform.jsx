@@ -4,13 +4,13 @@ import { Button } from "../components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { Download, ChevronRight, ChevronDown, Folder } from 'lucide-react';
 import { openDB } from 'idb';
-import RunDetailsPage from '../components/profile/RunDetailsPage';
+import RunDetailsPage from '../components/RunDetailsPage';
 import { useTheme } from '../components/ui/theme-provider';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../components/ui/alert-dialog";
 import { useDispatch } from 'react-redux';
 import { deleteRunsForPlatform } from '../state/actions';
 import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
-import RunResultEntry from '../components/profile/RunResultEntry';
+import RunResultEntry from '../components/RunResultEntry';
 import { formatLastRunTime } from '../helpers';
 
 const Platform = ({ platform }) => {

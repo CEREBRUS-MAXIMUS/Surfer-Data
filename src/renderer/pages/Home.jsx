@@ -1,8 +1,8 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
-import DataExtractionTable from '../components/profile/DataExtractionTable';
-import RunDetailsPage from '../components/profile/RunDetailsPage';
+import DataExtractionTable from '../components/DataExtractionTable';
+import RunDetailsPage from '../components/RunDetailsPage';
 
 const Home = () => {
   const dispatch = useDispatch();

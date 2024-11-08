@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChevronDown, ChevronRight, Clock, ArrowLeft, XCircle, Eye, Trash2, ChevronLeft, Folder } from 'lucide-react';
-import { Button } from "../ui/button";
-import { ScrollArea } from "../ui/scroll-area";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "./ui/button";
+import { ScrollArea } from "./ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { openDB } from 'idb';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "../ui/breadcrumb";
-import { updateRunStatus, deleteRun } from '../../state/actions';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "./ui/breadcrumb";
+import { updateRunStatus, deleteRun } from '../state/actions';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import MonacoEditor from '@monaco-editor/react';
-import { stopRun, closeRun } from '../../state/actions';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import { stopRun, closeRun } from '../state/actions';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 
 const StatusIndicator = ({ status }) => {
   switch (status) {

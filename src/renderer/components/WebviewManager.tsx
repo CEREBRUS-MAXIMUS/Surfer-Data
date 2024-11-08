@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 import { ChevronLeft, ChevronRight, X, Square, Bug } from 'lucide-react';
-import { IAppState } from '../../types/interfaces';
+import { IAppState } from '../types/interfaces';
 import {
   setActiveRunIndex,
   closeRun,
@@ -14,9 +14,9 @@ import {
   bigStepper,
   updateRunLogs,
   updateRunConnected
-} from '../../state/actions';
-import { useTheme } from '../ui/theme-provider';
-import { Button } from '../ui/button';
+} from '../state/actions';
+import { useTheme } from './ui/theme-provider';
+import { Button } from './ui/button';
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
   position: fixed;

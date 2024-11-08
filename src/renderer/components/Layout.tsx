@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { SurferHeader } from './SurferHeader';
-import WebviewManager from './profile/WebviewManager';
+import WebviewManager from './WebviewManager';
 
 interface LayoutProps {
   webviewRefs: { [key: string]: React.RefObject<HTMLWebViewElement> };

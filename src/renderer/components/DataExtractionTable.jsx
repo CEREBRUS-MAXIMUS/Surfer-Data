@@ -1,22 +1,22 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { startRun, toggleRunVisibility, setExportRunning, updateExportStatus, addRun } from '../../state/actions';
-import { useTheme } from '../ui/theme-provider';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
-import { Button } from "../ui/button";
+import { startRun, toggleRunVisibility, setExportRunning, updateExportStatus, addRun } from '../state/actions';
+import { useTheme } from './ui/theme-provider';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import { Button } from "./ui/button";
 import { ArrowUpRight, ArrowRight, Check, X, Link, Download, Search, ChevronLeft, ChevronRight, HardDriveDownload, Folder, Eye } from 'lucide-react';
 import { openDB } from 'idb';
-import { Input } from "../ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
-import { Checkbox } from "../ui/checkbox";
-import { Progress } from "../ui/progress";
+import { Input } from "./ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
+import { Checkbox } from "./ui/checkbox";
+import { Progress } from "./ui/progress";
 import RunDetailsPage from './RunDetailsPage';
 import ConfettiExplosion from 'react-confetti-explosion';
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "./ui/tooltip";
 import { Info } from 'lucide-react';
-import { Alert, AlertTitle, AlertDescription } from "../ui/alert";
-import { Card } from "../ui/card";
-import { formatLastRunTime, formatExportSize } from '../../helpers';
+import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
+import { Card } from "./ui/card";
+import { formatLastRunTime, formatExportSize } from '../helpers';
 
 const DataExtractionTable = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
