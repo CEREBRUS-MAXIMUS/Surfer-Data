@@ -82,7 +82,6 @@ export interface IRun {
   tasks: ITask[];
   url: string;
   exportSize?: number;
-  exportDate?: string;
   exportPath?: string;
   company: string;
   name: string;

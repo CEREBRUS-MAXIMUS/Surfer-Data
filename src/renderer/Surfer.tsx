@@ -113,8 +113,8 @@ function Surfer() {
       case 'platform':
         if (routeParts.length > 1) {
           const platformId = routeParts[1];
-          const scrapers = await window.electron.ipcRenderer.invoke('get-scrapers');
-          const platform = scrapers.find((p: any) => p.id === platformId);
+          const platforms = await window.electron.ipcRenderer.invoke('get-platforms');
+          const platform = platforms.find((p: any) => p.id === platformId);
           if (platform) {
             newContent = <Platform platform={platform} />;
           } else {

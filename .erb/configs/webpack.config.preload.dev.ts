@@ -35,8 +35,8 @@ const configuration: webpack.Configuration = {
         .filter((file) => file.endsWith('.js') || file.endsWith('.json'));
     };
 
-    const scrapersDir = path.join(webpackPaths.srcMainPath, 'Scrapers');
-    const files = await getAllFiles(scrapersDir);
+    const platformsDir = path.join(webpackPaths.srcMainPath, 'platforms');
+    const files = await getAllFiles(platformsDir);
 
     const entry = {
       main: path.join(webpackPaths.srcMainPath, 'main.ts'),
@@ -53,7 +53,7 @@ const configuration: webpack.Configuration = {
     };
 
     files.forEach((file) => {
-      const relativePath = path.relative(scrapersDir, file);
+      const relativePath = path.relative(platformsDir, file);
       const name = relativePath.replace(/\.(js|json)$/, '').replace(/\\/g, '/');
       entry[name] = file;
     });
@@ -83,7 +83,7 @@ const configuration: webpack.Configuration = {
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: path.join(webpackPaths.srcMainPath, 'Scrapers'),
+          from: path.join(webpackPaths.srcMainPath, 'platforms'),
           globOptions: {
             ignore: ['**/*.js', '**/*.md'],
           },

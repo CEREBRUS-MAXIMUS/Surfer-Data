@@ -6,7 +6,7 @@ To add support for a new platform in Surfer, follow these steps:
 
 2. **Create the platform file**: Inside the new directory, create a JavaScript file named after the platform (e.g., `slack.js`).
 
-3. **Create a JSON file**: Create a JSON file named after the platform (e.g., `slack.json`) in the `src/main/Scrapers/[Company]` directory. This file should contain the following information:
+3. **Create a JSON file**: Create a JSON file named after the platform (e.g., `slack.json`) in the `src/main/platforms/[Company]` directory. This file should contain the following information:
    - `name`: The name of the platform
    - `description`: A brief description of what data the platform exports
    - `connectURL`: The URL for the platform's login page

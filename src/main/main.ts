@@ -18,7 +18,7 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
 import fs from 'fs';
-import { convertMboxToJson, findMboxFile, extractZip, getTotalFolderSize } from './helpers/scrapers';
+import { convertMboxToJson, findMboxFile, extractZip, getTotalFolderSize } from './helpers/platforms';
 import { getImessageData } from './utils/imessage';
 const { download } = require('electron-dl');
 import express from 'express';
@@ -226,10 +226,10 @@ ipcMain.handle('check-connected-platforms', async (event, platforms) => {
   return connectedPlatforms;
 });
 
-const getScrapers = async () => {
-  const scrapersDir = app.isPackaged
+const getPlatforms = async () => {
+  const platformsDir = app.isPackaged
     ? path.join(__dirname)
-    : path.join(__dirname, 'Scrapers');
+    : path.join(__dirname, 'platforms');
 
   // Helper function to get JS files
   const getAllJsFiles = async (dir: string): Promise<string[]> => {
@@ -266,7 +266,7 @@ const getScrapers = async () => {
 
   // Helper function to get metadata with default values
   const getMetadata = async (company: string, name: string) => {
-    const metadataPath = path.join(scrapersDir, company, `${name}.json`);
+    const metadataPath = path.join(platformsDir, company, `${name}.json`);
     try {
       return fs.existsSync(metadataPath)
         ? JSON.parse(fs.readFileSync(metadataPath, 'utf-8'))
@@ -277,18 +277,18 @@ const getScrapers = async () => {
   };
 
   try {
-    if (!fs.existsSync(scrapersDir)) {
-      console.error('Scrapers directory does not exist:', scrapersDir);
+    if (!fs.existsSync(platformsDir)) {
+      console.error('Platforms directory does not exist:', platformsDir);
       return [];
     }
 
-    const jsFiles = await getAllJsFiles(scrapersDir);
+    const jsFiles = await getAllJsFiles(platformsDir);
 
     return Promise.all(
       jsFiles.map(async (file) => {
-        const relativePath = path.relative(scrapersDir, file);
+        const relativePath = path.relative(platformsDir, file);
         const name = path.basename(file, '.js');
-        const company = relativePath.split(path.sep)[0] || 'Scraper';
+        const company = relativePath.split(path.sep)[0] || 'Platform';
         const metadata = await getMetadata(company, name);
 
         return {
@@ -306,22 +306,18 @@ const getScrapers = async () => {
       }),
     );
   } catch (error) {
-    console.error('Error reading scrapers directory:', error);
+    console.error('Error reading platforms directory:', error);
     return [];
   }
 };
 
-ipcMain.handle('get-scrapers', async () => {
-  return getScrapers();
+ipcMain.handle('get-platforms', async () => {
+  return getPlatforms();
 });
 
 ipcMain.handle('get-user-data-path', () => {
   return app.getPath('userData');
 })
-// Listen for user data sent from renderer
-ipcMain.on('send-user-data', (event, userID) => {
-  console.log('user id from renderer: ', userID);
-});
 
 ipcMain.on('get-platform', (event) => {
   event.reply('platform', process.platform);
@@ -333,11 +329,6 @@ app.on('web-contents-created', (_event, contents) => {
     const preloadPath = path.join(__dirname, 'preloadWebview.js');
     webPreferences.preload = preloadPath;
   }); 
-});
-
-ipcMain.on('get-files-in-folder', (event, folderPath) => {
-  const files = getFilesInFolder(folderPath);
-  event.reply('files-in-folder', files);
 });
 
 ipcMain.on('get-version-number', (event) => {
@@ -481,11 +472,6 @@ export const createWindow = async (visible: boolean = true) => {
   menuBuilder.buildMenu();
 
   new AppUpdater();
-
-  ipcMain.on('update-artifact', (event, data) => {
-    // Send the data to the renderer process
-    mainWindow.webContents.send('update-web-artifact', data);
-  });
 
   let lastDownloadUrl = '';
   let lastDownloadTime = 0;
@@ -673,22 +659,6 @@ export const createWindow = async (visible: boolean = true) => {
 
 ipcMain.on('open-external', (event, url) => {
   shell.openExternal(url);
-});
-
-ipcMain.handle('set-default-browser', async () => {
-  if (
-    !(
-      app.isDefaultProtocolClient('http') &&
-      app.isDefaultProtocolClient('https')
-    )
-  ) {
-    app.setAsDefaultProtocolClient('http');
-    app.setAsDefaultProtocolClient('https');
-  }
-});
-
-ipcMain.on('close-url', (event) => {
-  mainWindow?.removeBrowserView(mainWindow?.getBrowserView());
 });
 
 ipcMain.on('check-for-updates', () => {
@@ -921,12 +891,6 @@ autoUpdater.on('error', (info) => {
   // curWindow.showMessage(info);
 });
 
-ipcMain.on('auth-token-from-webview', (event, token) => {
-  console.log('Token received in main process:', token);
-  // Send the token to the renderer process (Onboarding component)
-  mainWindow?.webContents.send('auth-token-for-renderer', token);
-});
-
 ipcMain.handle('restart-app', () => {
   app.relaunch();
   app.exit(0);
@@ -949,21 +913,6 @@ app.on('window-all-closed', () => {
   }
 });
 
-const createRequiredFoldersAndFiles = () => {
-  const userDataPath = app.getPath('userData');
-  const browserDataPath = path.join(userDataPath, 'browser-data');
-  const workspacesPath = path.join(userDataPath, 'workspaces');
-
-  const foldersToCreate = [browserDataPath, workspacesPath];
-
-  foldersToCreate.forEach((path) => {
-    if (!fs.existsSync(path)) {
-      fs.mkdirSync(path, { recursive: true });
-      console.log(`Created folder: ${path}`);
-    }
-  });
-};
-
 app
   .whenReady()
   .then(async () => {
@@ -971,11 +920,7 @@ app
 
     createWindow();
 
-    createRequiredFoldersAndFiles();
-
     autoUpdater.checkForUpdates();
-
-
 
     app.on('activate', () => {
       if (mainWindow === null) createWindow();
@@ -1052,10 +997,10 @@ ipcMain.on('open-folder', (event, folderPath) => {
   }
 });
 
-ipcMain.on('get-artifact-files', (event, exportPath) => {
+ipcMain.on('get-run-files', (event, exportPath) => {
   try {
-    console.log('Reading artifact files from:', exportPath);
-    const artifactFiles: { name: string; content: string }[] = [];
+    console.log('Reading files from:', exportPath);
+    const files: { name: string; content: string }[] = [];
 
     function readFilesRecursively(currentPath: string) {
       const items = fs.readdirSync(currentPath);
@@ -1068,7 +1013,7 @@ ipcMain.on('get-artifact-files', (event, exportPath) => {
           const fileExtension = path.extname(item).toLowerCase();
           if (['.json', '.txt', '.md'].includes(fileExtension)) {
             const content = fs.readFileSync(itemPath, 'utf-8');
-            artifactFiles.push({ name: item, content });
+            files.push({ name: item, content });
           }
         }
       });
@@ -1076,11 +1021,11 @@ ipcMain.on('get-artifact-files', (event, exportPath) => {
 
     readFilesRecursively(exportPath);
 
-    console.log('Artifact files length:', artifactFiles.length);
-    event.reply('artifact-files', artifactFiles);
+    console.log('Files length:', files.length);
+    event.reply('run-files', files);
   } catch (error) {
-    console.error('Error reading artifact files:', error);
-    event.reply('artifact-files', []); // Always send an array, even if empty
+    console.error('Error reading files:', error);
+    event.reply('run-files', []); // Always send an array, even if empty
   }
 });
 

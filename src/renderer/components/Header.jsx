@@ -546,19 +546,19 @@ export const Header = () => {
   const LOGO_SIZE = 18; // Set a consistent size for all logos
 
   useEffect(() => {
-    const loadScrapers = async () => {
+    const loadPlatforms = async () => {
       try {
-        const scrapers = await window.electron.ipcRenderer.invoke('get-scrapers');
-        console.log('SCRAPERS: ', scrapers);
+        const platforms = await window.electron.ipcRenderer.invoke('get-platforms');
+        console.log('PLATFORMS: ', platforms);
 
-        setAllPlatforms(scrapers);
+        setAllPlatforms(platforms);
       } catch (error) {
-        console.error('Error loading scrapers:', error);
+        console.error('Error loading platforms:', error);
         setAllPlatforms([]);
       }
     };
 
-    loadScrapers();
+    loadPlatforms();
   }, []);
 
   const getPlatformLogo = async (platform) => {

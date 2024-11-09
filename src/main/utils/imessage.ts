@@ -1,4 +1,4 @@
-import { getTotalFolderSize } from '../helpers/scrapers';
+import { getTotalFolderSize } from '../helpers/platforms';
 import path from 'path';
 import { PythonUtils } from './python';
 import fs from 'fs';

@@ -8,7 +8,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { updateRunStatus, deleteRun } from '../state/actions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import MonacoEditor from '@monaco-editor/react';
-import { stopRun, closeRun } from '../state/actions';
+import { stopRun  } from '../state/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 
 const StatusIndicator = ({ status }) => {
@@ -35,27 +35,27 @@ const RunDetails = ({ runId, onClose, platform }) => {
   const run = reduxRuns.find(r => r.id === runId);
   const [selectedTaskId, setSelectedTaskId] = useState(() => run?.tasks[0]?.id || null);
   const [expandedSteps, setExpandedSteps] = useState({});
-  const [artifacts, setArtifacts] = useState([]);
-  const [currentArtifactIndex, setCurrentArtifactIndex] = useState(0);
+  const [files, setFiles] = useState([]);
+  const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     if (run?.status === 'success' && run?.exportPath) {
-      window.electron.ipcRenderer.send('get-artifact-files', run.exportPath);
+      window.electron.ipcRenderer.send('get-run-files', run.exportPath);
     }
   }, [run]);
 
   useEffect(() => {
-    const handleArtifactFiles = (files) => {
-      console.log('Artifact files:', files);
-      setArtifacts(files || []);
-      console.log('Artifacts:', artifacts);
+    const handleFiles = (files) => {
+      console.log('Files:', files);
+      setFiles(files || []);
+      console.log('Files:', files);
     };
 
-    window.electron.ipcRenderer.on('artifact-files', handleArtifactFiles);
+    window.electron.ipcRenderer.on('run-files', handleFiles);
 
     return () => {
-      window.electron.ipcRenderer.removeListener('artifact-files', handleArtifactFiles);
+      window.electron.ipcRenderer.removeListener('run-files', handleFiles);
     };
   }, []);
 
@@ -75,8 +75,6 @@ const RunDetails = ({ runId, onClose, platform }) => {
     if (activeRun && (activeRun.status === 'pending' || activeRun.status === 'running')) {
       dispatch(stopRun(activeRun.id));
       console.log("Stopping run:", activeRun.id);
-      // Remove the run from Redux state
-      // dispatch(closeRun(activeRun.id));
 
       // Adjust active run index if necessary
       if (activeRunIndex >= reduxRuns.length - 1) {
@@ -103,15 +101,15 @@ const RunDetails = ({ runId, onClose, platform }) => {
     console.log('View run:', runId);
   };
 
-  const handlePrevArtifact = () => {
-    setCurrentArtifactIndex((prev) => (prev > 0 ? prev - 1 : artifacts.length - 1));
+  const handlePrevFile = () => {
+    setCurrentFileIndex((prev) => (prev > 0 ? prev - 1 : files.length - 1));
   };
 
-  const handleNextArtifact = () => {
-    setCurrentArtifactIndex((prev) => (prev < artifacts.length - 1 ? prev + 1 : 0));
+  const handleNextFile = () => {
+    setCurrentFileIndex((prev) => (prev < files.length - 1 ? prev + 1 : 0));
   };
 
-  const handleViewArtifacts = () => {
+  const handleViewFiles = () => {
     if (run?.exportPath) {
       window.electron.ipcRenderer.send('open-folder', run.exportPath);
     }
@@ -123,24 +121,24 @@ const RunDetails = ({ runId, onClose, platform }) => {
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-[70vw] h-[80vh] overflow-y-auto bg-background">
 
-        {run.status === 'success' && artifacts.length > 0 && (
+        {run.status === 'success' && files.length > 0 && (
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
-              <Button onClick={handlePrevArtifact} variant="outline" size="sm">
+              <Button onClick={handlePrevFile} variant="outline" size="sm">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span>{`${currentArtifactIndex + 1} / ${artifacts.length}`}</span>
-              <Button onClick={handleNextArtifact} variant="outline" size="sm">
+              <span>{`${currentFileIndex + 1} / ${files.length}`}</span>
+              <Button onClick={handleNextFile} variant="outline" size="sm">
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-            {artifacts[currentArtifactIndex] && (
+            {files[currentFileIndex] && (
               <div className="rounded-lg overflow-hidden">
                 <MonacoEditor
                   height="200px"
                   language="json"
                   theme="vs-dark"
-                  value={artifacts[currentArtifactIndex].content}
+                  value={files[currentFileIndex].content}
                   options={{ readOnly: true, minimap: { enabled: false } }}
                 />
               </div>
@@ -178,16 +176,16 @@ const RunDetails = ({ runId, onClose, platform }) => {
                 </Button>
               )}
               {run?.status === 'success' && run?.exportPath && (
-                <Button variant="outline" size="sm" onClick={handleViewArtifacts}>
+                <Button variant="outline" size="sm" onClick={handleViewFiles}>
                   <Folder className="mr-2 h-4 w-4" />
-                  View Artifacts
+                  View Files
                 </Button>
               )}
             </div>
           </div>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Extraction</CardTitle>
+              <CardTitle>{run.name} Export</CardTitle>
               <div className="flex items-center space-x-2">
                 <StatusIndicator status={run.status} />
                 <span>{run.status}</span>
@@ -195,52 +193,28 @@ const RunDetails = ({ runId, onClose, platform }) => {
                 <span>{getElapsedTime(run.startDate, run.endDate)}</span>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex h-[400px]">
-                <div className="w-1/3 border-r overflow-y-auto">
-                  {run.tasks.map(task => (
+            <CardContent className="max-w-full"> 
+              {run.logs.length > 0 ? (
+                <div className="space-y-2">
+                  {run.logs.split('\n').map((log, index) => (
                     <div
-                      key={task.id}
-                      className={`p-2 border-b cursor-pointer ${selectedTaskId === task.id ? 'bg-gray-100' : ''}`}
-                      onClick={() => setSelectedTaskId(task.id)}
+                      key={index}
+                      className={`p-2 rounded ${
+                        index === run.logs.length - 1 ? 'bg-muted font-medium' : ''
+                      }`}
                     >
-                      <div className="flex items-center space-x-2">
-                        <StatusIndicator status={task.status} />
-                        <span className="font-semibold text-sm">{task.name}</span>
+                      <div className="flex items-start gap-2">
+                        <div className="w-1 h-1 flex-shrink-0 rounded-full bg-primary mt-2" />
+                        <div className="break-all whitespace-pre-wrap min-w-0 flex-1">
+                          {log}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="w-2/3 overflow-y-auto">
-                  <ScrollArea className="h-full">
-                    {run.tasks.find(task => task.id === selectedTaskId)?.steps.map(step => (
-                      <div key={step.id} className="p-2 border-b">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleStep(selectedTaskId, step.id)}
-                            >
-                              {expandedSteps[`${selectedTaskId}-${step.id}`] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                            </Button>
-                            <StatusIndicator status={step.status} />
-                            <span className="font-semibold text-sm">{step.name}</span>
-                          </div>
-                          <span className="text-xs">{getElapsedTime(step.startTime, step.endTime)}</span>
-                        </div>
-                        {expandedSteps[`${selectedTaskId}-${step.id}`] && (
-                          <div className="bg-gray-100 p-2 rounded mt-1">
-                            <pre className="text-xs">
-                              {step.logs || 'No logs available'}
-                            </pre>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </ScrollArea>
-                </div>
-              </div>
+              ) : (
+                <p>No logs</p>
+              )}
             </CardContent>
           </Card>
         </div>

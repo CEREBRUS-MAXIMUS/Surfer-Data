@@ -47,7 +47,7 @@ const appReducer = (state = initialAppState.app, action: any) => {
     // Runs-related cases
     case 'START_RUN':
       return { ...state, runs: [...state.runs, action.payload] };
-    case 'CLOSE_RUN':
+    case 'DELETE_RUN':
       //if the last run is closed, set isRunLayerVisible to false
       return { ...state, runs: state.runs.filter(run => run.id !== action.payload), isRunLayerVisible: state.runs.length > 0 };
     case 'UPDATE_RUN_STATUS':
@@ -105,7 +105,7 @@ const appReducer = (state = initialAppState.app, action: any) => {
         ...state,
         runs: state.runs.map(run =>
           run.id === action.payload.runID
-            ? { ...run, status: 'success', exportPath: action.payload.exportPath, exportSize: action.payload.exportSize}
+            ? { ...run, status: 'success', exportPath: action.payload.exportPath, exportSize: action.payload.exportSize, endDate: new Date().toISOString() }
             : run
         )
       };

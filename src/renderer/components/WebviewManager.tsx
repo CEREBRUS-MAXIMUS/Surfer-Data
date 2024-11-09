@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight, X, Square, Bug } from 'lucide-react';
 import { IAppState } from '../types/interfaces';
 import {
   setActiveRunIndex,
-  closeRun,
   toggleRunVisibility,
   stopRun,
   adjustActiveRunIndex,
@@ -331,9 +330,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     ) {
       dispatch(stopRun(activeRun.id));
       console.log('Stopping run:', activeRun.id);
-
-      // // Remove the run from Redux state
-      // dispatch(closeRun(activeRun.id));
     }
   };
 

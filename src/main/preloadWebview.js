@@ -9,9 +9,9 @@ const { customConsoleLog } = require('./preloadFunctions');
 
 
 ipcRenderer.on('export-website', async (event, runID, platformId, filename, company, name, isUpdated) => {
-  const scraper = require(`./Scrapers/${company}/${filename}.js`);
+  const platform = require(`./platforms/${company}/${filename}.js`);
 
-    const data = await scraper(runID, platformId, filename, company, name);
+    const data = await platform(runID, platformId, filename, company, name);
     console.log('data', data);
 
   if (data === 'CONNECT_WEBSITE') {

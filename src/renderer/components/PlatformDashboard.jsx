@@ -10,7 +10,7 @@ import { Checkbox } from "./ui/checkbox";
 import { Progress } from "./ui/progress";
 import RunDetails from './RunDetails';
 import ConfettiExplosion from 'react-confetti-explosion';
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "./ui/tooltip";
+import { Tooltip, TooltipProvider } from "./ui/tooltip";
 import { Info } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 import { Card } from "./ui/card";
@@ -66,25 +66,25 @@ useEffect(() => {
 
 
   useEffect(() => {
-    const loadScrapers = async () => {
+    const loadPlatforms = async () => {
       try {
-        const scrapers = await window.electron.ipcRenderer.invoke('get-scrapers');
-        console.log('SCRAPERS: ', scrapers);
+        const platforms = await window.electron.ipcRenderer.invoke('get-platforms');
+        console.log('PLATFORMS: ', platforms);
 
-        setAllPlatforms(scrapers);
+        setAllPlatforms(platforms);
       } catch (error) {
-        console.error('Error loading scrapers:', error);
+        console.error('Error loading platforms:', error);
         setAllPlatforms([]);
       }
     };
 
-    loadScrapers();
+    loadPlatforms();
   }, []);
 
   useEffect(() => {
-    setFilteredPlatforms(allPlatforms.filter(scraper =>
-      scraper.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      scraper.company.toLowerCase().includes(searchTerm.toLowerCase())
+    setFilteredPlatforms(allPlatforms.filter(platform =>
+      platform.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      platform.company.toLowerCase().includes(searchTerm.toLowerCase())
     ));
   }, [searchTerm, allPlatforms]);
 
@@ -234,21 +234,21 @@ useEffect(() => {
 
 const renderRunStatus = (platform) => {
   const latestRun = getLatestRun(platform.id);
-  if (!latestRun || latestRun.status !== 'running' || !latestRun.logs) return null;
+  if (!latestRun ) return null;
 
-  // // Show loading spinner if no logs yet
-  // if (!latestRun.logs || latestRun.logs.length === 0) {
-  //   return <div><MoonLoader size={16} /></div>;
-  // }
+  // // Show loading spinner if running and no logs
+  if (latestRun.status === 'running' && (!latestRun.logs || latestRun.logs.length === 0)) {
+    return <div><MoonLoader size={16} /></div>;
+  }
 
   const logLines = latestRun.logs.split('\n');
 
   switch (latestRun.status) {
     case 'running':
       return (
-        <div className="flex items-center space-x-2">
-          <div id="log-container" className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '500px' }}>
-            <pre className="font-mono text-xs whitespace-pre-wrap break-words">
+        <div className="flex items-center w-full">
+          <div id="log-container" className="w-full max-h-[100px] overflow-y-auto bg-gray-100 dark:bg-gray-900 text-green-600 dark:text-green-400 p-2 rounded">
+            <pre className="font-mono text-xs whitespace-pre-wrap break-all m-0">
               {logLines.map((line, index) => (
                 <span key={index} className={line === 'YOU NEED TO SIGN IN (click the eye in the top right)!' ? 'text-red-500' : ''}>
                   {line}
@@ -271,18 +271,15 @@ const renderRunStatus = (platform) => {
               force={0.4}
             />
           )}
-          <div
-            onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
-            style={{ cursor: 'pointer' }}
-          >
-            <Folder size={17} />
+          <div>
+            <Check className="text-green-500" size={16} />
           </div>
           <span className="text-gray-500">-</span>
           <span
             className="cursor-pointer flex items-center hover:underline"
             onClick={() => onViewRunDetails(latestRun, platform)}
           >
-            {formatLastRunTime(latestRun.exportDate || latestRun.startDate)}
+            {formatLastRunTime(latestRun.endDate)}
             <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
           </span>
         </div>
@@ -293,8 +290,9 @@ const renderRunStatus = (platform) => {
       return (
         <div className="flex items-center space-x-2">
           <X className="text-red-500" size={16} />
+          <span className="text-gray-500">-</span>
           <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
-            - {formatLastRunTime(latestRun.endDate)}
+          {formatLastRunTime(latestRun.endDate)}
           </span>
         </div>
       );
@@ -375,7 +373,7 @@ const renderRunStatus = (platform) => {
                   <TableRow>
                     <TableHead>Platform</TableHead>
                     <TableHead></TableHead>
-                    <TableHead>Results</TableHead>
+                    <TableHead>Latest Run</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -471,7 +469,7 @@ const renderRunStatus = (platform) => {
       ) : (
         <div className="flex-grow flex items-center justify-center">
           <div className="text-center py-8 bg-gray-100 rounded-md">
-            <p className="text-gray-500 text-lg">Didn't find anything? <a className="underline cursor-pointer" onClick={() => window.electron.ipcRenderer.send('open-external', 'https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/blob/main/docs/ADD_PLATFORMS.md')}>Build a scraper for "{searchTerm}"</a></p>
+            <p className="text-gray-500 text-lg">Didn't find anything? <a className="underline cursor-pointer" onClick={() => window.electron.ipcRenderer.send('open-external', 'https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/blob/main/docs/ADD_PLATFORMS.md')}>Build a platform for "{searchTerm}"</a></p>
             <button
               onClick={clearSearch}
               className="mt-2 text-blue-500 hover:underline"

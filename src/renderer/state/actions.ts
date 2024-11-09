@@ -88,10 +88,6 @@ export const adjustActiveRunIndex = () => ({
   type: 'ADJUST_ACTIVE_RUN_INDEX',
 });
 
-export const closeRun = (runId: string) => ({
-  type: 'CLOSE_RUN',
-  payload: runId,
-});
 
 export const toggleRunVisibility = () => ({
   type: 'TOGGLE_RUN_VISIBILITY',
