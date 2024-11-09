@@ -2,7 +2,6 @@ const {
   customConsoleLog,
   wait,
   waitForElement,
-  bigStepper,
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
@@ -23,14 +22,12 @@ async function exportCalendar(id, platformId, filename, company, name) {
 
   if (!window.location.href.includes('calendar.google.com') && !window.location.href.includes('calendar')) {
     customConsoleLog(id, 'Navigating to Google Calendar');
-    bigStepper(id, 'Navigating to Google Calendar');
     window.location.assign('https://calendar.google.com/calendar/u/0/r/week');
   }
 
   await wait(2);
 
   const events = [];
-  bigStepper(id, 'Getting calendar events');
 
   // Extract events from the calendar view
   const eventElements = document.querySelectorAll('.GTG3wb');

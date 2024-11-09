@@ -1,4 +1,4 @@
-const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../preloadFunctions');
+const { customConsoleLog, waitForElement, wait  } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 const fs = require('fs')
 const path = require('path')
@@ -50,7 +50,6 @@ async function checkIfRepoExists(id, platformId, company, name, currentRepo) {
 async function exportGithub(id, platformId, filename, company, name) {
   if (!window.location.href.includes('github.com')) {
     customConsoleLog(id, 'Navigating to GitHub');
-    bigStepper(id, 'Navigating to GitHub');
     window.location.assign('https://github.com/');
   }
   await wait(2);
@@ -61,7 +60,6 @@ async function exportGithub(id, platformId, filename, company, name) {
   ) {
     if (document.querySelector('a[href="/login"]')) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-      bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';
     }
@@ -74,18 +72,15 @@ async function exportGithub(id, platformId, filename, company, name) {
 
     if (!tabButton) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-      bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';
     }
 
-    bigStepper(id, 'Clicking on User navigation menu');
     tabButton.click();
 
     await wait(2);
     const repoTab = await waitForElement(id, '#\\:rg\\:', 'Repository link');
 
-    bigStepper(id, 'Clicking on Repositories');
     repoTab.click();
     customConsoleLog(id, 'Clicked on Repositories!');
     await wait(2);
@@ -93,7 +88,6 @@ async function exportGithub(id, platformId, filename, company, name) {
 
   if (window.location.href.includes('tab=repositories')) {
     const repos = [];
-    bigStepper(id, 'Getting repositories...');
     customConsoleLog(id, 'Starting repository collection');
 
     while (true) {
@@ -165,7 +159,6 @@ async function exportGithub(id, platformId, filename, company, name) {
     }
 
     customConsoleLog(id, `Exporting ${repos.length} repositories`);
-    bigStepper(id, 'Exporting data');
     ipcRenderer.send(
       'handle-update-complete',
       id,

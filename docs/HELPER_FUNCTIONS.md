@@ -20,7 +20,4 @@ Surfer uses various helper functions to streamline the scraping process. Here's 
    - Creates a delay for the specified number of seconds.
    - Returns a Promise that resolves after the delay.
 
-4. `bigStepper(id, step)`:
-   - Tells the renderer process to move onto a specific step for the current run.
-
 These helper functions are designed to assist with common tasks in the scraping process, such as waiting for elements to load, cleaning HTML, and managing asynchronous operations. Use them in your platform-specific modules to maintain consistency and improve code readability.

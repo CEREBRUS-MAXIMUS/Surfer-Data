@@ -1,4 +1,4 @@
-const { customConsoleLog, waitForElement, wait, bigStepper } = require('../../preloadFunctions');
+const { customConsoleLog, waitForElement, wait } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
@@ -24,7 +24,6 @@ async function exportNotion(id, platformId, filename, company, name) {
   try {
     let notionCredentials;
     if (!window.location.href.includes('notion.so')) {
-      bigStepper(id, 'Navigating to Notion');
       customConsoleLog(id, 'Navigating to Notion');
       window.location.assign('https://notion.so/');
       ipcRenderer.send('get-notion-credentials', company, name);
@@ -58,8 +57,6 @@ async function exportNotion(id, platformId, filename, company, name) {
       }
     };
 
-    // Enqueue the export task
-    bigStepper(id, 'Starting Notion export');
     const response = await fetch(enqueueUrl, {
       method: 'POST',
       headers: {

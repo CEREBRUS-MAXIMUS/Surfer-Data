@@ -10,7 +10,6 @@ import {
   adjustActiveRunIndex,
   updateRunURL,
   updateExportStatus,
-  bigStepper,
   updateRunLogs,
   updateRunConnected
 } from '../state/actions';
@@ -184,12 +183,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
     }
   };
 
-  const handleBigStepper = useCallback((runId: string, step: string) => {
-    const runToStep = runs.find((run) => run.id === runId);
-    if (!runToStep) return;
-    dispatch(bigStepper(runToStep.id, step));
-  }, [dispatch, runs]);
-
   const handleLogs = useCallback((runId: string, ...logs: any[]) => {
     console.log('these are the logs: ', logs)
     const run = runs.find((run) => run.id === runId);
@@ -234,10 +227,6 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
 
       if (channel === 'toggle-visibility') {
         dispatch(toggleRunVisibility());
-      }
-
-      if (channel === 'big-stepper') {
-        handleBigStepper(args[0], args[1]);
       }
 
       if (channel === 'change-url') {

@@ -50,10 +50,6 @@ async function wait(seconds) {
   });
 }
 
-function bigStepper(id, step) {
-  ipcRenderer.sendToHost('big-stepper', id, step);
-}
-
 async function waitForContentToStabilize() {
   return new Promise((resolve) => {
     let timeout;
@@ -110,4 +106,4 @@ const features = {
 };
 
 
-module.exports = { customConsoleLog,waitForElement, wait, bigStepper, waitForContentToStabilize, features}
+module.exports = { customConsoleLog,waitForElement, wait, waitForContentToStabilize, features}

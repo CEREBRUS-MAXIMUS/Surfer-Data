@@ -2,7 +2,6 @@ const {
   customConsoleLog,
   wait,
   waitForElement,
-  bigStepper,
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
@@ -53,13 +52,12 @@ async function checkIfTweetExists(id, platformId, company, name, currentTweet) {
 
 async function exportTwitter(id, platformId, filename, company, name) {
   if (!window.location.href.includes('x.com')) {
-    bigStepper(id, 'Navigating to Twitter');
-    customConsoleLog(id, 'Navigating to Twitter');
+
+      customConsoleLog(id, 'Navigating to Twitter');
     window.location.assign('https://x.com/');
   }
   await wait(5);
   if (document.body.innerText.toLowerCase().includes('sign in to x')) {
-    bigStepper(id, 'Export stopped, waiting for sign in');
     customConsoleLog(
       id,
       'YOU NEED TO SIGN IN (click the eye in the top right)!',
@@ -86,7 +84,6 @@ async function exportTwitter(id, platformId, filename, company, name) {
     return 'CONNECT_WEBSITE';
   }
 
-  bigStepper(id, 'Clicking on Profile Picture');
   profilePics[1].click();
   await wait(2);
 
@@ -94,7 +91,6 @@ async function exportTwitter(id, platformId, filename, company, name) {
   let noNewTweetsCount = 0;
   //const scrollArray = ['start', 'center', 'end', 'nearest'];
 
-  bigStepper(id, 'Getting tweets...');
   customConsoleLog(id, 'Starting tweet collection');
 
   while (noNewTweetsCount < 3) {
@@ -185,7 +181,7 @@ async function exportTwitter(id, platformId, filename, company, name) {
   }
 
   customConsoleLog(id, `Exporting ${tweetArray.length} tweets`);
-  bigStepper(id, 'Exporting data');
+
   ipcRenderer.send('handle-update-complete', id, platformId, company, name);
   return 'HANDLE_UPDATE_COMPLETE';
 }

@@ -2,7 +2,6 @@ const {
   customConsoleLog,
   wait,
   waitForElement,
-  bigStepper,
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
@@ -57,7 +56,7 @@ async function exportGmail(id, platformId, filename, company, name) {
     customConsoleLog(id, 'First export, doing Google Takeout here!')
 
     if (!window.location.href.includes('takeout.google.com') && !window.location.href.includes('mail.google.com')) {
-      bigStepper(id, 'Going to Google Takeout');
+
       window.location.assign(
         'https://takeout.google.com/u/0/settings/takeout/custom/gmail',
       );
@@ -65,7 +64,6 @@ async function exportGmail(id, platformId, filename, company, name) {
 
   if (window.location.href.includes('takeout.google.com')) {
 
-    bigStepper(id, 'On takeout, clicking next');
     await wait(4);
     const nextButton = await waitForElement(
       id,
@@ -75,7 +73,6 @@ async function exportGmail(id, platformId, filename, company, name) {
 
     if (!nextButton) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-      bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';
     }
@@ -93,7 +90,6 @@ async function exportGmail(id, platformId, filename, company, name) {
     );
     exportButton[1].scrollIntoView();
     exportButton[1].click();
-    bigStepper(id, 'Clicked Export Button, going to gmail soon!');
     await wait(3);
 
     window.location.assign('https://mail.google.com/mail/u/0/#inbox');
@@ -101,7 +97,6 @@ async function exportGmail(id, platformId, filename, company, name) {
 
   if (window.location.href.includes('mail.google.com')) {
     customConsoleLog(id, 'Already on gmail, continuing to export!');
-    bigStepper(id, 'On gmail, checking for takeout email');
     let emailFound = false;
     let refreshCounter = 0;
 
@@ -114,7 +109,6 @@ async function exportGmail(id, platformId, filename, company, name) {
       );
       for (const email of emails) {
         if (email.innerText.includes('Your Google data is ready to download')) {
-          bigStepper(id, 'Clicked takeout email');
           email.click();
           return 'DOWNLOADING';
         }
@@ -166,15 +160,12 @@ async function exportGmail(id, platformId, filename, company, name) {
       }
     }
 
-    bigStepper(id, 'Clicked download button');
     downloadBtns[downloadBtns.length - 1].click();
 
     customConsoleLog(
       id,
       'Download button clicked, will take a few minutes to download + convert!!!',
     );
-
-    bigStepper(id, 'Downloading emails, will take a few minutes!');
   }
   }
 
@@ -190,27 +181,22 @@ else {
   ) {
     console.log('this window location href: ', window.location.href);
     customConsoleLog(id, 'Navigating to Gmail');
-    bigStepper(id, 'Navigating to Gmail');
     window.location.assign('https://mail.google.com/');
   }
   customConsoleLog(id, 'Waiting for page to load');
   await wait(2);
 
   const emails = []; // will add JSON structure later + handle multiple emails in same thread!
-  bigStepper(id, 'Getting first email');
   const mailLink = await waitForElement(id, "div.xS[role='link']", 'Mail link');
   if (!mailLink) {
     customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-    bigStepper(id, 'Export stopped, waiting for sign in');
     ipcRenderer.send('connect-website', id);
     return 'CONNECT_WEBSITE';
   }
 
-  bigStepper(id, 'Clicking first email');
   mailLink.click();
   await wait(2);
 
-  bigStepper(id, 'Getting emails...');
   while (true) {
     const email = await waitForElement(id, '#\\:3', 'Current email content');
     if (email) {

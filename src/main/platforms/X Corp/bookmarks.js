@@ -2,7 +2,6 @@ const {
   customConsoleLog,
   wait,
   waitForElement,
-  bigStepper,
   features,
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
@@ -71,7 +70,6 @@ async function checkTwitterCredentials(company, name) {
 async function exportBookmarks(id, platformId, filename, company, name) {
   let twitterCredentials;
   if (!window.location.href.includes('x.com')) {
-    bigStepper(id, 'Navigating to Twitter');
     customConsoleLog(id, 'Navigating to Twitter');
     window.location.assign('https://x.com/i/bookmarks/all');
     ipcRenderer.send('get-twitter-credentials', company, name);
@@ -131,8 +129,6 @@ async function exportBookmarks(id, platformId, filename, company, name) {
     //     break;
     //   }
     // }
-
-    bigStepper(id, 'Exporting data');
     // ipcRenderer.send('handle-update-complete', id, platformId, company, name);
     return bookmarks;
 

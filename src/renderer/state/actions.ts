@@ -98,11 +98,6 @@ export const stopRun = (runID: string) => ({
   payload: { runID },
 });
 
-export const bigStepper = (runId: string, step: string) => ({
-  type: 'BIG_STEPPER',
-  payload: { runId, step },
-});
-
 export const updateRunLogs = (runId: string, logs: string[]) => ({
   type: 'UPDATE_RUN_LOGS',
   payload: { runId, logs },

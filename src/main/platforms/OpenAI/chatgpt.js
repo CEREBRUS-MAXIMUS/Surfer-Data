@@ -2,7 +2,6 @@ const {
   customConsoleLog,
   waitForElement,
   wait,
-  bigStepper,
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
 
@@ -12,7 +11,6 @@ async function exportChatgpt(id, platformId, filename, company, name) {
     !window.location.href.includes('mail.google.com') &&
     !window.location.href.includes('https://auth.openai.com/authorize')
   ) {
-    bigStepper(id, 'Navigating to ChatGPT');
     customConsoleLog(id, 'Navigating to ChatGPT');
     window.location.assign('https://chatgpt.com/#settings/DataControls');
   }
@@ -21,7 +19,6 @@ async function exportChatgpt(id, platformId, filename, company, name) {
   if (window.location.href.includes('chatgpt.com')) {
     if (document.querySelector('button[data-testid="login-button"]')) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-      bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';
     }
@@ -37,7 +34,6 @@ async function exportChatgpt(id, platformId, filename, company, name) {
 
     if (!dialogBox) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-      bigStepper(id, 'Export stopped, waiting for sign in');
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';
     }
@@ -48,7 +44,6 @@ async function exportChatgpt(id, platformId, filename, company, name) {
 
     const exportBtn = buttons.find((button) => button.innerText === 'Export');
 
-    bigStepper(id, 'Clicking on Export');
     exportBtn.click();
 
     const confirmExport = await waitForElement(
@@ -61,7 +56,7 @@ async function exportChatgpt(id, platformId, filename, company, name) {
 
     // TODO: automatically go to user's email and download the file
     await wait(3);
-    bigStepper(id, 'Going to Gmail');
+
   }
 
   if (!window.location.href.includes('mail.google.com')) {
@@ -71,7 +66,7 @@ async function exportChatgpt(id, platformId, filename, company, name) {
   if (window.location.href.includes('mail.google.com')) {
     if (document.querySelector('h1')) {
       customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-      bigStepper(id, 'Export stopped, waiting for sign in');
+
       ipcRenderer.send('connect-website', id);
       return 'CONNECT_WEBSITE';
     }
@@ -82,11 +77,10 @@ async function exportChatgpt(id, platformId, filename, company, name) {
         'Download Email',
         true,
       );
-      bigStepper(id, 'Checking for email');
+
       customConsoleLog(id, `Waiting for email from OpenAI`);
       for (const email of emails) {
         if (email.innerText.includes('ChatGPT - Your data export is ready')) {
-          bigStepper(id, 'Email found, clicking it');
           email.click();
           return true; // Return true if the email is found
         }
@@ -116,7 +110,6 @@ async function exportChatgpt(id, platformId, filename, company, name) {
               });
               refreshButton.dispatchEvent(event);
             });
-            bigStepper(id, 'Refreshing emails');
             customConsoleLog(id, 'Refreshing emails');
             await wait(1); // Wait for refresh to complete
           }
@@ -141,7 +134,6 @@ async function exportChatgpt(id, platformId, filename, company, name) {
       }
     }
     customConsoleLog(id, 'Download button found, clicking it!');
-    bigStepper(id, 'Downloading data');
     downloadBtns[downloadBtns.length - 1].click();
     return 'DOWNLOADING';
   }

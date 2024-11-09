@@ -18,7 +18,7 @@ The `exportYoutube()` function in the `youtube.js` file performs the following t
 The YouTube export functionality is implemented in the `youtube.js` file. Here's an overview of the implementation:
 
 1. The `exportYoutube()` function is defined and exported as a module.
-2. It uses helper functions like `customConsoleLog`, `wait`, `waitForElement`, and `bigStepper` for various tasks.
+2. It uses helper functions like `customConsoleLog`, `wait`, `waitForElement` or other helper functions for various tasks.
 3. The function handles navigation, sign-in checks, and data extraction.
 4. It uses Electron's `ipcRenderer` to communicate with the main process.
 
