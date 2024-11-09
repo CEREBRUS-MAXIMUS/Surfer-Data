@@ -12,8 +12,7 @@ import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
 import { formatLastRunTime } from '../helpers';
 
 const Platform = ({ platform }) => {
-  const allRuns = useSelector(state => state.app.runs);
-  const runs = allRuns
+  const runs = useSelector(state => state.app.runs)
     .filter(run => run.platformId === platform.id)
     .sort((a, b) => {
       const dateA = new Date(a.exportDate || a.startDate);
@@ -21,22 +20,25 @@ const Platform = ({ platform }) => {
       return dateB - dateA;
     });
 
-  const [expandedRuns, setExpandedRuns] = useState({});
-  const [selectedRunId, setSelectedRunId] = useState(null);
+  const [selectedRun, setSelectedRun] = useState(null);
   const dispatch = useDispatch();
 
-  const toggleRunExpansion = (runId) => {
-    setExpandedRuns(prev => ({ ...prev, [runId]: !prev[runId] }));
-  };
 
   const handleDeleteAllData = async () => {
     try {
-      await deleteRunsForPlatformFromDB(platform.id);
       dispatch(deleteRunsForPlatform(platform.id));
       setRuns([]);
     } catch (error) {
       console.error('Error deleting platform data:', error);
     }
+  };
+
+  const onViewRunDetails = (run) => {
+    setSelectedRun({ run, platform });
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedRun(null);
   };
 
   return (
@@ -65,7 +67,10 @@ const Platform = ({ platform }) => {
               {runs.map((run) => {
                 return (
                   <React.Fragment key={run.id}>
-                    <TableRow>
+                    <TableRow 
+                      className="cursor-pointer"
+                      onClick={() => onViewRunDetails(run)}
+                    >
                       <TableCell>
                         {formatLastRunTime(run.exportDate || run.startDate)}
                       </TableCell>
@@ -73,7 +78,6 @@ const Platform = ({ platform }) => {
                         {run.status}
                       </TableCell>
                     </TableRow>
-
                   </React.Fragment>
                 );
               })}
@@ -107,9 +111,9 @@ const Platform = ({ platform }) => {
         </CardContent>
       </Card>
 
-      {selectedRunId && (
+      {selectedRun && (
         <RunDetails
-          runId={selectedRunId}
+          runId={selectedRun.run.id}
           onClose={handleCloseDetails}
           platform={platform}
         />

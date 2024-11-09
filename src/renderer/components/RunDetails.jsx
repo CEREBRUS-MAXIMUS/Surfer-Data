@@ -4,7 +4,6 @@ import { ChevronDown, ChevronRight, Clock, ArrowLeft, XCircle, Eye, Trash2, Chev
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { openDB } from 'idb';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "./ui/breadcrumb";
 import { updateRunStatus, deleteRun } from '../state/actions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
@@ -33,55 +32,12 @@ const RunDetails = ({ runId, onClose, platform }) => {
   const dispatch = useDispatch();
   const reduxRuns = useSelector(state => state.app.runs);
   const activeRunIndex = useSelector((state) => state.app.activeRunIndex);
-  const [run, setRun] = useState(null);
-  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const run = reduxRuns.find(r => r.id === runId);
+  const [selectedTaskId, setSelectedTaskId] = useState(() => run?.tasks[0]?.id || null);
   const [expandedSteps, setExpandedSteps] = useState({});
-  const [, forceUpdate] = useState();
   const [artifacts, setArtifacts] = useState([]);
   const [currentArtifactIndex, setCurrentArtifactIndex] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  useEffect(() => {
-    const loadRun = async () => {
-      // Check if the run exists in Redux state
-      const reduxRun = reduxRuns.find(r => r.id === runId);
-
-      if (reduxRun) {
-        setRun(reduxRun);
-        if (reduxRun.tasks.length > 0) {
-          setSelectedTaskId(reduxRun.tasks[0].id);
-        }
-      } else {
-        // If not in Redux, load from IndexedDB
-        const db = await openDB('dataExtractionDB', 1);
-        const loadedRun = await db.get('runs', runId);
-
-        if (loadedRun) {
-          // Ensure the first task and its first step are running
-          if (loadedRun.tasks.length > 0) {
-            loadedRun.tasks[0].status = 'running';
-            loadedRun.tasks[0].startTime = loadedRun.tasks[0].startTime || new Date().toISOString();
-            if (loadedRun.tasks[0].steps.length > 0) {
-              loadedRun.tasks[0].steps[0].status = 'running';
-              loadedRun.tasks[0].steps[0].startTime = loadedRun.tasks[0].steps[0].startTime || new Date().toISOString();
-            }
-          }
-
-          setRun(loadedRun);
-          if (loadedRun.tasks.length > 0) {
-            setSelectedTaskId(loadedRun.tasks[0].id);
-          }
-        }
-      }
-    };
-    loadRun();
-
-    // Set up an interval to force update every second
-    const interval = setInterval(() => forceUpdate({}), 1000);
-
-    // Clean up the interval on component unmount
-    return () => clearInterval(interval);
-  }, [runId, reduxRuns]);
 
   useEffect(() => {
     if (run?.status === 'success' && run?.exportPath) {
@@ -120,7 +76,7 @@ const RunDetails = ({ runId, onClose, platform }) => {
       dispatch(stopRun(activeRun.id));
       console.log("Stopping run:", activeRun.id);
       // Remove the run from Redux state
-      dispatch(closeRun(activeRun.id));
+      // dispatch(closeRun(activeRun.id));
 
       // Adjust active run index if necessary
       if (activeRunIndex >= reduxRuns.length - 1) {

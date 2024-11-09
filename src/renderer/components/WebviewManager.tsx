@@ -332,8 +332,8 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       dispatch(stopRun(activeRun.id));
       console.log('Stopping run:', activeRun.id);
 
-      // Remove the run from Redux state
-      dispatch(closeRun(activeRun.id));
+      // // Remove the run from Redux state
+      // dispatch(closeRun(activeRun.id));
     }
   };
 

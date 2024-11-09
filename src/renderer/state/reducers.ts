@@ -88,28 +88,7 @@ const appReducer = (state = initialAppState.app, action: any) => {
             : run
         )
       };
-    case 'UPDATE_TASK_STATUS':
-      return {
-        ...state,
-        runs: state.runs.map(run =>
-          run.id === action.payload.runId
-            ? {
-                ...run,
-                tasks: run.tasks.map(task =>
-                  task.id === action.payload.taskId
-                    ? {
-                        ...task,
-                        status: action.payload.status,
-                        startTime: action.payload.startTime,
-                        endTime: action.payload.endTime,
-                        logs: action.payload.logs || task.logs
-                      }
-                    : task
-                )
-              }
-            : run
-        )
-      };
+
     case 'STOP_RUN':
       return {
         ...state,

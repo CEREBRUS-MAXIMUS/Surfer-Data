@@ -387,7 +387,7 @@ export const createWindow = async (visible: boolean = true) => {
   };
 
   mainWindow = new BrowserWindow({
-    show: false, 
+    show: true, 
     //set to max with on mac screen
     width: 1560,
     height: 1024,
@@ -458,18 +458,6 @@ export const createWindow = async (visible: boolean = true) => {
     }
   });
 
-
-  mainWindow.on('ready-to-show', () => {
-    if (!mainWindow) {
-      throw new Error('"mainWindow" is not defined');
-    }
-    mainWindow.show()
-    // if (process.env.START_MINIMIZED) {
-    //   mainWindow.minimize();
-    // } else {
-    //   mainWindow.show();
-    // }
-  });
 
   ipcMain.on('show-dev-tools', (event) => {
     try {
@@ -1102,14 +1090,3 @@ ipcMain.on('open-platform-export-folder', (event, company, name) => {
   console.log('exportFolderPath', exportFolderPath);
   shell.openPath(exportFolderPath);
 });
-
-// app.on('before-quit', (event) => {
-//   event.preventDefault(); // Prevent the app from quitting immediately
-//   mainWindow?.webContents.send('stop-all-jobs');
-// });
-
-// // ... rest of the existing code ...
-
-// ipcMain.on('jobs-stopped', () => {
-//   app.exit(0); // Now we can safely exit the app
-// });

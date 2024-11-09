@@ -1,16 +1,14 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { startRun, toggleRunVisibility, setExportRunning, updateExportStatus, addRun } from '../state/actions';
-import { useTheme } from './ui/theme-provider';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Button } from "./ui/button";
 import { ArrowUpRight, ArrowRight, Check, X, Link, Download, Search, ChevronLeft, ChevronRight, HardDriveDownload, Folder, Eye } from 'lucide-react';
-import { openDB } from 'idb';
 import { Input } from "./ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 import { Checkbox } from "./ui/checkbox";
 import { Progress } from "./ui/progress";
-import RunDetailsPage from './RunDetails';
+import RunDetails from './RunDetails';
 import ConfettiExplosion from 'react-confetti-explosion';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "./ui/tooltip";
 import { Info } from 'lucide-react';
@@ -22,13 +20,10 @@ import { MoonLoader } from 'react-spinners';
 const PlatformDashboard = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
   const runs = useSelector(state => state.app.runs);
-    const activeRuns = runs.filter(
-      (run) => run.status === 'pending' || run.status === 'running',
-    );
+
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-  const { theme } = useTheme(); // Get the current theme
   const [dbUpdateTrigger, setDbUpdateTrigger] = useState(0);
   const dbRef = useRef(null);
   const [selectedRun, setSelectedRun] = useState(null);
@@ -40,9 +35,6 @@ const PlatformDashboard = ({ onPlatformClick, webviewRef }) => {
   const [filteredPlatforms, setFilteredPlatforms] = useState([]);
   const [allPlatforms, setAllPlatforms] = useState([]);
 
-
-  const LOGO_SIZE = 24; // Set a consistent size for all logos
-  
 
 useEffect(() => {
   // Listen for runs request from main process
@@ -59,39 +51,9 @@ useEffect(() => {
   };
 }, [runs]);
 
-  const loadRuns = useCallback(async () => {
-    const db = await openDB('dataExtractionDB', 1, {
-      upgrade(db) {
-        db.createObjectStore('runs', { keyPath: 'id' });
-      },
-    });
-    dbRef.current = db;
-    const loadedRuns = await db.getAll('runs');
-  }, [dispatch]);
 
-  useEffect(() => {
-    loadRuns();
 
-    return () => {
-      if (dbRef.current) {
-        dbRef.current.close();
-      }
-    };
-  }, [loadRuns, dbUpdateTrigger]);
-
-  useEffect(() => {
-    const handleDbChange = () => {
-      setDbUpdateTrigger(prev => prev + 1);
-    };
-
-    window.electron.ipcRenderer.on('db-changed', handleDbChange);
-
-    return () => {
-      window.electron.ipcRenderer.removeListener('db-changed', handleDbChange);
-    };
-  }, []);
-
-  const getLatestRun = useCallback((platformId) => {
+  const getLatestRun = (platformId) => {
     const platformRuns = runs.filter(run => run.platformId === platformId);
     if (platformRuns.length === 0) return null;
 
@@ -100,7 +62,7 @@ useEffect(() => {
       const currentDate = current.startDate ? new Date(current.startDate) : new Date(0);
       return currentDate > latestDate ? current : latest;
     });
-  }, [runs]);
+  };
 
 
   useEffect(() => {
@@ -152,7 +114,7 @@ useEffect(() => {
     return () => {
       window.electron.ipcRenderer.removeListener('element-found', handleElementFound);
     };
-  }, [connectedPlatforms]);
+  }, [allPlatforms]);
 
   // useEffect(() => {
   //   const runisUpdateds = async () => {
@@ -270,100 +232,77 @@ useEffect(() => {
     setSelectedRun(null);
   };
 
-const renderResults = (platform) => {
+const renderRunStatus = (platform) => {
   const latestRun = getLatestRun(platform.id);
-  const exportRunning = isExportRunning(platform.id);
-  const isHovered = hoveredPlatformId === platform.id;
+  if (!latestRun || latestRun.status !== 'running' || !latestRun.logs) return null;
 
-  return (
-    <div className="relative w-full flex items-center">
-      <div className="flex-grow flex items-center">
-        <div className="flex-shrink-0 mr-4 w-1/2">
-          {!latestRun || latestRun.status === 'idle' ? (
-            <div className="flex justify-between items-center w-full h-full">
-              <div></div>
-            </div>
-          ) : (
-            renderRunStatus(latestRun, platform)
-          )}
-        </div>
-        {/* {latestRun && latestRun.status === 'running' && (
-          <div className="flex-grow overflow-hidden">
-            {showLogs(platform)}
-          </div>
-        )} */}
-      </div>
-    </div>
-  );
-};
+  // // Show loading spinner if no logs yet
+  // if (!latestRun.logs || latestRun.logs.length === 0) {
+  //   return <div><MoonLoader size={16} /></div>;
+  // }
 
-  const renderRunStatus = (latestRun, platform) => {
-    if (!latestRun || !latestRun.logs || latestRun.logs.length === 0) {
-      return <div><MoonLoader size={16} /></div>
-    }
   const logLines = latestRun.logs.split('\n');
-    switch (latestRun.status) {
-      case 'running':
+
+  switch (latestRun.status) {
+    case 'running':
       return (
         <div className="flex items-center space-x-2">
-          <div className="flex-grow">
-            <div className="flex items-center space-x-2 group">
-        <div id="log-container" className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '500px' }}>
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words">
-                {logLines.map((line, index) => (
-                  <span key={index} className={line === 'YOU NEED TO SIGN IN (click the eye in the top right)!' ? 'text-red-500' : ''}>
-                    {line}
-                    {index < logLines.length - 1 && '\n'}
-                  </span>
-                ))}
-              </pre>
-            </div>
-            </div>
+          <div id="log-container" className="max-h-[100px] overflow-y-auto bg-black text-green-400 p-2 rounded" style={{ maxWidth: '500px' }}>
+            <pre className="font-mono text-xs whitespace-pre-wrap break-words">
+              {logLines.map((line, index) => (
+                <span key={index} className={line === 'YOU NEED TO SIGN IN (click the eye in the top right)!' ? 'text-red-500' : ''}>
+                  {line}
+                  {index < logLines.length - 1 && '\n'}
+                </span>
+              ))}
+            </pre>
           </div>
         </div>
       );
-      case 'success':
-        return (
-          <div className="flex items-center space-x-2">
-            {completedRuns[latestRun.id] && (
-              <ConfettiExplosion
-                particleCount={50}
-                width={200}
-                duration={2200}
-                force={0.4}
-              />
-            )}
-            <div
-              onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
-              style={{ cursor: 'pointer' }}
-            >
-              <Folder size={17} />
-            </div>
 
-            <span className="text-gray-500">-</span>
-            <span
-              className="cursor-pointer flex items-center hover:underline"
-              onClick={() => onViewRunDetails(latestRun, platform)}
-            >
-              {formatLastRunTime(latestRun.exportDate || latestRun.startDate)}
-              <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
-            </span>
+    case 'success':
+      return (
+        <div className="flex items-center space-x-2">
+          {completedRuns[latestRun.id] && (
+            <ConfettiExplosion
+              particleCount={50}
+              width={200}
+              duration={2200}
+              force={0.4}
+            />
+          )}
+          <div
+            onClick={() => window.electron.ipcRenderer.send('open-folder', latestRun.exportPath)}
+            style={{ cursor: 'pointer' }}
+          >
+            <Folder size={17} />
           </div>
-        );
-      case 'error':
-      case 'stopped':
-        return (
-          <div className="flex items-center space-x-2">
-            <X className="text-red-500" size={16} />
-            <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
-              Export {latestRun.status === 'error' ? 'failed' : 'stopped'}
-            </span>
-          </div>
-        );
-      default:
-        return <span>Unknown status</span>;
-    }
-  };
+          <span className="text-gray-500">-</span>
+          <span
+            className="cursor-pointer flex items-center hover:underline"
+            onClick={() => onViewRunDetails(latestRun, platform)}
+          >
+            {formatLastRunTime(latestRun.exportDate || latestRun.startDate)}
+            <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
+          </span>
+        </div>
+      );
+
+    case 'error':
+    case 'stopped':
+      return (
+        <div className="flex items-center space-x-2">
+          <X className="text-red-500" size={16} />
+          <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
+            - {formatLastRunTime(latestRun.endDate)}
+          </span>
+        </div>
+      );
+
+    default:
+      return null;
+  }
+};
 
   useEffect(() => {
     const logContainers = document.querySelectorAll('#log-container');
@@ -454,7 +393,7 @@ const renderResults = (platform) => {
                             onClick={() => onPlatformClick(platform)}
                           >
                  {platformLogos[platform.id] && (
-                  <img src={platformLogos[platform.id]} alt={platform.name} className="w-4 h-4" style={{ width: `${LOGO_SIZE}px`, height: `${LOGO_SIZE}px` }}/>
+                  <img src={platformLogos[platform.id]} alt={platform.name} className="w-4 h-4" style={{ width: `24px`, height: `24px` }}/>
                 )}
                             <div className="flex items-center">
                               <p className="flex items-center">
@@ -470,7 +409,7 @@ const renderResults = (platform) => {
                         <p className="font-medium">{platform.description || 'No description available'}</p>
                       </TableCell>
                       <TableCell className="w-[600px]">
-                        {renderResults(platform)}
+                        {renderRunStatus(platform)}
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
@@ -543,7 +482,7 @@ const renderResults = (platform) => {
         </div>
       )}
       {selectedRun && (
-        <RunDetailsPage
+        <RunDetails
           runId={selectedRun.run.id}
           onClose={handleCloseDetails}
           platform={selectedRun.platform}

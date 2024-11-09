@@ -58,10 +58,6 @@ export const updateStepStatus = (runId: string, taskId: string, stepId: string, 
   payload: { runId, taskId, stepId, status, startTime, endTime, logs },
 });
 
-export const updateTaskStatus = (runId: string, taskId: string, status: ITask['status'], startTime?: string, endTime?: string, logs?: string) => ({
-  type: 'UPDATE_TASK_STATUS',
-  payload: { runId, taskId, status, startTime, endTime, logs },
-});
 
 export const deleteRunsForPlatform = (platformId: string) => ({
   type: 'DELETE_RUNS_FOR_PLATFORM',

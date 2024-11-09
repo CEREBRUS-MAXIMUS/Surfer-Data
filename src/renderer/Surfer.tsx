@@ -64,19 +64,10 @@ function Surfer() {
       dispatch(setCurrentRoute(route));
     });
 
-    const handleStopAllJobs = async () => {
-      console.log('Stopping all jobs...');
-      await dispatch(stopAllJobs());
-      window.electron.ipcRenderer.send('jobs-stopped');
-    };
-
-    window.electron.ipcRenderer.on('stop-all-jobs', handleStopAllJobs);
-
     // Cleanup
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.electron.ipcRenderer.removeAllListeners('route-change');
-      window.electron.ipcRenderer.removeListener('stop-all-jobs', handleStopAllJobs);
     };
   }, [dispatch, contentScale]);
 
