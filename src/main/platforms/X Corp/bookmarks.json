@@ -4,5 +4,6 @@
     "logoURL": "https://logo.clearbit.com/twitter.com",
     "isUpdated": true,
     "connectURL": "https://twitter.com",
-    "connectSelector": "img.css-9pa8cd"
+    "connectSelector": "img.css-9pa8cd",
+    "exportFrequency": "hourly"
 }

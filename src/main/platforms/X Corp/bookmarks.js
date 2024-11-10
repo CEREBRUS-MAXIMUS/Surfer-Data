@@ -18,32 +18,31 @@ async function checkIfBookmarkExists(id, platformId, company, name, currentBookm
     platformId,
     `${platformId}.json`,
   );
-  customConsoleLog(id, id, `Checking if file exists at ${filePath}`);
   const fileExists = await fs.existsSync(filePath);
   if (fileExists) {
-    customConsoleLog(id, `File exists, reading file`);
     try {
       const fileContent = fs.readFileSync(filePath, 'utf-8');
       if (fileContent.trim() === '') {
-        customConsoleLog(id, 'File is empty');
+        customConsoleLog(id, 'File is empty'); // handle file being empty
         return false;
       }
-      const bookmarks = JSON.parse(fileContent);
-      if (bookmarks && bookmarks.content && Array.isArray(bookmarks.content)) {
-        for (const bookmark of bookmarks.content) {
-          if (
-            bookmark.timestamp === currentBookmark.timestamp &&
-            bookmark.text === currentBookmark.text
-          ) {
-            customConsoleLog(id, 'Bookmark already exists, skipping');
-            return true;
-          }
+      const savedBookmarks = JSON.parse(fileContent);
+      if (savedBookmarks && savedBookmarks.content && Array.isArray(savedBookmarks.content)) {
+        // Create a Set of unique identifiers for existing bookmarks
+        const existingBookmarks = new Set(
+          savedBookmarks.content.map(bookmark => `${bookmark.timestamp}-${bookmark.text}`)
+        );
+        
+        // Check if current bookmark exists using the same identifier format
+        const currentBookmarkKey = `${currentBookmark.timestamp}-${currentBookmark.text}`;
+        if (existingBookmarks.has(currentBookmarkKey)) {
+          return true;
         }
       } else {
         customConsoleLog(id, 'Invalid or empty bookmarks structure');
       }
     } catch (error) {
-      console.error(id, `Error reading or parsing file: ${error.message}`);
+      customConsoleLog(id, `Error reading or parsing file: ${error.message}`);
     }
   }
 
@@ -75,7 +74,6 @@ async function exportBookmarks(id, platformId, filename, company, name) {
     ipcRenderer.send('get-twitter-credentials', company, name);
   }
 
-  // Wait for bigData to be available
   while (!twitterCredentials) {
     await wait(0.5);
     twitterCredentials = await checkTwitterCredentials(company, name);
@@ -83,125 +81,95 @@ async function exportBookmarks(id, platformId, filename, company, name) {
 
   customConsoleLog(id, 'twitterCredentials obtained!')
 
-  // Run API requests to get bookmarks
   try {
-    const bookmarks = await getBookmarks(id, twitterCredentials);
-    customConsoleLog(id, `Retrieved ${bookmarks.length} bookmarks`);
+    let cursor = "";
+    let noNewBookmarksCount = 0;
+    let shouldBreak = false;
+    
+    while (true) {
+      const response = await fetchBookmarkBatch(id, twitterCredentials, cursor);
 
-    // let bookmarkArray = [];
-    // let noNewBookmarksCount = 0;
+      const data = await response.json();
 
-    // for (const bookmark of bookmarks) {
+      const entries =
+        data.data?.bookmark_timeline_v2?.timeline?.instructions?.[0]?.entries || [];
+      const tweets = entries.filter((entry) => entry.entryId.startsWith('tweet-'));
+      
+      customConsoleLog(id, `Updating current bookmarks...`);
+      // Process each tweet in the current batch
+      for (const tweet of tweets) {
+        const bookmark = parseTweet(tweet);
+        
+        const bookmarkExists = await checkIfBookmarkExists(
+          id,
+          platformId,
+          company,
+          name,
+          bookmark
+        );
 
+        if (bookmarkExists) {
+          customConsoleLog(id, 'Bookmark already exists, skipping');
+          noNewBookmarksCount++;
+          if (noNewBookmarksCount >= 3) {
+            customConsoleLog(id, 'No new bookmarks found in the last 3 iterations, stopping');
+            shouldBreak = true;
+            break;
+          }
 
-    //   if (!bookmarkArray.some(
-    //     (t) => t.timestamp === bookmark.timestamp && t.text === bookmark.text
-    //   )) {
-    //     const bookmarkExists = await checkIfBookmarkExists(
-    //       id,
-    //       platformId,
-    //       company,
-    //       name,
-    //       bookmark
-    //     );
+        } else {
+          ipcRenderer.send(
+            'handle-update',
+            company,
+            name,
+            platformId,
+            JSON.stringify(bookmark),
+            id
+          );
+        }
+      }
 
-    //     if (bookmarkExists) {
-    //       customConsoleLog(id, 'Bookmark already exists, skipping');
-    //       noNewBookmarksCount++;
-    //     } else {
-    //       ipcRenderer.send(
-    //         'handle-update',
-    //         company,
-    //         name,
-    //         platformId,
-    //         JSON.stringify(bookmark),
-    //         id
-    //       );
-    //       bookmarkArray.push(bookmark);
-    //       noNewBookmarksCount = 0;
-    //     }
-    //   } else {
-    //     noNewBookmarksCount++;
-    //   }
+      if (shouldBreak || !cursor || tweets.length === 0) {
+        customConsoleLog(id, 'No more bookmarks to fetch');
+        break;
+      }
 
-    //   if (noNewBookmarksCount >= 3) {
-    //     customConsoleLog(id, 'No new bookmarks found in the last 3 iterations, stopping');
-    //     break;
-    //   }
-    // }
-    // ipcRenderer.send('handle-update-complete', id, platformId, company, name);
-    return bookmarks;
+      customConsoleLog(id, 'Added ' + tweets.length + ' bookmarks, getting more.');
+      cursor = getNextCursor(entries);
+    }
+
+    ipcRenderer.send('handle-update-complete', id, platformId, company, name);
+    return 'HANDLE_UPDATE_COMPLETE';
 
   } catch (error) {
     customConsoleLog(id, `Error fetching bookmarks: ${error.message}`);
-    return 'ERROR';
   }
 }
 
-async function getBookmarks(id, twitterCredentials, cursor = "", totalImported = 0, allBookmarks = []) {
+async function fetchBookmarkBatch(id, twitterCredentials, cursor = "") {
   const headers = new Headers();
   headers.append('Cookie', twitterCredentials.cookie);
   headers.append('X-Csrf-token', twitterCredentials.csrf);
   headers.append('Authorization', twitterCredentials.auth);
+  
   const variables = {
     count: 100,
     cursor: cursor,
     includePromotedContent: false,
   };
+  
   const API_URL = `https://x.com/i/api/graphql/${
     twitterCredentials.bookmarksApiId
   }/Bookmarks?features=${encodeURIComponent(
     JSON.stringify(features)
   )}&variables=${encodeURIComponent(JSON.stringify(variables))}`;
 
-  try {
-    const response = await fetch(API_URL, {
-      method: "GET",
-      headers: headers,
-      redirect: "follow",
-    });
+  return fetch(API_URL, {
+    method: "GET",
+    headers: headers,
+    redirect: "follow",
+  });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const entries =
-      data.data?.bookmark_timeline_v2?.timeline?.instructions?.[0]
-        ?.entries || [];
-
-    const tweetEntries = entries.filter((entry) =>
-      entry.entryId.startsWith('tweet-'),
-    );
-
-    console.log(id, `Tweet entries: ${JSON.stringify(tweetEntries[0], null, 2)}`);
-
-    const parsedTweets = tweetEntries.map(parseTweet);
-
-    allBookmarks = allBookmarks.concat(parsedTweets);
-
-    const newBookmarksCount = parsedTweets.length;
-    totalImported += newBookmarksCount;
-
-    customConsoleLog(id, 'Current total imported:', totalImported);
-
-    const nextCursor = getNextCursor(entries);
-    console.log('nextCursor:', nextCursor);
-
-    if (nextCursor && newBookmarksCount > 0) {
-      console.log('TRYING TO GET MORE BOOKMARKS!!!')
-      return await getBookmarks(id, twitterCredentials, nextCursor, totalImported, allBookmarks);
-    }
-    else {
-      customConsoleLog(id, 'No new bookmarks found, returning all bookmarks');
-      return allBookmarks;
-    }
-
-    //return data; // or return processed data
-  } catch (error) {
-    console.error(id, `Error fetching bookmarks: ${error.message}`);
-    throw error; // Re-throw the error if you want to handle it in the calling function
-  }
 }
 
 const parseTweet = (entry) => {

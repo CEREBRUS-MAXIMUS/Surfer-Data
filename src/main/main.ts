@@ -743,8 +743,6 @@ if (!existingData) {
 
   // Write the updated data
   fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
-
-  console.log(`Data appended to: ${filePath}`);
 });
  
 ipcMain.on('handle-update-complete', (event, runID, platformId, company, name, customFilePath = null) => {
