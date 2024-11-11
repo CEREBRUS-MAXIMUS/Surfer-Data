@@ -129,13 +129,18 @@ async function exportBookmarks(id, platformId, filename, company, name) {
         }
       }
 
+      
+
+      cursor = getNextCursor(entries);
+
       if (shouldBreak || !cursor || tweets.length === 0) {
         customConsoleLog(id, 'No more bookmarks to fetch');
         break;
       }
-
-      customConsoleLog(id, 'Added ' + tweets.length + ' bookmarks, getting more.');
-      cursor = getNextCursor(entries);
+        customConsoleLog(
+              id,
+              'Added ' + tweets.length + ' bookmarks, getting more.',
+            );
     }
 
     ipcRenderer.send('handle-update-complete', id, platformId, company, name);
