@@ -172,13 +172,13 @@ const RunDetails = ({ runId, onClose, platform }) => {
               {(run?.status === 'pending' || run?.status === 'running') && (
                 <Button variant="destructive" size="sm" onClick={handleStopRun}>
                   <XCircle className="mr-2 h-4 w-4" />
-                  Cancel Run
+                  Stop Run
                 </Button>
               )}
               {run?.status === 'success' && run?.exportPath && (
                 <Button variant="outline" size="sm" onClick={handleViewFiles}>
                   <Folder className="mr-2 h-4 w-4" />
-                  View Files
+                  Open Files
                 </Button>
               )}
             </div>

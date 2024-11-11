@@ -279,7 +279,7 @@ const renderRunStatus = (platform) => {
             className="cursor-pointer flex items-center hover:underline"
             onClick={() => onViewRunDetails(latestRun, platform)}
           >
-            {formatLastRunTime(latestRun.endDate)}
+            {formatLastRunTime(latestRun.endDate || latestRun.startDate)}
             <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
           </span>
         </div>
@@ -292,7 +292,7 @@ const renderRunStatus = (platform) => {
           <X className="text-red-500" size={16} />
           <span className="text-gray-500">-</span>
           <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
-          {formatLastRunTime(latestRun.endDate)}
+          {formatLastRunTime(latestRun.endDate || latestRun.startDate)}
           </span>
         </div>
       );

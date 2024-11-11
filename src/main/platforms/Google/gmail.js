@@ -28,7 +28,7 @@ async function checkIfEmailExists(id, platformId, company, name, emailContent) {
     console.log('emailContent: ', emailContent);
       for (const email of fileContent.content) {
         if (
-          email.subject === emailContent.subject &&
+          // email.subject === emailContent.subject &&
           email.timestamp.slice(0, -7) ===
             emailContent.timestamp.slice(0, -7)
         ) {
@@ -110,10 +110,10 @@ async function exportGmail(id, platformId, filename, company, name) {
       for (const email of emails) {
         if (email.innerText.includes('Your Google data is ready to download')) {
           email.click();
-          return 'DOWNLOADING';
+          return true;
         }
       }
-      return 'NOTHING';
+      return false;
     };
 
     while (!emailFound) {
@@ -121,7 +121,6 @@ async function exportGmail(id, platformId, filename, company, name) {
       if (!emailFound) {
         await wait(1);
         refreshCounter++;
-
         if (refreshCounter >= 10) {
           const refreshButton = document.querySelector(
             'div[role="button"][aria-label="Refresh"]',
@@ -186,18 +185,17 @@ else {
   customConsoleLog(id, 'Waiting for page to load');
   await wait(2);
 
-  const emails = []; // will add JSON structure later + handle multiple emails in same thread!
-  const mailLink = await waitForElement(id, "div.xS[role='link']", 'Mail link');
-  if (!mailLink) {
-    customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-    ipcRenderer.send('connect-website', id);
-    return 'CONNECT_WEBSITE';
-  }
+  const emails = [];
+  const mailLinks = document.querySelectorAll("div.xS[role='link']");
+  const totalEmailsOnPage = mailLinks.length;
+  let emailsProcessed = 0;
+  let consecutiveExistingEmails = 0;
 
-  mailLink.click();
-  await wait(2);
+  // Instead of just clicking the first mail link, we'll iterate through all mail links
+  for (let i = 0; i < mailLinks.length; i++) {
+    mailLinks[i].click();
+    await wait(2);
 
-  while (true) {
     const email = await waitForElement(id, '#\\:3', 'Current email content');
     if (email) {
       document.querySelector('div[aria-label="Show details"]').click();
@@ -246,42 +244,31 @@ else {
       const emailExists = await checkIfEmailExists(id, platformId, company, name, emailJSON);
       if (emailExists) {
         customConsoleLog(id, 'Email already exists, skipping');
-        ipcRenderer.send('handle-update-complete', id, platformId, company, name, gmailPath);
-        return 'HANDLE_UPDATE_COMPLETE';
+        consecutiveExistingEmails++;
+        if (consecutiveExistingEmails >= 3) {
+          customConsoleLog(id, 'Found 3 consecutive existing emails, stopping export');
+          break;
+        }
+        continue;
       } else {
-            ipcRenderer.send(
-              'handle-update',
-              company,
-              name,
-              platformId,
-              JSON.stringify(emailJSON),
-              id,
-              gmailPath
-            );
-            emails.push(emailJSON);
+        consecutiveExistingEmails = 0;
+        ipcRenderer.send(
+          'handle-update',
+          company,
+          name,
+          platformId,
+          JSON.stringify(emailJSON),
+          id,
+          gmailPath
+        );
+        emails.push(emailJSON);
       }
     }
-
-    const nextParent = await waitForElement(id, '.h0', 'Next email button');
-    if (!nextParent) {
-      customConsoleLog(id, 'Navigation buttons not found');
-      break;
-    }
-
-    const childNodes = Array.from(nextParent.childNodes);
-    const olderButton = childNodes.find(
-      (node) =>
-        node.getAttribute && node.getAttribute('aria-label') === 'Older',
-    );
-
-    if (!olderButton || olderButton.getAttribute('aria-disabled') === 'true') {
-      customConsoleLog(id, 'Reached the end of emails');
-      break;
-    }
-
-    olderButton.click();
-    await wait(2);
+    emailsProcessed++;
   }
+
+  customConsoleLog(id, `Processed ${emailsProcessed} out of ${totalEmailsOnPage} emails`);
+
   const uniqueEmails = [...new Set(emails)];
   customConsoleLog(id, 'Unique emails collected:', uniqueEmails.length);
 

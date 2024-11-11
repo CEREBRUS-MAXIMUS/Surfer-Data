@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { deleteRunsForPlatform } from '../state/actions';
 import { setCurrentRoute, updateBreadcrumb } from '../state/actions';
 import { formatLastRunTime } from '../helpers';
-
+import { MoonLoader } from 'react-spinners';
 
 const Platform = ({ platform }) => {
   const runs = useSelector(state => state.app.runs)
@@ -40,6 +40,21 @@ const Platform = ({ platform }) => {
 
   const handleCloseDetails = () => {
     setSelectedRun(null);
+  };
+
+  const renderRunStatus = (run) => {
+    switch (run.status) {
+      case 'success':
+        return <Check className="text-green-500" size={16} />;
+      case 'error':
+        return <X className="text-red-500" size={16} />;
+      case 'stopped':
+        return <X className="text-red-500" size={16} />;
+      case 'running':
+        return <MoonLoader className="text-gray-500" size={16} />;
+      default:
+        return <span>{run.status}</span>;
+    }
   };
 
   return (
@@ -73,10 +88,10 @@ const Platform = ({ platform }) => {
                       onClick={() => onViewRunDetails(run)}
                     >
                       <TableCell className="font-medium">
-                        {run.status === 'success' ? <Check className="text-green-500" size={16} /> : <X className="text-red-500" size={16} />}
+                        {renderRunStatus(run)}
                       </TableCell>
                       <TableCell>
-                        {formatLastRunTime(run.endDate)}
+                        {formatLastRunTime(run.endDate || run.startDate)}
                       </TableCell>
                     </TableRow>
                   </React.Fragment>
