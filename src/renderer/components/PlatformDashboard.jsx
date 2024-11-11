@@ -142,6 +142,7 @@ useEffect(() => {
   //   runisUpdateds();
   // }, [filteredPlatforms]);
 
+
   const pageCount = Math.ceil(filteredPlatforms.length / itemsPerPage);
   const paginatedPlatforms = filteredPlatforms.slice(
     (currentPage - 1) * itemsPerPage,

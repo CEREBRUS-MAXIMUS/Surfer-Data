@@ -3,7 +3,6 @@ dotenv.config();
 import {} from '../../';
 import path from 'path';
 import MenuBuilder from './utils/menu';
-import { getFilesInFolder } from './utils/util';
 import {
   app,
   BrowserWindow,
@@ -31,7 +30,6 @@ autoUpdater.autoRunAppAfterInstall = true;
 
 let downloadingItems = new Map();
 
-
 const expressApp = express();
 expressApp.use(cors());
 expressApp.use(express.json());
@@ -45,11 +43,11 @@ expressApp.get('/', (req, res) => { // this would be the surferClient.connect()
 // Health check endpoint
 expressApp.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
-});
+}); 
 
 expressApp.post('/api/get', async (req, res) => {
   console.log('GET REQUEST: ', req.body);
-  const { platformId } = req.body;
+  const { platformId } = req.body; 
   
   mainWindow?.webContents.send('get-runs-request');
   const runsResponse: any = await new Promise((resolve) => {
@@ -363,12 +361,6 @@ const isDebug =
 if (isDebug) {
   require('electron-debug')();
 }
-
-export const createWindow = async (visible: boolean = true) => {
-  if (mainWindow) {
-    return;
-  }
-
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')
     : path.join(__dirname, '../../assets');
@@ -376,6 +368,13 @@ export const createWindow = async (visible: boolean = true) => {
   const getAssetPath = (...paths: string[]): string => {
     return path.join(RESOURCES_PATH, ...paths);
   };
+
+let isQuitting = false;
+
+export const createWindow = async (visible: boolean = true) => {
+  if (mainWindow) {
+    return;
+  }
 
   mainWindow = new BrowserWindow({
     show: true, 
@@ -655,6 +654,15 @@ export const createWindow = async (visible: boolean = true) => {
         });
     },
   );
+
+  mainWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      mainWindow?.hide();
+      return false;
+    }
+    return true;
+  });
 };
 
 ipcMain.on('open-external', (event, url) => {
@@ -795,12 +803,6 @@ ipcMain.on('handle-export', (event, runID, platformId, filename, company, name, 
   // Create directory structure
   fs.mkdirSync(exportPath, { recursive: true });
 
-  // let fileName;
-  // // if (isUpdated) {
-  // //     fileName = `${platformId}.json`;
-  // // }
-  // // else {
-  // fileName = `${platformId}_${timestamp}.json`;
   const filePath = path.join(exportPath, `${platformId}_${Date.now()}.json`);
   
   // Write data
@@ -822,7 +824,6 @@ ipcMain.on('handle-export', (event, runID, platformId, filename, company, name, 
     getTotalFolderSize(exportPath)
   );
 });
-
 
 ipcMain.on('connect-website', (event, company) => {
   mainWindow?.webContents.send('connect-website', company);
@@ -894,19 +895,23 @@ ipcMain.handle('restart-app', () => {
   app.exit(0);
 });
 
+let tray: Tray | null = null;
+let forceQuit = false;
+
 app.on('window-all-closed', () => {
   try {
     downloadingItems.forEach((item, key) => {
       if (item) {
         item.cancel();
-        downloadingItems.delete(key); // Remove the item from the map
+        downloadingItems.delete(key);
       }
     });
   } catch (error) {
     console.log('DOWNLOAD CANCEL ERROR: ', error);
   }
 
-  if (process.platform !== 'darwin') {
+  if (forceQuit) {
+    isQuitting = true;
     app.quit();
   }
 });
@@ -915,54 +920,73 @@ app
   .whenReady()
   .then(async () => {
     app.setAccessibilitySupportEnabled(true);
-
+    if (app.getLoginItemSettings().openAtLogin === false) {
+      app.setLoginItemSettings({
+        openAtLogin: true,
+        openAsHidden: true,
+        path: app.getPath('exe'),
+      });
+    }
     createWindow();
 
     autoUpdater.checkForUpdates();
 
     app.on('activate', () => {
-      if (mainWindow === null) createWindow();
+      if (mainWindow === null) {
+        createWindow();
+      } else {
+        mainWindow.show();
+      }
     });
 
-
-      let iconPath = !isDebug
-        ? path.join(__dirname, 'assets/icon.png')
-        : path.join(__dirname, '../../assets/icon.png');
-      let icon = nativeImage.createFromPath(iconPath);
-
-      icon = icon.resize({
-        height: 16,
-        width: 16,
-      });
-      const appIcon = new Tray(icon);
+    // Create the tray icon
+    const iconPath = getAssetPath('icon.png');
+    let icon = nativeImage.createFromPath(iconPath);
+    icon = icon.resize({
+      height: 16,
+      width: 16,
+    });
+    
+    tray = new Tray(icon);
+    tray.setToolTip('Your App Name');
 
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: 'Open Window',
-        type: 'normal',
+        label: 'Show Window',
         click: () => {
-          createWindow();
+          if (mainWindow === null) {
+            createWindow();
+          } else {
+            mainWindow.show();
+          }
         },
       },
       {
+        type: 'separator'
+      },
+      {
         label: 'Quit',
-        type: 'normal',
         click: () => {
+          isQuitting = true;
+          forceQuit = true;
           app.quit();
         },
       },
     ]);
 
-    // Make a change to the context menu
-    contextMenu.items[1].checked = false;
-
-    // Call this again for Linux because we modified the context menu
-    if (appIcon) {
-      appIcon.setContextMenu(contextMenu);
-    }
+    tray.setContextMenu(contextMenu);
+    
+    // Optional: Add click handler to show window
+    tray.on('click', () => {
+      if (mainWindow === null) {
+        createWindow();
+      } else {
+        mainWindow.show();
+      } 
+    });
   })
   .catch(console.log);
-
+ 
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
     event.preventDefault();
