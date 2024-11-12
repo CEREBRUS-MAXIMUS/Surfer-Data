@@ -28,7 +28,6 @@ const Platform = ({ platform }) => {
   const handleDeleteAllData = async () => {
     try {
       dispatch(deleteRunsForPlatform(platform.id));
-      setRuns([]);
     } catch (error) {
       console.error('Error deleting platform data:', error);
     }

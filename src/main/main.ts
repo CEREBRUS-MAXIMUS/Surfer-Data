@@ -24,56 +24,77 @@ import express from 'express';
 import cors from 'cors';
 import { getNotionCredentials, getTwitterCredentials } from './utils/network';
 
-autoUpdater.autoDownload = false; // Prevent auto-download
-autoUpdater.autoInstallOnAppQuit = false;
-autoUpdater.autoRunAppAfterInstall = true;
+// Preventing multiple instances of Surfer
 
-let downloadingItems = new Map();
+const gotTheLock = app.requestSingleInstanceLock();
 
+if (!gotTheLock) {
+  app.quit();
+  process.exit(0);
+} else {
+  app.on('second-instance', (_event, _commandLine, _workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+}
+
+
+  
 const expressApp = express();
 expressApp.use(cors());
 expressApp.use(express.json());
 
 const port = 2024;
 
-expressApp.get('/', (req, res) => { // this would be the surferClient.connect()
+expressApp.get('/', (req, res) => {
+  // this would be the surferClient.connect()
   res.send('Hello World');
 });
 
 // Health check endpoint
 expressApp.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
-}); 
+});
 
 expressApp.post('/api/get', async (req, res) => {
   console.log('GET REQUEST: ', req.body);
-  const { platformId } = req.body; 
-  
+  const { platformId } = req.body;
+
   mainWindow?.webContents.send('get-runs-request');
   const runsResponse: any = await new Promise((resolve) => {
     ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
   });
 
   // Filter runs for this platform with successful status
-  const successfulRuns = runsResponse.filter((r: any) => 
-    r.platformId === platformId && r.status === 'success'
+  const successfulRuns = runsResponse.filter(
+    (r: any) => r.platformId === platformId && r.status === 'success',
   );
 
   // Sort by startDate descending and get latest
-  const latestRun = successfulRuns.sort((a: any, b: any) => 
-    new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+  const latestRun = successfulRuns.sort(
+    (a: any, b: any) =>
+      new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
   )[0];
 
   if (!latestRun) {
-    return res.status(404).json({ success: false, error: 'No successful runs found for this platform' });
+    return res.status(404).json({
+      success: false,
+      error: 'No successful runs found for this platform',
+    });
   }
 
   console.log('latest run: ', latestRun.id);
   const exportPath = fs.readdirSync(latestRun.exportPath);
   const jsonFile = exportPath.find((file: any) => file.endsWith('.json'));
-  
+
   if (!jsonFile) {
-    return res.status(404).json({ success: false, error: 'No JSON file found in export path' });
+    return res
+      .status(404)
+      .json({ success: false, error: 'No JSON file found in export path' });
   }
 
   const filePath = path.join(latestRun.exportPath, jsonFile);
@@ -86,7 +107,6 @@ expressApp.post('/api/export', async (req, res) => {
   const { platformId } = req.body;
 
   try {
-
     mainWindow?.webContents.send('element-found', platformId);
 
     // Get initial run with timeout
@@ -98,24 +118,22 @@ expressApp.post('/api/export', async (req, res) => {
 
     // Monitor run status with timeout
     const finalRun = await new Promise((resolve) => {
-        const checkRunStatus = async () => {
-          mainWindow?.webContents.send('get-runs-request');
-          const runsResponse: any = await new Promise((resolve) => {
-            ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
-          });
+      const checkRunStatus = async () => {
+        mainWindow?.webContents.send('get-runs-request');
+        const runsResponse: any = await new Promise((resolve) => {
+          ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
+        });
 
-          const finalRun = runsResponse.find(
-            (r: any) => r.id === currentRun.id,
-          );
-          if (finalRun?.status === 'success') {
-            clearInterval(statusInterval);
-            resolve(finalRun);
-          }
-        };
+        const finalRun = runsResponse.find((r: any) => r.id === currentRun.id);
+        if (finalRun?.status === 'success') {
+          clearInterval(statusInterval);
+          resolve(finalRun);
+        }
+      };
 
-        const statusInterval = setInterval(checkRunStatus, 1000);
-      });
-      
+      const statusInterval = setInterval(checkRunStatus, 1000);
+    });
+
     console.log('final run status: ', finalRun.status);
     // Process results
     const latestRunPath = finalRun.exportPath;
@@ -147,10 +165,16 @@ expressApp.post('/api/export', async (req, res) => {
   }
 });
 
-
 expressApp.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+
+autoUpdater.autoDownload = false; // Prevent auto-download
+autoUpdater.autoInstallOnAppQuit = false;
+autoUpdater.autoRunAppAfterInstall = true;
+
+let downloadingItems = new Map();
 
 
 ipcMain.on('connect-platform', (event, platform: any) => {
@@ -920,13 +944,13 @@ app
   .whenReady()
   .then(async () => {
     app.setAccessibilitySupportEnabled(true);
-    if (app.getLoginItemSettings().openAtLogin === false) {
+
       app.setLoginItemSettings({
         openAtLogin: true,
         openAsHidden: true,
         path: app.getPath('exe'),
       });
-    }
+    
     createWindow();
 
     autoUpdater.checkForUpdates();
@@ -948,7 +972,7 @@ app
     });
     
     tray = new Tray(icon);
-    tray.setToolTip('Your App Name');
+    tray.setToolTip('Surfer');
 
     const contextMenu = Menu.buildFromTemplate([
       {
