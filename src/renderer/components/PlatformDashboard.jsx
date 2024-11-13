@@ -43,15 +43,35 @@ useEffect(() => {
     window.electron.ipcRenderer.send('get-runs-response', runs);
   };
 
-  window.electron.ipcRenderer.on('get-runs-request', handleGetRunsRequest);
+  window.electron.ipcRenderer.on('get-runs', handleGetRunsRequest);
 
   // Cleanup listener
   return () => {
-    window.electron.ipcRenderer.removeAllListeners('get-runs-request', handleGetRunsRequest);
+    window.electron.ipcRenderer.removeAllListeners('get-runs', handleGetRunsRequest);
   };
 }, [runs]);
 
+useEffect(() => {
+    window.electron.ipcRenderer.on('stop-runs', () => {
+        // Stop all pending or running runs
+        const activeRuns = runs.filter(run => 
+            run && (run.status === 'pending' || run.status === 'running')
+        );
 
+        // Stop each run
+        activeRuns.forEach(run => {
+            dispatch(stopRun(run.id));
+        });
+
+        // Notify main process that runs have been stopped
+        window.electron.ipcRenderer.sendMessage('runs-stopped');
+    });
+
+    // Cleanup listener
+    return () => {
+        window.electron.ipcRenderer.removeAllListeners('stop-runs');
+    };
+}, [runs]); // Add runs as dependency
 
   const getLatestRun = (platformId) => {
     const platformRuns = runs.filter(run => run.platformId === platformId);
@@ -69,7 +89,6 @@ useEffect(() => {
     const loadPlatforms = async () => {
       try {
         const platforms = await window.electron.ipcRenderer.invoke('get-platforms');
-        console.log('PLATFORMS: ', platforms);
 
         setAllPlatforms(platforms);
       } catch (error) {
@@ -92,7 +111,6 @@ useEffect(() => {
   useEffect(() => {
     const checkConnectedPlatforms = async () => {
       const connected = await window.electron.ipcRenderer.invoke('check-connected-platforms', allPlatforms);
-      console.log('CONNECTED PLATFORMS: ', connected);
       setConnectedPlatforms(connected);
     };
 
@@ -116,31 +134,31 @@ useEffect(() => {
     };
   }, [allPlatforms]);
 
-  // useEffect(() => {
-  //   const runisUpdateds = async () => {
-  //     if (runs.length === 0) return;
+  useEffect(() => {
+    const runisUpdateds = async () => {
+      if (runs.length === 0) return;
 
-  //     for (const platform of filteredPlatforms) {
-  //       if (platform.isUpdated) {
-  //         const platformRuns = runs.filter(run => run.platformId === platform.id);
-  //         if (platformRuns.length > 0) {
-  //           const today = new Date().toISOString().split('T')[0];
-  //           const runsForToday = platformRuns.filter(run => 
-  //             (run.status === 'success' || run.status === 'running') && 
-  //             run.startDate.split('T')[0] === today
-  //           );
-  //           console.log('runsForToday: ', runsForToday);
-  //           if (runsForToday.length === 0) {
-  //             await handleExportClick(platform);
-  //             await new Promise(resolve => setTimeout(resolve, 5000));
-  //           }
-  //         }
-  //       }
-  //     }
-  //   };
+      for (const platform of filteredPlatforms) {
+        if (platform.isUpdated) {
+          const platformRuns = runs.filter(run => run.platformId === platform.id);
+          if (platformRuns.length > 0) {
+            const today = new Date().toISOString().split('T')[0];
+            const runsForToday = platformRuns.filter(run => 
+              (run.status === 'success' || run.status === 'running') && 
+              run.startDate.split('T')[0] === today
+            );
+            console.log('runsForToday: ', runsForToday);
+            if (runsForToday.length === 0) {
+              await handleExportClick(platform);
+              await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+          }
+        }
+      }
+    };
 
-  //   runisUpdateds();
-  // }, [filteredPlatforms]);
+    runisUpdateds();
+  }, [allPlatforms]);
 
 
   const pageCount = Math.ceil(filteredPlatforms.length / itemsPerPage);
@@ -242,7 +260,7 @@ const renderRunStatus = (platform) => {
     return <div><MoonLoader size={16} /></div>;
   }
 
-  const logLines = latestRun.logs.split('\n');
+  const logLines = latestRun && latestRun.logs ? latestRun.logs.split('\n') : [];
 
   switch (latestRun.status) {
     case 'running':

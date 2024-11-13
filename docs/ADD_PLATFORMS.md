@@ -2,7 +2,7 @@
 
 To add support for a new platform in Surfer, follow these steps:
 
-1. **Create a new directory**: In the `Companies` folder, create a new directory named after the company (e.g., `Companies/Salesforce`).
+1. **Create a new directory**: In the `platforms` folder, create a new directory named after the company (e.g., `platforms/Salesforce`).
 
 2. **Create the platform file**: Inside the new directory, create a JavaScript file named after the platform (e.g., `slack.js`).
 
@@ -12,6 +12,7 @@ To add support for a new platform in Surfer, follow these steps:
    - `connectURL`: The URL for the platform's login page
    - `connectSelector`: A CSS selector for an element that indicates a successful login
    - `isUpdated` (optional): A boolean indicating if the platform's data is regularly updated
+   - `exportFrequency` (optional): The frequency at which the platform's data is exported (e.g., "daily", "weekly", "monthly")
 
    Example JSON structure:
    ```json
@@ -20,7 +21,8 @@ To add support for a new platform in Surfer, follow these steps:
      "description": "Exports [specific data types].",
      "connectURL": "https://platform.com/login",
      "connectSelector": "CSS_SELECTOR_FOR_LOGGED_IN_STATE",
-     "isUpdated": true
+     "isUpdated": true,
+     "exportFrequency": "daily"
    }
    ```
 

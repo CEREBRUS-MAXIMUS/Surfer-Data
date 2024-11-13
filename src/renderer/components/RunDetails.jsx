@@ -49,7 +49,6 @@ const RunDetails = ({ runId, onClose, platform }) => {
     const handleFiles = (files) => {
       console.log('Files:', files);
       setFiles(files || []);
-      console.log('Files:', files);
     };
 
     window.electron.ipcRenderer.on('run-files', handleFiles);
@@ -121,7 +120,7 @@ const RunDetails = ({ runId, onClose, platform }) => {
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-[70vw] h-[80vh] overflow-y-auto bg-background">
 
-        {run.status === 'success' && files.length > 0 && (
+        {run.status === 'success' && files && files.length > 0 && (
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
               <Button onClick={handlePrevFile} variant="outline" size="sm">
@@ -194,7 +193,7 @@ const RunDetails = ({ runId, onClose, platform }) => {
               </div>
             </CardHeader>
             <CardContent className="max-w-full"> 
-              {run.logs.length > 0 ? (
+              {run && run.logs && run.logs.length > 0 ? (
                 <div className="space-y-2">
                   {run.logs.split('\n').map((log, index) => (
                     <div

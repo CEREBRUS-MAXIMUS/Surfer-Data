@@ -1,6 +1,6 @@
 # Surfer: Export your personal data in one click
 
-# 🆕 **RECENT UPDATES (10/28/24): Surfer is evolving! We're currently working on a [new protocol](https://surferprotocol.org) to document personal data exporting. For the latest updates, visit our [project page](https://surferprotocol.org) or the [GitHub repo](https://github.com/surfer-org/protocol).** 🆕
+# 🆕 **RECENT UPDATES (10/28/24): Surfer is evolving! We're currently working on an [open-source framework](https://surferprotocol.org) to get and do stuff with your personal data. For the latest updates, visit our [project page](https://surferprotocol.org) or the [GitHub repo](https://github.com/surfer-org/protocol).** 🆕
 
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
@@ -35,17 +35,14 @@ Currently, your personal data is scattered across hundreds of platforms and the 
 We believe that personal data aggregation is the key to enabling truly useful, universal personal assistants.
 
 ## Currently Supported Platforms
-
-- Twitter Posts
+- iMessages (Windows only)
 - Twitter Bookmarks
-- LinkedIn Profile
-- GitHub Repositories
-- YouTube
 - Notion
 - ChatGPT History
 - Gmail
-- iMessages (coming soon!)
+- LinkedIn Connections (coming soon!)
 - Reddit (coming soon!)
+- GitHub (coming soon!)
 
 ## How it works
 
@@ -88,10 +85,10 @@ See the [open issues](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues) fo
 
 ### Short-Term
 - [x] Data being maintained/updated everyday
-- [ ] Scheduled exports
+- [x] Scheduled exports
 - [ ] Obtain a code signing certificate for Windows
 - [x] Replace `setTimeout` with `await` for script execution to ensure elements exist before scraping
-- [ ] Implement robust error handling for the scraping process
+- [ ] Iamplement robust error handling for the scraping process
 - [ ] Add support for more online platforms
 - [x] Add verbosity to runs
 

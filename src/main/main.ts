@@ -23,6 +23,7 @@ const { download } = require('electron-dl');
 import express from 'express';
 import cors from 'cors';
 import { getNotionCredentials, getTwitterCredentials } from './utils/network';
+import { scheduledJobs, scheduleNextExport, runInitialExports } from './utils/schedule';
 
 // Preventing multiple instances of Surfer
 
@@ -42,133 +43,156 @@ if (!gotTheLock) {
   });
 }
 
-
-  
-const expressApp = express();
-expressApp.use(cors());
-expressApp.use(express.json());
-
 const port = 2024;
 
-expressApp.get('/', (req, res) => {
-  // this would be the surferClient.connect()
-  res.send('Hello World');
-});
+// Add this function to check if server is running
+const isServerRunning = async (): Promise<boolean> => {
+  try {
+    const response = await fetch(`http://localhost:${port}/api/health`);
+    return response.status === 200;
+  } catch (error) {
+    return false;
+  }
+};
 
-// Health check endpoint
-expressApp.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
+// Replace the Express setup with this
+const setupExpressServer = async () => {
+  const serverRunning = await isServerRunning();
+  
+  if (serverRunning) {
+    console.log(`Server already running on port ${port}, skipping setup`);
+    return;
+  }
 
-expressApp.post('/api/get', async (req, res) => {
-  console.log('GET REQUEST: ', req.body);
-  const { platformId } = req.body;
+  const expressApp = express();
+  expressApp.use(cors());
+  expressApp.use(express.json());
 
-  mainWindow?.webContents.send('get-runs-request');
-  const runsResponse: any = await new Promise((resolve) => {
-    ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
+  expressApp.get('/', (req, res) => {
+    // this would be the surferClient.connect()
+    res.send('Hello World');
   });
 
-  // Filter runs for this platform with successful status
-  const successfulRuns = runsResponse.filter(
-    (r: any) => r.platformId === platformId && r.status === 'success',
-  );
+  // Health check endpoint
+  expressApp.get('/api/health', (req, res) => {
+    res.json({ status: 'ok' });
+  });
 
-  // Sort by startDate descending and get latest
-  const latestRun = successfulRuns.sort(
-    (a: any, b: any) =>
-      new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
-  )[0];
+  expressApp.post('/api/get', async (req, res) => {
+    console.log('GET REQUEST: ', req.body);
+    const { platformId } = req.body;
 
-  if (!latestRun) {
-    return res.status(404).json({
-      success: false,
-      error: 'No successful runs found for this platform',
-    });
-  }
-
-  console.log('latest run: ', latestRun.id);
-  const exportPath = fs.readdirSync(latestRun.exportPath);
-  const jsonFile = exportPath.find((file: any) => file.endsWith('.json'));
-
-  if (!jsonFile) {
-    return res
-      .status(404)
-      .json({ success: false, error: 'No JSON file found in export path' });
-  }
-
-  const filePath = path.join(latestRun.exportPath, jsonFile);
-  const fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  res.json({ success: true, data: fileData });
-});
-
-expressApp.post('/api/export', async (req, res) => {
-  console.log('Export request: ', req.body);
-  const { platformId } = req.body;
-
-  try {
-    mainWindow?.webContents.send('element-found', platformId);
-
-    // Get initial run with timeout
-    const currentRun: any = await new Promise((resolve) => {
-      ipcMain.once('run-started', (event, run) => resolve(run));
+    mainWindow?.webContents.send('get-runs');
+    const runsResponse: any = await new Promise((resolve) => {
+      ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
     });
 
-    console.log('Found current run:', currentRun.id);
+    // Filter runs for this platform with successful status
+    const successfulRuns = runsResponse.filter(
+      (r: any) => r.platformId === platformId && r.status === 'success',
+    );
 
-    // Monitor run status with timeout
-    const finalRun = await new Promise((resolve) => {
-      const checkRunStatus = async () => {
-        mainWindow?.webContents.send('get-runs-request');
-        const runsResponse: any = await new Promise((resolve) => {
-          ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
-        });
+    // Sort by startDate descending and get latest
+    const latestRun = successfulRuns.sort(
+      (a: any, b: any) =>
+        new Date(b.endDate || b.startDate).getTime() - new Date(a.endDate || b.startDate).getTime(),
+    )[0];
 
-        const finalRun = runsResponse.find((r: any) => r.id === currentRun.id);
-        if (finalRun?.status === 'success') {
-          clearInterval(statusInterval);
-          resolve(finalRun);
-        }
-      };
-
-      const statusInterval = setInterval(checkRunStatus, 1000);
-    });
-
-    console.log('final run status: ', finalRun.status);
-    // Process results
-    const latestRunPath = finalRun.exportPath;
-    if (!fs.existsSync(latestRunPath)) {
-      throw new Error('Export path not found');
+    if (!latestRun) {
+      return res.status(404).json({
+        success: false,
+        error: 'No successful runs found for this platform',
+      });
     }
 
-    const files = fs.readdirSync(latestRunPath);
-    const jsonFile = files.find((file) => file.endsWith('.json'));
+    console.log('latest run: ', latestRun.id);
+    const exportPath = fs.readdirSync(latestRun.exportPath);
+    const jsonFile = exportPath.find((file: any) => file.endsWith('.json'));
+
     if (!jsonFile) {
-      throw new Error('No JSON file found in export folder');
+      return res
+        .status(404)
+        .json({ success: false, error: 'No JSON file found in export path' });
     }
 
-    const filePath = path.join(latestRunPath, jsonFile);
+    const filePath = path.join(latestRun.exportPath, jsonFile);
     const fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    res.json({ success: true, data: fileData });
+  });
 
-    res.json({
-      success: true,
-      data: fileData,
-      exportPath: path.dirname(filePath),
-      exportSize: getTotalFolderSize(path.dirname(filePath)),
-    });
-  } catch (error) {
-    console.error('Export error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Unknown export error',
-    });
-  }
-});
+  expressApp.post('/api/export', async (req, res) => {
+    console.log('Export request: ', req.body);
+    const { platformId } = req.body;
 
-expressApp.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+    try {
+      mainWindow?.webContents.send('element-found', platformId);
 
+      // Get initial run with timeout
+      const currentRun: any = await new Promise((resolve) => {
+        ipcMain.once('run-started', (event, run) => resolve(run));
+      });
+
+      console.log('Found current run:', currentRun.id);
+
+      // Monitor run status with timeout
+      const finalRun = await new Promise((resolve) => {
+        const checkRunStatus = async () => {
+          mainWindow?.webContents.send('get-runs');
+          const runsResponse: any = await new Promise((resolve) => {
+            ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
+          });
+
+          const finalRun = runsResponse.find((r: any) => r.id === currentRun.id);
+          if (finalRun?.status === 'success') {
+            clearInterval(statusInterval);
+            resolve(finalRun);
+          }
+        };
+
+        const statusInterval = setInterval(checkRunStatus, 1000);
+      });
+
+      console.log('final run status: ', finalRun.status);
+      // Process results
+      const latestRunPath = finalRun.exportPath;
+      if (!fs.existsSync(latestRunPath)) {
+        throw new Error('Export path not found');
+      }
+
+      const files = fs.readdirSync(latestRunPath);
+      const jsonFile = files.find((file) => file.endsWith('.json'));
+      if (!jsonFile) {
+        throw new Error('No JSON file found in export folder');
+      }
+
+      const filePath = path.join(latestRunPath, jsonFile);
+      const fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+      res.json({
+        success: true,
+        data: fileData,
+        exportPath: path.dirname(filePath),
+        exportSize: getTotalFolderSize(path.dirname(filePath)),
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Unknown export error',
+      });
+    }
+  });
+
+  expressApp.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  }).on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`Port ${port} is busy, server not started`);
+    } else {
+      console.error('Server error:', err);
+    }
+  });
+};
 
 autoUpdater.autoDownload = false; // Prevent auto-download
 autoUpdater.autoInstallOnAppQuit = false;
@@ -324,6 +348,7 @@ const getPlatforms = async () => {
           needsConnection: metadata.needsConnection ?? true,
           connectURL: metadata.connectURL || null,
           connectSelector: metadata.connectSelector || null,
+          exportFrequency: metadata.exportFrequency || null
         };
       }),
     );
@@ -377,7 +402,7 @@ class AppUpdater {
   }
 }
 
-export let mainWindow: BrowserWindow | null = null;
+let mainWindow: BrowserWindow | null = null;
 
 const isDebug =
   process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
@@ -394,6 +419,7 @@ if (isDebug) {
   };
 
 let isQuitting = false;
+
 
 export const createWindow = async (visible: boolean = true) => {
   if (mainWindow) {
@@ -426,6 +452,17 @@ export const createWindow = async (visible: boolean = true) => {
   });
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
+
+  // Add this listener for renderer ready state
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('Renderer ready, initializing exports');
+    initializeExports();
+  });
+
+  // Add this to reset renderer ready state when window is closed
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url); // Open URL in user's browser.
@@ -601,9 +638,6 @@ export const createWindow = async (visible: boolean = true) => {
               console.log('Zip fully extracted to:', extractPath);
 
               if (url.includes('takeout-download.usercontent.google.com')) {
-                // Function to recursively find the MBOX file
-
-
                 const mboxFilePath = findMboxFile(extractPath);
               if (mboxFilePath) {
                 const jsonOutputPath = path.join(extractPath, `${platformId}.json`);
@@ -687,6 +721,72 @@ export const createWindow = async (visible: boolean = true) => {
     }
     return true;
   });
+};
+
+const initializeExports = async () => {
+  if (!mainWindow) {
+    console.log('Renderer not ready, waiting...');
+    return;
+  }
+
+  try {
+    const platforms = await getPlatforms();
+
+    // Get current runs
+    mainWindow.webContents.send('get-runs');
+    const runsResponse: any = await new Promise((resolve) => {
+      ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
+    });
+
+    for (const platform of platforms) {
+      if (platform.exportFrequency) {
+        console.log(`Checking exports for ${platform.name}`);
+        await runInitialExports(platform, runsResponse);
+        scheduleNextExport(platform);
+
+      }
+    }
+  } catch (error) {
+    console.error('Failed to initialize export scheduling:', error);
+  }
+};
+
+export const waitForExportCompletion = async (platformId: string): Promise<any> => {
+  try {
+    // Trigger the export
+    mainWindow?.webContents.send('element-found', platformId);
+
+    // Wait for run to start
+    const currentRun: any = await new Promise((resolve) => {
+      ipcMain.once('run-started', (event, run) => resolve(run));
+    });
+
+    console.log('Export started, monitoring run:', currentRun.id);
+
+    // Monitor run status until success
+    const finalRun = await new Promise((resolve) => {
+      const checkRunStatus = async () => {
+        mainWindow?.webContents.send('get-runs');
+        const runsResponse: any = await new Promise((resolve) => {
+          ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
+        });
+
+        const finalRun = runsResponse.find((r: any) => r.id === currentRun.id);
+        if (finalRun?.status === 'success') {
+          clearInterval(statusInterval);
+          resolve(finalRun);
+        }
+      };
+
+      const statusInterval = setInterval(checkRunStatus, 1000);
+    });
+
+    console.log('Export completed successfully:', finalRun.id);
+    return finalRun;
+  } catch (error) {
+    console.error('Export failed:', error);
+    throw error;
+  }
 };
 
 ipcMain.on('open-external', (event, url) => {
@@ -1080,4 +1180,23 @@ ipcMain.on('open-platform-export-folder', (event, company, name) => {
   const exportFolderPath = path.join(app.getPath('userData'), 'surfer_data', company, name);
   console.log('exportFolderPath', exportFolderPath);
   shell.openPath(exportFolderPath);
+});
+
+app.on('before-quit', async () => {
+  scheduledJobs.forEach((job) => job.cancel());
+  scheduledJobs.clear();
+
+  // Send stop-runs signal to renderer
+  mainWindow?.webContents.send('stop-runs');
+  const stopRunsResponse: any = await new Promise((resolve) => {
+    ipcMain.once('runs-stopped', (event, runs) => resolve(runs));
+  });
+
+  console.log('Runs stopped:', stopRunsResponse);
+});
+
+// Update the app.whenReady() to be async
+app.whenReady().then(async () => {
+  await setupExpressServer();
+  // ... rest of your whenReady code ...
 });

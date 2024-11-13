@@ -50,7 +50,7 @@ async function exportNotion(id, platformId, filename, company, name) {
             exportType: 'markdown',
             timeZone: notionCredentials.timezone,
             collectionViewExportType: 'currentView',
-            flattenExportFiletree: true,
+            flattenExportFiletree: false,
           },
           shouldExportComments: false
         }
@@ -71,46 +71,58 @@ async function exportNotion(id, platformId, filename, company, name) {
     }
 
     const { taskId } = await response.json();
-    customConsoleLog(id, `Export task enqueued with ID: ${taskId}`);
+    customConsoleLog(id, `Notion export started`);
 
     // Poll for export completion
     while (true) {
-      const taskResponse = await fetch(tasksUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'cookie': notionCredentials.cookie
-        },
-        body: JSON.stringify({ taskIds: [taskId] })
-      });
+      try {
+        const taskResponse = await fetch(tasksUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'cookie': notionCredentials.cookie
+          },
+          body: JSON.stringify({ taskIds: [taskId] })
+        });
 
-      if (!taskResponse.ok) {
-        throw new Error(`Failed to check task status: ${taskResponse.status}`);
+        if (taskResponse.status === 429) {
+          customConsoleLog(id, 'Rate limit reached, waiting 5 seconds before retrying...');
+          await wait(5);
+          continue;
+        }
+
+        if (!taskResponse.ok) {
+          throw new Error(`Failed to check task status: ${taskResponse.status}`);
+        }
+
+        const taskData = await taskResponse.json();
+        const taskResult = taskData.results?.[0];
+
+        if (taskResult) {
+          const { state, status } = taskResult;
+          // if (!state || !status) {
+          //   customConsoleLog(id, "This is taskData: ", taskData);
+          //   customConsoleLog(id, "This is state and status: ", state, status);
+          // }
+          if (status && status.pagesExported) {
+            customConsoleLog(id, `Export progress: ${status.pagesExported || 0} pages exported`);
+          }
+
+          if (state === 'success' && status.type === 'complete') {
+            const exportUrl = status.exportURL;
+            customConsoleLog(id, 'Export completed successfully!');
+            window.location.assign(exportUrl);
+            // You might want to download the file here or send the URL somewhere
+            return "DOWNLOADING";
+          }
+        }
+
+        await wait(4);
+      } catch (error) {
+        customConsoleLog(id, `Error checking task status: ${error.message}`);
+        await wait(5);
+        continue;
       }
-
-      const taskData = await taskResponse.json();
-      const taskResult = taskData.results?.[0];
-
-      if (taskResult) {
-        const { state, status } = taskResult;
-        if (!state || !status) {
-          customConsoleLog(id, "This is taskData: ", taskData);
-          customConsoleLog(id, "This is state and status: ", state, status);
-        }
-        if (status && status.pagesExported) {
-          customConsoleLog(id, `Export progress: ${status.pagesExported || 0} pages exported`);
-        }
-
-        if (state === 'success' && status.type === 'complete') {
-          const exportUrl = status.exportURL;
-          customConsoleLog(id, 'Export completed successfully!');
-          window.location.assign(exportUrl);
-          // You might want to download the file here or send the URL somewhere
-          return "DOWNLOADING";
-        }
-      }
-
-      await wait(2);
     }
     
   } catch (error) {

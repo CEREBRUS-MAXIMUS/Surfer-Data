@@ -5,5 +5,5 @@
     "isUpdated": true,
     "connectURL": "https://twitter.com",
     "connectSelector": "img.css-9pa8cd",
-    "exportFrequency": "hourly"
+    "exportFrequency": "daily"
 }

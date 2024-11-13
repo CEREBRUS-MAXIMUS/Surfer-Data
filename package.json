@@ -129,6 +129,7 @@
     "lucide-react": "^0.396.0",
     "mbox-parser": "^1.0.1",
     "next-themes": "^0.3.0",
+    "node-schedule": "^2.1.1",
     "npm": "^10.8.2",
     "openai": "^4.58.2",
     "os-browserify": "^0.3.0",
@@ -272,7 +273,7 @@
       "notarize": {
         "teamId": "97SB7MA2WB"
       },
-      "icon": "assets/mac-icon.icns"
+      "icon": "assets/icon.icns"
     },
     "dmg": {
       "sign": false,
