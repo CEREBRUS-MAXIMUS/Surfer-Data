@@ -12,6 +12,7 @@ import {
   nativeImage,
   Tray,
   dialog,
+  session,
 } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
@@ -259,6 +260,42 @@ ipcMain.on('get-notion-credentials', async (event, company, name) => {
   return await getNotionCredentials(company, name);
 });
 
+ipcMain.on('get-linkedin-credentials', async (event, company, name) => {
+  const userData = app.getPath('userData');
+  const linkedinCredentialsPath = path.join(
+    userData,
+    'surfer_data',
+    company,
+    name,
+    'linkedinCredentials.json',
+  );
+  fs.mkdirSync(path.dirname(linkedinCredentialsPath), {
+    recursive: true,
+  });
+  return new Promise((resolve) => {
+    session.defaultSession.webRequest.onBeforeSendHeaders(
+      { urls: ['*://*.linkedin.com/*'] },
+      (details: any, callback) => {
+      let result: any = {
+        cookie: null as string | null,
+        csrfToken: null as string | null,
+      };
+      if (details.requestHeaders['csrf-token'] && details.requestHeaders['Cookie']) {
+          result.csrfToken = details.requestHeaders['csrf-token'];
+          result.cookie = details.requestHeaders['Cookie'];
+          fs.writeFileSync(
+            linkedinCredentialsPath,
+            JSON.stringify(result, null, 2),
+          );
+          resolve(result);
+        }
+
+        callback({ requestHeaders: details.requestHeaders });
+      },
+    );
+  });
+});
+
 ipcMain.handle('check-connected-platforms', async (event, platforms) => {
   const userDataPath = app.getPath('userData');
   const connectedPlatforms = {};
@@ -290,7 +327,6 @@ const getPlatforms = async () => {
       'feed.js',
       'github.js',
       'twitter.js',
-      'linkedin.js',
       'youtube.js',
     ];
 
@@ -742,7 +778,7 @@ const initializeExports = async () => {
       if (platform.exportFrequency) {
         console.log(`Checking exports for ${platform.name}`);
         await runInitialExports(platform, runsResponse);
-        scheduleNextExport(platform);
+        scheduleNextExport(platform, runsResponse);
 
       }
     }

@@ -89,7 +89,7 @@ useEffect(() => {
     const loadPlatforms = async () => {
       try {
         const platforms = await window.electron.ipcRenderer.invoke('get-platforms');
-
+        console.log('platforms: ', platforms);
         setAllPlatforms(platforms);
       } catch (error) {
         console.error('Error loading platforms:', error);
@@ -203,6 +203,8 @@ useEffect(() => {
 
   const getPlatformLogo = async (platform) => {
     try {
+
+      // FIX SO THAT WE GET THIS WORKING FOR LINKEDIN WHICH HAS A LOGO URL!
       const response = await fetch(`https://logo.clearbit.com/${platform.name}.com`);
       if (response.ok) {
         const blob = await response.blob();
@@ -410,14 +412,18 @@ const renderRunStatus = (platform) => {
                             onClick={() => onPlatformClick(platform)}
                           >
                  {platformLogos[platform.id] && (
-                  <img src={platformLogos[platform.id]} alt={platform.name} className="w-4 h-4" style={{ width: `24px`, height: `24px` }}/>
+                  <img 
+                    src={platformLogos[platform.id]} 
+                    alt={platform.name} 
+                    className="flex-shrink-0" 
+                    style={{ width: '24px', height: '24px' }}
+                  />
                 )}
-                            <div className="flex items-center">
-                              <p className="flex items-center">
-                                <span className="text-gray-500">{platform.company}/</span>
+                            <div className="flex items-center min-w-0">
+                              <p className="flex items-center whitespace-nowrap overflow-hidden">
                                 <span className="font-semibold">{platform.name}</span>
                               </p>
-                              <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
+                              <ArrowUpRight size={22} className="ml-1 flex-shrink-0" color="#5a5a5a" />
                             </div>
                           </div>
                         </div>
@@ -425,7 +431,7 @@ const renderRunStatus = (platform) => {
                       <TableCell>
                         <p className="font-medium">{platform.description || 'No description available'}</p>
                       </TableCell>
-                      <TableCell className="w-[600px]">
+                      <TableCell>
                         {renderRunStatus(platform)}
                       </TableCell>
                       <TableCell>
@@ -446,7 +452,8 @@ const renderRunStatus = (platform) => {
                             onClick={() => handleExportClick(platform)}
                           >
                             <HardDriveDownload size={16} className="mr-2" />
-                            {getLatestRun(platform.id) ? (getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export') : 'Export'}
+                            Export
+                            {/* {getLatestRun(platform.id) ? (getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export') : 'Export'} */}
                             </Button>
                           )}
                         </div>

@@ -1,6 +1,8 @@
 {
-    "name": "LinkedIn",
-    "description": "Exports your profile.",
+    "name": "LinkedIn Connections",
+    "description": "Exports your connections.",
+    "logoURL": "https://logo.clearbit.com/linkedin.com",
     "connectURL": "https://linkedin.com/login",
-    "connectSelector": "img[alt*='Photo of']"
+    "connectSelector": "img[alt*='Photo of']",
+    "exportFrequency": "daily"
 }

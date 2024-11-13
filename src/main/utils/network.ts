@@ -16,6 +16,9 @@ export async function getTwitterCredentials(company: string, name: string) {
     name,
     'twitterCredentials.json',
   );
+  fs.mkdirSync(path.dirname(twitterCredentialsPath), {
+    recursive: true,
+  });
   return new Promise((resolve) => {
     session.defaultSession.webRequest.onBeforeSendHeaders(
       { urls: ['*://*.twitter.com/*', '*://*.x.com/*'] },
@@ -84,6 +87,9 @@ export async function getNotionCredentials(company: string, name: string) {
       spaceId: null as string | null,
       timezone: dayjs.tz.guess()
     };
+      fs.mkdirSync(path.dirname(notionCredentialsPath), {
+      recursive: true,
+    });
 
     // Intercept requests to get cookie
     session.defaultSession.webRequest.onBeforeSendHeaders(
@@ -92,10 +98,6 @@ export async function getNotionCredentials(company: string, name: string) {
         if (details.requestHeaders['Cookie'] && details.requestHeaders['x-notion-space-id']) {
           result.cookie = details.requestHeaders['Cookie'];
           result.spaceId = details.requestHeaders['x-notion-space-id'];
-          // Create the directory if it doesn't exist
-          fs.mkdirSync(path.dirname(notionCredentialsPath), {
-            recursive: true,
-          });
 
           // Write the bigData to the file
           fs.writeFileSync(

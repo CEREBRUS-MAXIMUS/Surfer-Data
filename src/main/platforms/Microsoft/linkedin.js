@@ -1,156 +1,161 @@
 const { customConsoleLog, waitForElement, wait } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');
+const fs = require('fs');
+const path = require('path');
 
+async function checkLinkedinCredentials(company, name) {
+  const userData = await ipcRenderer.invoke('get-user-data-path');
+  const linkedinCredentialsPath = path.join(
+    userData,
+    'surfer_data',
+    company,
+    name,
+    'linkedinCredentials.json',
+  );
 
+  const fileExists = await fs.existsSync(linkedinCredentialsPath);
+  if (fileExists) {
+    const fileContent = fs.readFileSync(linkedinCredentialsPath, 'utf-8');
+    return JSON.parse(fileContent);
+  }
+  return null;
+}
+
+async function checkIfConnectionExists(id, platformId, company, name, connection) {
+  const userData = await ipcRenderer.invoke('get-user-data-path');
+  const filePath = path.join(
+    userData,
+    'surfer_data',
+    company,
+    name,
+    platformId,
+    `${platformId}.json`,
+  );
+  
+  const fileExists = await fs.existsSync(filePath);
+  if (fileExists) {
+    try {
+      const fileContent = fs.readFileSync(filePath, 'utf-8');
+      if (fileContent.trim() === '') {
+        customConsoleLog(id, 'File is empty');
+        return false;
+      }
+      const savedConnections = JSON.parse(fileContent);
+      if (savedConnections && savedConnections.content && Array.isArray(savedConnections.content)) {
+        // Check if connection exists using createdAt timestamp
+        return savedConnections.content.some(
+          saved => saved.createdAt === connection.createdAt && 
+            saved.firstName === connection.firstName
+        );
+      }
+    } catch (error) {
+      customConsoleLog(id, `Error reading or parsing file: ${error.message}`);
+    }
+  }
+  return false;
+}
 
 async function exportLinkedin(id, platformId, filename, company, name) {
+  let linkedinCredentials;
   if (!window.location.href.includes('linkedin.com')) {
     customConsoleLog(id, 'Navigating to LinkedIn');
     window.location.assign('https://linkedin.com/');
-  }
-  await wait(2);
-
-  if (document.querySelector('input[aria-label="Email or phone"]')) {
-    customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-    ipcRenderer.send('connect-website', id);
-    return 'CONNECT_WEBSITE';
-  }
-  const profileButton = await waitForElement(
-    id,
-    'img[alt*="Photo of"]',
-    'Profile Button',
-  );
-
-  if (!profileButton) {
-
-    customConsoleLog(id, 'YOU NEED TO SIGN IN (click the eye in the top right)!');
-    ipcRenderer.send('connect-website', id);
-    return 'CONNECT_WEBSITE';
+    ipcRenderer.send('get-linkedin-credentials', company, name);
   }
 
-  profileButton.click();
-
-  await wait(2);
-
-  const contactBtn = await waitForElement(
-    id,
-    '#top-card-text-details-contact-info',
-    'Contact Info Button',
-  );
-
-  if (!contactBtn) {
-    customConsoleLog(id, 'Contact button not found');
-    return 'NOTHING';
+  while (!linkedinCredentials) {
+    await wait(0.5);
+    linkedinCredentials = await checkLinkedinCredentials(company, name);
   }
 
-  contactBtn.click();
+  customConsoleLog(id, 'linkedinCredentials obtained!');
 
-  await wait(2);
+  try {
+    let consecutiveExisting = 0;
+    let start = 0;
+    const count = 40;
+    let hasMore = true;
 
-  const contactInfoElement = await waitForElement(
-    id,
-    '.pv-contact-info__contact-type',
-    'Contact Info Card',
-  );
+    while (hasMore) {
+      const params = new URLSearchParams({
+        'decorationId': 'com.linkedin.voyager.dash.deco.web.mynetwork.ConnectionListWithProfile-15',
+        'count': count.toString(),
+        'q': 'search',
+        'sortType': 'RECENTLY_ADDED',
+        'start': start.toString()
+      });
 
-  if (!contactInfoElement) {
-    customConsoleLog(id, 'Contact info not found');
-    return 'NOTHING';
-  }
+      const url = `https://www.linkedin.com/voyager/api/relationships/dash/connections?${params.toString()}`;
+      customConsoleLog(id, `Fetching connections ${start} to ${start + count}`);
 
-  return new Promise(async (resolve) => {
-    const sections = await waitForElement(
-      id,
-      "section[data-view-name='profile-card']",
-      'Profile Card Sections',
-      true,
-    );
-    const contactBtn = await waitForElement(
-      id,
-      '#top-card-text-details-contact-info',
-      'Contact Button',
-    );
-    if (sections && sections.length > 5 && contactBtn) {
-      const mainContent = await waitForElement(
-        id,
-        '.scaffold-layout__main',
-        'Main Content',
-      );
+      const response = await fetch(url, {
+        headers: {
+          'cookie': linkedinCredentials.cookie,
+          'csrf-token': linkedinCredentials.csrfToken,
+        }
+      });
 
-      if (mainContent) {
+      if (!response.ok) {
+        throw new Error(`LinkedIn API request failed: ${response.status}`);
+      }
 
-        contactBtn.click();
-
-        await wait(2);
-
-        customConsoleLog(id, 'Waiting for Contact Info');
-        const contactInfoElements = await waitForElement(
-          id,
-          '.pv-contact-info__contact-type',
-          'Contact Info Elements',
-          true,
-        );
-
-        if (contactInfoElements) {
-          customConsoleLog(id, 'Trying to get contact info (if any)');
-          let email = '';
-          // Loop through each element
-          Array.from(contactInfoElements).forEach((element) => {
-            // Check for anchor tags to get links
-            const links = element.getElementsByTagName('a');
-            if (links.length > 0) {
-              Array.from(links).forEach((link) => {
-                if (link.href.includes('mailto:')) {
-                  email = link.href.replace('mailto:', '');
-                  customConsoleLog(id, 'got email: ', email);
-                }
-              });
-            }
-          });
-
-          const profileData = {
-            name: (await waitForElement(id, 'h1', 'Name'))?.innerText || '',
-            subheading:
-              (
-                await waitForElement(
-                  id,
-                  '.text-body-medium.break-words',
-                  'Subheading',
-                )
-              )?.innerText || '',
-            about: (
-              (
-                await waitForElement(
-                  id,
-                  "section[data-view-name='profile-card'] div#about",
-                  'About Section',
-                )
-              )?.closest('section')?.innerText || ''
-            ).replace(/^About\nAbout\n/, ''),
-            profile_url: window.location.href,
-            experience: (
-              (
-                await waitForElement(
-                  id,
-                  "section[data-view-name='profile-card'] div#experience",
-                  'Experience Section',
-                )
-              )?.closest('section')?.innerText || ''
-            ).replace(/^Experience\nExperience\n/, ''),
-            email: email || '',
+      const data = await response.json();
+      if (!data.elements || data.elements.length === 0) {
+        hasMore = false;
+      } else {
+        for (const connection of data.elements) {
+          const memberResult = connection?.connectedMemberResolutionResult;
+          if (!memberResult?.firstName && !memberResult?.lastName && !memberResult?.headline) {
+            continue;
+          }
+          
+          const connectionData = {
+            firstName: memberResult?.firstName || '',
+            lastName: memberResult?.lastName || '',
+            headline: memberResult?.headline || '',
+            createdAt: connection?.createdAt || ''
           };
 
-          customConsoleLog(id, 'sending back profile data!');
-          customConsoleLog(id, 'linkedin done!');
+          const connectionExists = await checkIfConnectionExists(
+            id,
+            platformId,
+            company,
+            name,
+            connectionData
+          );
 
-          resolve(profileData);
+          if (connectionExists) {
+            customConsoleLog(id, 'Connection already exists, skipping');
+            consecutiveExisting++;
+            if (consecutiveExisting >= 3) {
+              customConsoleLog(id, 'Found 3 consecutive existing connections, stopping export');
+              hasMore = false;
+              break;
+            }
+          } else {
+            consecutiveExisting = 0;
+            ipcRenderer.send(
+              'handle-update',
+              company,
+              name,
+              platformId,
+              JSON.stringify(connectionData),
+              id
+            );
+          }
         }
+        
+        start += count;
+        await wait(1);
       }
-    } else {
-      customConsoleLog(id, 'Required elements not found');
-      resolve(null);
     }
-  });
+
+    ipcRenderer.send('handle-update-complete', id, platformId, company, name);
+    return 'HANDLE_UPDATE_COMPLETE';
+  } catch (error) {
+    customConsoleLog(id, `Error fetching LinkedIn data: ${error.message}`);
+    return 'NOTHING';
+  }
 }
 
 module.exports = exportLinkedin;
