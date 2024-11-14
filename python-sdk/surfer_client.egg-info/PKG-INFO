@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: surfer-client
+Version: 0.1.0
+Summary: Python client for Surfer-Data desktop app
+Author: Sahil Lalani
+Author-email: your.email@example.com
+Keywords: surfer-data,client

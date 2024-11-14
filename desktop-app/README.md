@@ -1,7 +1,7 @@
-# Surfer Protocol: An open-source framework for exporting and building applications off of your personal data
+# Surfer Desktop App
 
-> ### ⚠️ Looking for the Surfer Desktop App or the Surfer Python SDK? 
-> Desktop App: [Surfer Desktop App](https://github.com/Surfer-Org/Desktop-App)\
+> ### ⚠️ Looking for Surfer Protocol or the Surfer Python SDK? 
+> Protocol: [Surfer Protocol](https://github.com/Surfer-Org/Protocol)\
 > SDK: [Surfer Python SDK](https://github.com/Surfer-Org/Python-SDK)
 
 [![Contributors][contributors-shield]][contributors-url]
@@ -11,13 +11,22 @@
 [![MIT License][license-shield]][license-url]
 [![](https://dcbadge.vercel.app/api/server/5KQkWApkYC)](https://discord.gg/5KQkWApkYC)
 
-## What is Surfer Protocol?
 
-Surfer Protocol is an open-source framework for exporting and building applications off of your personal data.
+## Demo (click to view)
 
-Your personal data is siloed across many platforms and apps. Big tech companies have no incentive to give you easy access to your own data. Whether you want to make an AI clone that texts like you, reclaim your data from big tech, or leave a digital legacy, Surfer Protocol is the way to do it.
+[![YouTube](http://i.ytimg.com/vi/2P25iOd14qw/hqdefault.jpg)](https://www.youtube.com/watch?v=2P25iOd14qw)
 
-Currently, Surfer Protocol consists of a Python SDK and a Desktop App. The Desktop App is used for exporting your data from your favorite apps and services. The Python SDK is used for building applications off of your personal data.
+## Currently Supported Platforms
+- iMessages (Windows only)
+- Twitter Bookmarks
+- Notion
+- ChatGPT History
+- Gmail
+- LinkedIn Connections
+- Reddit (coming soon!)
+- GitHub (coming soon!)
+- Discord (coming soon!)
+- Spotify (coming soon!)
 
 ## How it works
 

@@ -24,7 +24,6 @@ const { download } = require('electron-dl');
 import express from 'express';
 import cors from 'cors';
 import { getNotionCredentials, getTwitterCredentials } from './utils/network';
-import { scheduledJobs, scheduleNextExport, runInitialExports } from './utils/schedule';
 
 // Preventing multiple instances of Surfer
 
@@ -479,13 +478,6 @@ export const createWindow = async (visible: boolean = true) => {
   });
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
-
-  // Add this listener for renderer ready state
-  mainWindow.webContents.on('did-finish-load', () => {
-    console.log('Renderer ready, initializing exports');
-    initializeExports();
-  });
-
   // Add this to reset renderer ready state when window is closed
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -750,79 +742,6 @@ export const createWindow = async (visible: boolean = true) => {
   });
 };
 
-const initializeExports = async () => {
-  if (!mainWindow) {
-    console.log('Renderer not ready, waiting...');
-    return;
-  }
-
-  try {
-    const platforms = await getPlatforms();
-    const connectedPlatformsMap = await checkConnectedPlatforms(platforms);
-    
-    // Get current runs
-    mainWindow.webContents.send('get-runs');
-    const runsResponse: any = await new Promise((resolve) => {
-      ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
-    });
-
-    // Filter platforms that are both connected and have exportFrequency set
-    const platformsToSchedule = platforms.filter(platform => 
-      connectedPlatformsMap[platform.id] === true && 
-      platform.exportFrequency
-    );
-
-    console.log('Scheduling exports for connected platforms:', 
-      platformsToSchedule.map(p => `${p.name} (${p.id})`)
-    );
-
-    for (const platform of platformsToSchedule) {
-      console.log(`Initializing exports for ${platform.name} (${platform.id})`);
-      await runInitialExports(platform, runsResponse);
-      scheduleNextExport(platform, runsResponse);
-    }
-  } catch (error) {
-    console.error('Failed to initialize export scheduling:', error);
-  }
-};
-
-export const waitForExportCompletion = async (platformId: string): Promise<any> => {
-  try {
-    // Trigger the export
-    mainWindow?.webContents.send('element-found', platformId);
-
-    // Wait for run to start
-    const currentRun: any = await new Promise((resolve) => {
-      ipcMain.once('run-started', (event, run) => resolve(run));
-    });
-
-    console.log('Export started, monitoring run:', currentRun.id);
-
-    // Monitor run status until success
-    const finalRun = await new Promise((resolve) => {
-      const checkRunStatus = async () => {
-        mainWindow?.webContents.send('get-runs');
-        const runsResponse: any = await new Promise((resolve) => {
-          ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
-        });
-
-        const finalRun = runsResponse.find((r: any) => r.id === currentRun.id);
-        if (finalRun?.status === 'success') {
-          clearInterval(statusInterval);
-          resolve(finalRun);
-        }
-      };
-
-      const statusInterval = setInterval(checkRunStatus, 1000);
-    });
-
-    console.log('Export completed successfully:', finalRun.id);
-    return finalRun;
-  } catch (error) {
-    console.error('Export failed:', error);
-    throw error;
-  }
-};
 
 ipcMain.on('open-external', (event, url) => {
   shell.openExternal(url);
@@ -1215,19 +1134,6 @@ ipcMain.on('open-platform-export-folder', (event, company, name) => {
   const exportFolderPath = path.join(app.getPath('userData'), 'surfer_data', company, name);
   console.log('exportFolderPath', exportFolderPath);
   shell.openPath(exportFolderPath);
-});
-
-app.on('before-quit', async () => {
-  scheduledJobs.forEach((job) => job.cancel());
-  scheduledJobs.clear();
-
-  // Send stop-runs signal to renderer
-  mainWindow?.webContents.send('stop-runs');
-  const stopRunsResponse: any = await new Promise((resolve) => {
-    ipcMain.once('runs-stopped', (event, runs) => resolve(runs));
-  });
-
-  console.log('Runs stopped:', stopRunsResponse);
 });
 
 // Update the app.whenReady() to be async
