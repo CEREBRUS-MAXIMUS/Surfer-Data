@@ -104,7 +104,7 @@ function ActivePageMarker({ group, pathname }) {
   return (
     <motion.div
       layout
-      className="absolute left-2 h-6 w-px bg-emerald-500"
+      className="absolute left-2 h-6 w-px bg-blue-500"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { delay: 0.2 } }}
       exit={{ opacity: 0 }}
@@ -197,7 +197,7 @@ export const navigation = [
     links: [
       { title: 'Home', href: '/' },
       { title: 'About', href: '/about' },
-      { title: 'Use Cases', href: '/use-cases' },
+      { title: 'Community Projects', href: '/community-projects' },
       { title: 'Contributing', href: '/contributing' },
       { title: 'Roadmap', href: '/roadmap' },
       { title: 'FAQ', href: '/faq' },
@@ -206,14 +206,16 @@ export const navigation = [
   {
     title: 'Desktop',
     links: [
-      { title: 'Overview', href: '/desktop' },
       { title: 'Installation', href: '/desktop/installation' },
+      { title: 'Overview', href: '/desktop' },
+      { title: 'API', href: '/desktop/api' },
     ],
   },
   {
-    title: 'Python SDK',
+    title: 'SDK',
     links: [
-      { title: 'Overview', href: '/python-sdk' },
+      { title: 'JavaScript', href: '/sdk/javascript' },
+      { title: 'Python', href: '/sdk/python' },
     ],
   },
 ]

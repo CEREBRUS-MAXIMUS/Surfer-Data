@@ -197,7 +197,7 @@ useEffect(() => {
 
 
     dispatch(startRun(newRun));
-    // dispatch(toggleRunVisibility());
+    dispatch(toggleRunVisibility());
     dispatch(setExportRunning(newRun.id, true));
   };
 
