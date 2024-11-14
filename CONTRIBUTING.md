@@ -8,7 +8,7 @@ Before you can start contributing, please follow these steps to set up the devel
 
 1. Clone the repository:
    ```
-   git clone https://github.com/CEREBRUS-MAXIMUS/Surfer-Data.git
+   git clone https://github.com/Surfer-Org/Desktop-App.git
    ```
 
 2. Install the required dependencies:
@@ -26,9 +26,9 @@ This will run the application in development mode, allowing you to test your cha
 
 ## Contribution Guidelines
 
-1. **Reporting Bugs**: If you encounter any bugs or issues, please open a new issue in the [GitHub repository](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues/new?labels=bug&template=bug-report---.md). Provide a clear and detailed description of the problem, along with any relevant steps to reproduce the issue.
+1. **Reporting Bugs**: If you encounter any bugs or issues, please open a new issue in the [GitHub repository](https://github.com/Surfer-Org/Desktop-App/issues/new?labels=bug&template=bug-report---.md). Provide a clear and detailed description of the problem, along with any relevant steps to reproduce the issue.
 
-2. **Suggesting Features**: If you have an idea for a new feature or improvement, please open a new issue in the [GitHub repository](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues/new?labels=enhancement&template=feature-request---.md). Describe the feature in detail, explain its benefits, and provide any additional context that might be helpful.
+2. **Suggesting Features**: If you have an idea for a new feature or improvement, please open a new issue in the [GitHub repository](https://github.com/Surfer-Org/Desktop-App/issues/new?labels=enhancement&template=feature-request---.md). Describe the feature in detail, explain its benefits, and provide any additional context that might be helpful.
 
 3. **Submitting Pull Requests**: If you would like to contribute code changes to the project, follow these steps:
    - Fork the repository

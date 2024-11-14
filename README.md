@@ -1,6 +1,8 @@
-# Surfer: Export your personal data in one click
+# Surfer Desktop App
 
-# 🆕 **RECENT UPDATES (10/28/24): Surfer is evolving! We're currently working on an [open-source framework](https://surferprotocol.org) to get and do stuff with your personal data. For the latest updates, visit our [project page](https://surferprotocol.org) or the [GitHub repo](https://github.com/surfer-org/protocol).** 🆕
+> ### ⚠️ Looking for Surfer Protocol or the Surfer Python SDK? 
+> Protocol: [Surfer Protocol](https://github.com/Surfer-Org/Protocol)\
+> SDK: [Surfer Python SDK](https://github.com/Surfer-Org/Python-SDK)
 
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
@@ -8,31 +10,11 @@
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![](https://dcbadge.vercel.app/api/server/5KQkWApkYC)](https://discord.gg/5KQkWApkYC)
-[![RECENT UPDATES](https://img.shields.io/badge/RECENT%20UPDATES-10%2F20%2F24-brightgreen)](https://surferprotocol.org)
 
-
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li><a href="#how-it-works">How it works</a></li>
-    <li><a href="#getting-started">Getting Started</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
-  </ol>
-</details>
 
 ## Demo (click to view)
 
 [![YouTube](http://i.ytimg.com/vi/2P25iOd14qw/hqdefault.jpg)](https://www.youtube.com/watch?v=2P25iOd14qw)
-
-Surfer is a digital footprint exporter, designed to aggregate all your personal data from various online platforms into a single folder.
-
-Currently, your personal data is scattered across hundreds of platforms and the companies operating these platforms have no incentive to give this data back to you. Surfer solves this problem by navigating to websites and scraping data from these websites.
-
-We believe that personal data aggregation is the key to enabling truly useful, universal personal assistants.
 
 ## Currently Supported Platforms
 - iMessages (Windows only)
@@ -40,9 +22,11 @@ We believe that personal data aggregation is the key to enabling truly useful, u
 - Notion
 - ChatGPT History
 - Gmail
-- LinkedIn Connections (coming soon!)
+- LinkedIn Connections
 - Reddit (coming soon!)
 - GitHub (coming soon!)
+- Discord (coming soon!)
+- Spotify (coming soon!)
 
 ## How it works
 
@@ -79,29 +63,11 @@ To download the app, head over to [https://surfsup.ai](https://surfsup.ai). Or y
 
 For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md), [Helper Functions Documentation](docs/HELPER_FUNCTIONS.md), and [Guide to Adding New Platforms](docs/ADD_PLATFORMS.md).
 
-See the [open issues](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues) for a full list of proposed features (and known issues).
-
-## Roadmap
-
-### Short-Term
-- [x] Data being maintained/updated everyday
-- [x] Scheduled exports
-- [ ] Obtain a code signing certificate for Windows
-- [x] Replace `setTimeout` with `await` for script execution to ensure elements exist before scraping
-- [ ] Iamplement robust error handling for the scraping process
-- [ ] Add support for more online platforms
-- [x] Add verbosity to runs
-
-### Medium to Long-Term
-- [ ] Implement concurrent scraping to allow for multiple scraping jobs to run simultaneously
-- [ ] Adding knowledge graphs, chatting with data, visualizations, etc
-- [ ] Adding sub-tasks within platforms (i.e. Twitter Bookmarks, LinkedIn Connections Data, etc)
-- [ ] Integrate with other agentic frameworks like LangChain for advanced personal AI assistants
-- [ ] Explore integration with wearable devices for enhanced personal data tracking and acknowledgment
+See the [open issues](https://github.com/Surfer-Org/Desktop-App/issues) for a full list of proposed features (and known issues).
 
 ## License
 
-Distributed under the MIT License. See [`LICENSE`](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/blob/main/LICENSE) for more information.
+Distributed under the MIT License. See [`LICENSE`](https://github.com/Surfer-Org/Desktop-App/blob/main/LICENSE) for more information.
 
 ## Built With
 
@@ -114,26 +80,26 @@ Distributed under the MIT License. See [`LICENSE`](https://github.com/CEREBRUS-M
 
 [Surfer Discord Server](https://discord.gg/Tjg7pjcFNP) - [@SahilLalani0](https://x.com/SahilLalani0) - [@JackBlair87](https://x.com/JackBlair87) - [@T0M_3D](https://x.com/T0M_3D)
 
-Project Link: [https://github.com/CEREBRUS-MAXIMUS/Surfer-Data](https://github.com/CEREBRUS-MAXIMUS/Surfer-Data)
+Project Link: [https://github.com/Surfer-Org/Desktop-App](https://github.com/Surfer-Org/Desktop-App)
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=CEREBRUS-MAXIMUS/Surfer-Data&type=Date)](https://star-history.com/#CEREBRUS-MAXIMUS/Surfer-Data&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Surfer-Org/Desktop-App&type=Date)](https://star-history.com/#Surfer-Org/Desktop-App&Date)
 
 ## Acknowledgements
 
 - [Electron React Boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate)
 
-[contributors-shield]: https://img.shields.io/github/contributors/CEREBRUS-MAXIMUS/Surfer-Data.svg?style=for-the-badge
-[contributors-url]: https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/CEREBRUS-MAXIMUS/Surfer-Data.svg?style=for-the-badge
-[forks-url]: https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/network/members
-[stars-shield]: https://img.shields.io/github/stars/CEREBRUS-MAXIMUS/Surfer-Data.svg?style=for-the-badge
-[stars-url]: https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/stargazers
-[issues-shield]: https://img.shields.io/github/issues/CEREBRUS-MAXIMUS/Surfer-Data.svg?style=for-the-badge
-[issues-url]: https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues
-[license-shield]: https://img.shields.io/github/license/CEREBRUS-MAXIMUS/Surfer-Data.svg?style=for-the-badge
-[license-url]: https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/blob/master/LICENSE
+[contributors-shield]: https://img.shields.io/github/contributors/Surfer-Org/Desktop-App.svg?style=for-the-badge
+[contributors-url]: https://github.com/Surfer-Org/Desktop-App/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/Surfer-Org/Desktop-App.svg?style=for-the-badge
+[forks-url]: https://github.com/Surfer-Org/Desktop-App/network/members
+[stars-shield]: https://img.shields.io/github/stars/Surfer-Org/Desktop-App.svg?style=for-the-badge
+[stars-url]: https://github.com/Surfer-Org/Desktop-App/stargazers
+[issues-shield]: https://img.shields.io/github/issues/Surfer-Org/Desktop-App.svg?style=for-the-badge
+[issues-url]: https://github.com/Surfer-Org/Desktop-App/issues
+[license-shield]: https://img.shields.io/github/license/Surfer-Org/Desktop-App.svg?style=for-the-badge
+[license-url]: https://github.com/Surfer-Org/Desktop-App/blob/master/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/cerebrus-maximus
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB

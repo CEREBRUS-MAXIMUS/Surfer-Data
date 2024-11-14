@@ -16,7 +16,7 @@
     "gpt4",
     "chatbot"
   ],
-  "repository": "https://github.com/CEREBRUS-MAXIMUS/Surfer-Data",
+  "repository": "https://github.com/Surfer-Org/Desktop-App",
   "publish": {
     "provider": "github",
     "releaseType": "release"

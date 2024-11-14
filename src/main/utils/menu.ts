@@ -229,7 +229,7 @@ export default class MenuBuilder {
           label: 'Releases',
           click() {
             shell.openExternal(
-              'https://github.com/CEREBRUS-MAXIMUS/Surfer-Test-Autoupdate',
+              'https://github.com/Surfer-Org/Desktop-App',
             );
           },
         },
@@ -350,7 +350,7 @@ export default class MenuBuilder {
             label: 'Releases',
             click() {
               shell.openExternal(
-                'https://github.com/CEREBRUS-MAXIMUS/Surfer-Test-Autoupdate',
+                'https://github.com/Surfer-Org/Desktop-App',
               );
             },
           },

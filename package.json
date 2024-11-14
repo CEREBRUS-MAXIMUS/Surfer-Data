@@ -12,11 +12,11 @@
     "hot",
     "reload"
   ],
-  "homepage": "https://github.com/CEREBRUS-MAXIMUS/Surfer-Data",
+  "homepage": "https://github.com/Surfer-Org/Desktop-App",
   "bugs": {
-    "url": "https://github.com/CEREBRUS-MAXIMUS/Surfer-Data/issues"
+    "url": "https://github.com/Surfer-Org/Desktop-App/issues"
   },
-  "repository": "https://github.com/CEREBRUS-MAXIMUS/Surfer-Data",
+  "repository": "https://github.com/Surfer-Org/Desktop-App",
   "publish": {
     "provider": "github",
     "releaseType": "release"

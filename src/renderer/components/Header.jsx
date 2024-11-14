@@ -746,7 +746,7 @@ export const Header = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.electron.ipcRenderer.send('open-external', 'https://github.com/CEREBRUS-MAXIMUS/Surfer-Data')}
+                  onClick={() => window.electron.ipcRenderer.send('open-external', 'https://github.com/Surfer-Org/Desktop-App')}
                   className="flex items-center gap-2"
                 >
                   <GithubIcon size={16} />
