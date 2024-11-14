@@ -12,7 +12,7 @@ if len(sys.argv) < 7:
 
 folder_path = sys.argv[1]
 company = sys.argv[2]
-name = sys.argv[3]
+platform_name = sys.argv[3]
 password = sys.argv[4]
 app_data_path = sys.argv[5]  # New argument for the app's data path
 id = sys.argv[6]
@@ -37,7 +37,7 @@ try:
     backup = EncryptedBackup(backup_directory=folder_path, passphrase=password)
     print('Backup decrypted successfully')
     # Define the output directory using the provided app data path
-    output_dir = os.path.join(app_data_path, 'surfer_data', company, name, id)
+    output_dir = os.path.join(app_data_path, 'surfer_data', company, platform_name, id)
  
     # Ensure the directory exists
     os.makedirs(output_dir, exist_ok=True)
@@ -142,16 +142,24 @@ try:
     imessage_conn.close()
     contacts_conn.close()
 
+    imessages = {
+        "company": company,
+        "name": platform_name,
+        "runID": id,
+        "timestamp": int(id.split('-')[-1]),
+        "content": message_list
+    }
+
     # Save to JSON file
     imessage_json_path = os.path.join(output_dir, 'imessages.json')
     with open(imessage_json_path, 'w') as f:
-        json.dump(message_list, f, indent=2)
+        json.dump(imessages, f, indent=2)
 
     print(output_dir)
 
     sys.exit(0)
 except Exception as e:
-    if "Invalid password" in str(e):
+    if "incorrect passphrase" in str(e):
         print('INVALID_PASSWORD')
     else:
         print(f"ERROR: {str(e)}")

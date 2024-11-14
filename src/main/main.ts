@@ -18,7 +18,7 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
 import fs from 'fs';
-import { convertMboxToJson, findMboxFile, extractZip, getTotalFolderSize } from './helpers/platforms';
+import { convertMboxToJson, findMboxFile, extractZip, getTotalFolderSize, checkConnectedPlatforms } from './helpers/platforms';
 import { getImessageData } from './utils/imessage';
 const { download } = require('electron-dl');
 import express from 'express';
@@ -297,16 +297,7 @@ ipcMain.on('get-linkedin-credentials', async (event, company, name) => {
 });
 
 ipcMain.handle('check-connected-platforms', async (event, platforms) => {
-  const userDataPath = app.getPath('userData');
-  const connectedPlatforms = {};
-
-  for (const platform of platforms) {
-    const { company, name } = platform;
-    const platformPath = path.join(userDataPath, 'surfer_data', company, name);
-    connectedPlatforms[platform.id] = fs.existsSync(platformPath);
-  }
-
-  return connectedPlatforms;
+  return checkConnectedPlatforms(platforms);
 });
 
 const getPlatforms = async () => {
@@ -438,7 +429,7 @@ class AppUpdater {
   }
 }
 
-let mainWindow: BrowserWindow | null = null;
+export let mainWindow: BrowserWindow | null = null;
 
 const isDebug =
   process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
@@ -767,20 +758,28 @@ const initializeExports = async () => {
 
   try {
     const platforms = await getPlatforms();
-
+    const connectedPlatformsMap = await checkConnectedPlatforms(platforms);
+    
     // Get current runs
     mainWindow.webContents.send('get-runs');
     const runsResponse: any = await new Promise((resolve) => {
       ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
     });
 
-    for (const platform of platforms) {
-      if (platform.exportFrequency) {
-        console.log(`Checking exports for ${platform.name}`);
-        await runInitialExports(platform, runsResponse);
-        scheduleNextExport(platform, runsResponse);
+    // Filter platforms that are both connected and have exportFrequency set
+    const platformsToSchedule = platforms.filter(platform => 
+      connectedPlatformsMap[platform.id] === true && 
+      platform.exportFrequency
+    );
 
-      }
+    console.log('Scheduling exports for connected platforms:', 
+      platformsToSchedule.map(p => `${p.name} (${p.id})`)
+    );
+
+    for (const platform of platformsToSchedule) {
+      console.log(`Initializing exports for ${platform.name} (${platform.id})`);
+      await runInitialExports(platform, runsResponse);
+      scheduleNextExport(platform, runsResponse);
     }
   } catch (error) {
     console.error('Failed to initialize export scheduling:', error);

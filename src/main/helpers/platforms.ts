@@ -2,6 +2,20 @@ import fs from 'fs';
 import path from 'path';
 import { mboxParser } from 'mbox-parser';
 import yauzl from 'yauzl';
+import { app } from 'electron'
+
+export function checkConnectedPlatforms(platforms: any[]) {
+  const userDataPath = app.getPath('userData');
+  const connectedPlatforms : any = {};
+
+  for (const platform of platforms) {
+    const { company, name } = platform;
+    const platformPath = path.join(userDataPath, 'surfer_data', company, name);
+    connectedPlatforms[platform.id] = fs.existsSync(platformPath);
+  }
+
+  return connectedPlatforms;
+}
 
 export async function convertMboxToJson(
   mboxFilePath: string,

@@ -103,6 +103,7 @@ const features = {
   longform_notetweets_rich_text_read_enabled: true,
   longform_notetweets_inline_media_enabled: true,
   responsive_web_enhance_cards_enabled: false,
+  responsive_web_live_screen_enabled: false,
 };
 
 
