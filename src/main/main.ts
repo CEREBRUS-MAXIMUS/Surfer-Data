@@ -42,7 +42,7 @@ let downloadingItems = new Map();
 
 let config;
 let supabase;
- 
+
 try {
   const configPath = path.join(__dirname, '../../config.json');
   if (fs.existsSync(configPath)) {
@@ -54,7 +54,7 @@ try {
   }
 } catch (error) {
   console.error('Error loading config:', error);
-} 
+}
 
 ipcMain.on('connect-platform', (event, platform: any) => {
   const { company, name, connectURL, connectSelector, id } = platform;
@@ -91,7 +91,7 @@ ipcMain.on('connect-platform', (event, platform: any) => {
           mainWindow?.webContents.send('element-found', id);
           elementFound = true;
           popupWindow.destroy();
-          
+
         } else {
           console.log('ELEMENT NOT FOUND, STILL LOOKING!');
           mainWindow?.webContents.send('element-not-found', id);
@@ -176,7 +176,7 @@ ipcMain.handle('get-scrapers', async () => {
         const companyMatch = relativePath.split(path.sep);
         const company = companyMatch.length > 1 ? companyMatch[0] : 'Scraper';
         const metadata = await getMetadataFile(company, name);
- 
+
         return {
           id: metadata && metadata.id ? metadata.id : `${name}-001`,
           company: metadata && metadata.company ? metadata.company : company,
@@ -216,7 +216,7 @@ app.on('web-contents-created', (_event, contents) => {
     // Use __dirname to get the path of the current directory
     const preloadPath = path.join(__dirname, 'preloadWebview.js');
     webPreferences.preload = preloadPath;
-  }); 
+  });
 });
 
 ipcMain.on('get-files-in-folder', (event, folderPath) => {
@@ -230,7 +230,8 @@ ipcMain.on('get-version-number', (event) => {
 
 ipcMain.handle('get-imessage-data', async (event, company: string, name: string, id: string) => {
   //if (process.platform === 'win32') {
-    const username = process.env.USERNAME || process.env.USER;
+  console.log('ENV: ', process.env);
+    const username = process.env.USERNAME || process.env.SUDO_USER;
     const defaultPath =
       process.platform === 'win32'
         ? path.join('C:', 'Users', username, 'Apple', 'MobileSync', 'Backup')
@@ -238,10 +239,10 @@ ipcMain.handle('get-imessage-data', async (event, company: string, name: string,
             '/Users',
             username,
             'Library',
-            'Application Support',
-            'MobileSync',
-            'Backup',
+            'Messages',
           );
+
+    console.log('DEFAULT PATH: ', defaultPath);
 
     if (!fs.existsSync(defaultPath)) {
       console.log('NEED TO BACKUP YOUR IMESSAGE FOLDER!');
@@ -333,7 +334,7 @@ if (isDebug) {
 }
 
 let scrapingManager: ScrapingManager;
- 
+
 
 export const createWindow = async (visible: boolean = true) => {
   if (mainWindow) {
@@ -349,7 +350,7 @@ export const createWindow = async (visible: boolean = true) => {
   };
 
   mainWindow = new BrowserWindow({
-    show: visible, 
+    show: visible,
     //set to max with on mac screen
     width: 1560,
     height: 1024,
@@ -738,24 +739,24 @@ async function convertMboxToJson(
           if (filePath.toLowerCase().endsWith('.zip')) {
 
             const extractPath = path.join(idPath, 'extracted');
-            
+
             try {
               await extractZip(filePath, extractPath);
               console.log('Outer ZIP extracted to:', extractPath);
 
-              // parsing conversations.json  
+              // parsing conversations.json
 
               if (extractPath.includes('ChatGPT')) {
                 await parseConversationsJSON(extractPath)
               }
               // Find the inner ZIP file
               const innerZipFile = fs.readdirSync(extractPath).find(file => file.endsWith('.zip'));
-              
+
               if (innerZipFile) {
                 const innerZipPath = path.join(extractPath, innerZipFile);
                 await extractZip(innerZipPath, extractPath);
                 console.log('Inner ZIP extracted to:', extractPath);
-                
+
                 // Delete the inner ZIP file after extraction
                 fs.unlinkSync(innerZipPath);
               }
@@ -974,7 +975,7 @@ if (!existingData) {
 
   console.log(`Data appended to: ${filePath}`);
 });
- 
+
 ipcMain.on('handle-update-complete', (event, runID, platformId, company, name, customFilePath = null) => {
   const filePath = customFilePath ? customFilePath : path.join(app.getPath('userData'), 'surfer_data', company, name, platformId, `${platformId}.json`)
   console.log('this filepath: ', filePath)
@@ -986,7 +987,7 @@ ipcMain.on('handle-update-complete', (event, runID, platformId, company, name, c
     platformId,
   );
 
-  // if (!fs.existsSync(filePath)) 
+  // if (!fs.existsSync(filePath))
 
   if (fs.existsSync(filePath)) {
   mainWindow?.webContents.send(
@@ -1016,7 +1017,7 @@ ipcMain.on('handle-export', (event, runID, platformId, filename, company, name, 
   const platformPath = path.join(surferDataPath, company);
   const namePath = path.join(platformPath, name);
   const idPath = path.join(namePath, runID);
-  
+
 
   // Create necessary folders
   [surferDataPath, platformPath, namePath, idPath].forEach((dir) => {
@@ -1077,7 +1078,7 @@ autoUpdater.on('update-available', (info) => {
     .then((result) => {
       if (result.response === 0) {
         // User clicked 'Yes'
-        mainWindow?.webContents.send('update-download-progress', 0);        
+        mainWindow?.webContents.send('update-download-progress', 0);
         autoUpdater.downloadUpdate();
       }
     });
@@ -1103,7 +1104,7 @@ autoUpdater.on('update-downloaded', (info) => {
     })
     .then((result) => {
       if (result.response === 0) {
-        mainWindow?.webContents.send('update-download-progress', 100);      
+        mainWindow?.webContents.send('update-download-progress', 100);
         autoUpdater.quitAndInstall();
       }
 
