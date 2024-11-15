@@ -6,3 +6,29 @@ export const metadata = {
 
 # ChatGPT
 
+> This schema is for the `1_parsed_conversations.json` file.
+
+## Schema
+```json
+{
+  "company": "OpenAI",
+  "name": "ChatGPT",
+  "runID": "chatgpt-001",
+  "timestamp": 1731700918119,
+  "content": [
+    {
+      "title": "Title of the page",
+      "messages": [
+        {
+          "text": "Content of the message",
+          "type": "human" | "ai",
+          "timestamp": 1731599217.951566
+        },
+        ...
+      ]
+    },
+    ...
+  ]
+}
+```
+

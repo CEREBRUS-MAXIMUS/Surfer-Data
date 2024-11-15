@@ -18,7 +18,7 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './utils/util';
 import fs from 'fs';
-import { convertMboxToJson, findMboxFile, extractZip, getTotalFolderSize, checkConnectedPlatforms } from './helpers/platforms';
+import { convertMboxToJson, findMboxFile, extractZip, getTotalFolderSize, checkConnectedPlatforms, processNotionExport, parseChatGPTConversations } from './helpers/platforms';
 import { getImessageData } from './utils/imessage';
 const { download } = require('electron-dl');
 import express from 'express';
@@ -125,7 +125,7 @@ const setupExpressServer = async () => {
     const { platformId } = req.body;
 
     try {
-      mainWindow?.webContents.send('element-found', platformId);
+      mainWindow?.webContents.send('api-export', platformId);
 
       // Get initial run with timeout
       const currentRun: any = await new Promise((resolve) => {
@@ -547,19 +547,20 @@ export const createWindow = async (visible: boolean = true) => {
       let idPath: string;
 
       let platformId;
+      const timestamp = Date.now();
 
       if (url.includes('file.notion.so')) {
         companyPath = path.join(surferDataPath, 'Notion');
         platformPath = path.join(companyPath, 'Notion');
         platformId = `notion-001`;
-        idPath = path.join(platformPath, `${platformId}-${Date.now()}`);
+        idPath = path.join(platformPath, `${platformId}-${timestamp}`);
       } else if (
         url.includes('proddatamgmtqueue.blob.core.windows.net/exportcontainer/')
       ) {
         companyPath = path.join(surferDataPath, 'OpenAI');
         platformPath = path.join(companyPath, 'ChatGPT');
         platformId = `chatgpt-001`;
-        idPath = path.join(platformPath, `${platformId}-${Date.now()}`);
+        idPath = path.join(platformPath, `${platformId}-${timestamp}`);
       } else if (url.includes('takeout-download.usercontent.google.com')) {
         companyPath = path.join(surferDataPath, 'Google');
         platformPath = path.join(companyPath, 'Gmail');
@@ -625,50 +626,108 @@ export const createWindow = async (visible: boolean = true) => {
 
               if (url.includes('takeout-download.usercontent.google.com')) {
                 const mboxFilePath = findMboxFile(extractPath);
-              if (mboxFilePath) {
-                const jsonOutputPath = path.join(extractPath, `${platformId}.json`);
-
-                try {
-                  console.log('Converting MBOX to JSON:', mboxFilePath);
-                  const accountID = new URL(url).searchParams.get('authuser') || '0';
-                  await convertMboxToJson(
-                    mboxFilePath,
-                    jsonOutputPath,
-                    accountID,
-                    'Google',
-                    'Gmail',
-                    platformId,
+                if (mboxFilePath) {
+                  const jsonOutputPath = path.join(
+                    extractPath,
+                    `${platformId}.json`,
                   );
-                  console.log('MBOX converted to JSON:', jsonOutputPath);
+
+                  try {
+                    console.log('Converting MBOX to JSON:', mboxFilePath);
+                    const accountID =
+                      new URL(url).searchParams.get('authuser') || '0';
+                    await convertMboxToJson(
+                      mboxFilePath,
+                      jsonOutputPath,
+                      accountID,
+                      'Google',
+                      'Gmail',
+                      platformId,
+                    );
+                    console.log('MBOX converted to JSON:', jsonOutputPath);
+
+                    mainWindow?.webContents.send(
+                      'export-complete',
+                      'Google',
+                      'Gmail',
+                      platformId,
+                      extractPath,
+                      getTotalFolderSize(extractPath),
+                    );
+                  } catch (error) {
+                    console.error('Error converting MBOX to JSON:', error);
+                    mainWindow?.webContents.send('download-error', {
+                      fileName,
+                      error: 'Error converting MBOX to JSON: ' + error.message,
+                    });
+                  }
+                } else {
+                  console.log('No MBOX file found in the extracted content.');
+                }
+              }
+
+              // ... existing code ...
+              else if (url.includes('file.notion.so')) {
+                try {
+                  const { jsonOutputPath, exportData } =
+                    await processNotionExport(
+                      extractPath,
+                      platformId,
+                      timestamp,
+                    );
 
                   mainWindow?.webContents.send(
                     'export-complete',
-                    'Google',
-                    'Gmail',
+                    'Notion',
+                    'Notion',
                     platformId,
                     extractPath,
                     getTotalFolderSize(extractPath),
                   );
                 } catch (error) {
-                  console.error('Error converting MBOX to JSON:', error);
+                  console.error('Error processing Notion export:', error);
                   mainWindow?.webContents.send('download-error', {
                     fileName,
-                    error: 'Error converting MBOX to JSON: ' + error.message,
+                    error: 'Error processing Notion export: ' + error.message,
+                  });
+                }
+              }
+              // ... existing code ...
+              // ... existing code ...
+              else if (
+                url.includes(
+                  'proddatamgmtqueue.blob.core.windows.net/exportcontainer/',
+                )
+              ) {
+                try {
+                  const outputPath = parseChatGPTConversations(extractPath, platformId, timestamp);
+                  mainWindow?.webContents.send(
+                    'export-complete',
+                    'OpenAI',
+                    'ChatGPT',
+                    platformId,
+                    extractPath,
+                    getTotalFolderSize(extractPath),
+                  );
+                } catch (error) {
+                  console.error('Error processing ChatGPT export:', error);
+                  mainWindow?.webContents.send('download-error', {
+                    fileName,
+                    error: 'Error processing ChatGPT export: ' + error.message,
                   });
                 }
               } else {
-                console.log('No MBOX file found in the extracted content.');
-              }
+                console.log('Unknown export, you will need to handle it!');
               }
 
-              mainWindow?.webContents.send(
-                'export-complete',
-                path.basename(companyPath),
-                path.basename(platformPath),
-                platformId,
-                extractPath,
-                getTotalFolderSize(extractPath)
-              );
+              // mainWindow?.webContents.send(
+              //   'export-complete',
+              //   path.basename(companyPath),
+              //   path.basename(platformPath),
+              //   platformId,
+              //   extractPath,
+              //   getTotalFolderSize(extractPath)
+              // );
             } catch (error) {
               console.error('Error extracting ZIP:', error);
               mainWindow?.webContents.send('download-error', {
@@ -1090,7 +1149,7 @@ ipcMain.on('get-run-files', (event, exportPath) => {
           readFilesRecursively(itemPath);
         } else {
           const fileExtension = path.extname(item).toLowerCase();
-          if (['.json', '.txt', '.md'].includes(fileExtension)) {
+          if (['.json'].includes(fileExtension)) {
             const content = fs.readFileSync(itemPath, 'utf-8');
             files.push({ name: item, content });
           }

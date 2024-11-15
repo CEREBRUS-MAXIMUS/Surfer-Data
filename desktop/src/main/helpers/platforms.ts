@@ -139,3 +139,116 @@ export function getTotalFolderSize(folderPath: string): number {
     return totalSize;
   }
 
+export async function processNotionExport(
+  extractPath: string,
+  platformId: string,
+  timestamp: number
+): Promise<{ jsonOutputPath: string; exportData: any }> {
+  const files: { title: string; text: string }[] = [];
+
+  function readNotionFiles(extractPath: string) {
+    const items = fs.readdirSync(extractPath);
+
+    for (const item of items) {
+      const fullPath = path.join(extractPath, item);
+      const stat = fs.statSync(fullPath);
+
+      if (stat.isDirectory()) {
+        readNotionFiles(fullPath);
+      } else if (item.endsWith('.md')) {
+        const content = fs.readFileSync(fullPath, 'utf8');
+        files.push({
+          title: path.basename(item, '.md'),
+          text: content,
+        });
+      }
+    }
+  }
+
+  readNotionFiles(extractPath);
+
+  const exportData = {
+    company: 'Notion',
+    name: 'Notion',
+    runID: `${platformId}`,
+    timestamp: timestamp,
+    content: files,
+  };
+
+  const jsonOutputPath = path.join(
+    extractPath,
+    `${platformId}-${timestamp}.json`
+  );
+  
+  fs.writeFileSync(
+    jsonOutputPath,
+    JSON.stringify(exportData, null, 2)
+  );
+
+  return { jsonOutputPath, exportData };
+}
+
+interface Message {
+  text: string;
+  type: 'ai' | 'human';
+  timestamp?: number;
+}
+
+interface Conversation {
+  title: string;
+  messages: Message[];
+}
+
+export function parseChatGPTConversations(extractPath: string, platformId: string, timestamp: number) {
+  // Read the conversations.json file
+  const filePath = path.join(extractPath, 'conversations.json');
+  const rawData = fs.readFileSync(filePath, 'utf8');
+  const conversations = JSON.parse(rawData);
+
+  // Transform the conversations into the desired format
+  const parsedConversations: Conversation[] = conversations.map((conv: any) => {
+    const messages: Message[] = [];
+    const nodes = Object.values(conv.mapping);
+    
+    // Sort nodes by create_time to maintain conversation order
+    const sortedNodes = nodes
+      .filter((node: any) => 
+        node.message && 
+        node.message.content && 
+        node.message.content.parts && 
+        node.message.content.parts[0] !== ""
+      )
+      .sort((a: any, b: any) => {
+        const timeA = a.message.create_time || 0;
+        const timeB = b.message.create_time || 0;
+        return timeA - timeB;
+      });
+
+    // Extract messages from sorted nodes
+    sortedNodes.forEach((node: any) => {
+      messages.push({
+        text: node.message.content.parts[0],
+        type: node.message.author.role === 'assistant' ? 'ai' : 'human',
+        timestamp: node.message.create_time
+      });
+    });
+
+    return {
+      title: conv.title,
+      messages
+    };
+  });
+
+  // Write the transformed data to a new JSON file
+  const outputPath = path.join(extractPath, '1_parsed_conversations.json');
+  fs.writeFileSync(outputPath, JSON.stringify({
+    company: 'OpenAI',
+    name: 'ChatGPT',
+    runID: platformId,
+    timestamp: timestamp,
+    content: parsedConversations
+  }, null, 2));
+
+  return outputPath;
+}
+

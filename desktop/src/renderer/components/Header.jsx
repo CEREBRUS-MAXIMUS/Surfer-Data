@@ -764,7 +764,7 @@ export const Header = () => {
                   variant="ghost"
                   size="icon"
                   onClick={activeRuns > 0 ? handleViewRuns : undefined}
-                  className={`history-button relative ${activeRuns === 0 ? 'cursor-not-allowed opacity-50' : ''}`}
+                  className={`bg-green-500 history-button relative ${activeRuns === 0 ? 'cursor-not-allowed opacity-50' : ''}`}
                   disabled={activeRuns === 0}
                 >
                   <Eye size={18} />

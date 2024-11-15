@@ -11,6 +11,7 @@ import { TooltipProvider } from "./ui/tooltip";
 import { formatLastRunTime} from '../helpers';
 import { MoonLoader } from 'react-spinners';
 import { IoSync } from "react-icons/io5";
+import { useToast } from "./ui/use-toast";
 
 const PlatformDashboard = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -29,6 +30,7 @@ const PlatformDashboard = ({ onPlatformClick, webviewRef }) => {
   const [connectedPlatforms, setConnectedPlatforms] = useState({});
   const [filteredPlatforms, setFilteredPlatforms] = useState([]);
   const [allPlatforms, setAllPlatforms] = useState([]);
+  const { toast } = useToast();
 
 
 useEffect(() => {
@@ -117,8 +119,13 @@ useEffect(() => {
       const platform = allPlatforms.find(p => p.id === id);
       console.log('PLATFORM: ', platform);
       if (platform) {
-        handleExportClick(platform);
         setConnectedPlatforms(prev => ({ ...prev, [platform.id]: true }));
+        
+        toast({
+          title: `${platform.name} Connected!`,
+          description: "You can now fetch data from this platform.",
+          duration: 3000,
+        });
       }
     };
 
@@ -126,6 +133,22 @@ useEffect(() => {
 
     return () => {
       window.electron.ipcRenderer.removeListener('element-found', handleElementFound);
+    };
+  }, [allPlatforms, toast]);
+
+  useEffect(() => {
+    const handleAPIExport = (id) => {
+      const platform = allPlatforms.find(p => p.id === id);
+      console.log('PLATFORM: ', platform);
+      if (platform) {
+        handleExportClick(platform);
+      }
+    };
+
+    window.electron.ipcRenderer.on('api-export', handleAPIExport);
+
+    return () => {
+      window.electron.ipcRenderer.removeListener('api-export', handleAPIExport);
     };
   }, [allPlatforms]);
 

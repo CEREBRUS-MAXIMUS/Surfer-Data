@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
-import { ChevronLeft, ChevronRight, X, Square, Bug } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, Square, Bug } from 'lucide-react';
 import { IAppState } from '../types/interfaces';
 import {
   setActiveRunIndex,
@@ -86,12 +86,27 @@ const StopButton = styled(HeaderButton)`
   display: flex;
   align-items: center;
   gap: 4px;
+  padding: 8px 12px;
+  font-weight: 500;
 
   &:hover {
     background-color: #ff3b30;
   }
 `;
 
+const HideButton = styled(HeaderButton)`
+  background-color: #4a4a4a;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  font-weight: 500;
+
+  &:hover {
+    background-color: #5a5a5a;
+  }
+`;
 
 const NavButtons = styled.div`
   display: flex;
@@ -458,10 +473,13 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
               {isActiveRunStoppable() && (
                 <>
                   <StopButton onClick={handleStopRun}>
-                    <Square size={16} />
-                  <span>Stop Run</span>
-                </StopButton>  
-                  <Button onClick={() => dispatch(toggleRunVisibility())}>Hide</Button>
+                    <Square size={16} fill="white" />
+                    <span>Stop</span>
+                  </StopButton>  
+                  <HideButton onClick={() => dispatch(toggleRunVisibility())}>
+                    <Eye size={16} />
+                    <span>Hide</span>
+                  </HideButton>
                 </>
               )}
             </RightSection>
