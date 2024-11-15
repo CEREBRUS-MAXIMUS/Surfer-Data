@@ -146,6 +146,7 @@
     "react-spinners": "^0.14.1",
     "react-transition-group": "^4.4.5",
     "sass-loader": "^16.0.0",
+    "sqlite3": "^5.1.7",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
     "style-loader": "^4.0.0",
