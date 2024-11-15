@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 
 import { Button } from '@/components/Button'
 import { navigation } from '@/components/Navigation'
+import { EditPage } from '@/components/EditPage'
 
 function PageLink({ label, page, previous = false }) {
   return (
@@ -23,7 +24,7 @@ function PageLink({ label, page, previous = false }) {
         aria-hidden="true"
         className="text-base font-semibold text-zinc-900 transition hover:text-zinc-600 dark:text-white dark:hover:text-zinc-300"
       >
-        {page.title}
+        {page.title} 
       </Link>
     </>
   )
@@ -123,6 +124,9 @@ export function Footer() {
   return (
     <footer className="mx-auto w-full max-w-2xl space-y-10 pb-16 lg:max-w-5xl">
       <PageNavigation />
+      <div className="flex justify-end">
+        <EditPage filepath={usePathname().replace(/^\//, '').replace(/\/$/, '') + '/page.mdx'} />
+      </div>
       <SmallPrint />
     </footer>
   )

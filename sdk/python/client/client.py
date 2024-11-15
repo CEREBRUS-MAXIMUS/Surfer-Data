@@ -39,10 +39,6 @@ class SurferClient:
         except requests.exceptions.RequestException as e:
             raise ConnectionError(f"Failed to trigger export: {str(e)}") from e
 
-    # Convenience methods for specific platforms
-    def get_twitter_bookmarks(self) -> bool:
-        return self.export("bookmarks-001")
-
     def __del__(self):
         """Cleanup the session when the client is destroyed."""
         self.session.close()

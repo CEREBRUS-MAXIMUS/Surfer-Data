@@ -1,9 +1,167 @@
 export const metadata = {
   title: 'Python SDK',
   description:
-    'Overview of the Python SDK.',
+    'Reference documentation for the Surfer Protocol Python SDK.',
 }
 
 # Python SDK
 
-Coming soon!!!
+The Surfer Protocol Python SDK provides a simple interface to interact with the Surfer-Data desktop application.
+
+## Prerequisites
+
+1. **Desktop Application**: The Surfer desktop application must be running in the background for the SDK to work.
+   - Download the [desktop app](http://localhost:3000/desktop/installation) or the [GitHub releases page](https://github.com/Surfer-Org/Protocol/releases)
+   - Install and run the application
+   - The app can be minimized to the system tray and continue running in the background
+
+> Note: The desktop app runs a local server on port 2024 that the SDK communicates with. Make sure the app is running before using the SDK.
+
+## Installation
+
+<CodeGroup>
+
+```bash
+pip install surfer-protocol
+```
+
+</CodeGroup>
+
+## Quick Start
+
+<CodeGroup>
+
+```python
+from surfer_protocol import SurferClient
+
+# Initialize the client
+client = SurferClient()
+
+# Get data for a specific platform
+data = client.get("bookmarks-001")
+
+# Export data for a platform
+export_result = client.export("bookmarks-001")
+```
+
+</CodeGroup>
+
+## API Reference
+
+### SurferClient
+
+The main client class for interacting with the Surfer Protocol desktop application.
+
+```python
+from surfer_protocol import SurferClient
+
+client = SurferClient()
+```
+
+### Methods
+
+#### `get(platform_id: str) -> dict`
+Retrieves the most recent data for a specific platform.
+
+```python
+# Get Twitter bookmarks
+bookmarks = client.get("bookmarks-001")
+
+# Get Gmail data
+emails = client.get("gmail-001")
+
+# Get iMessage data
+messages = client.get("imessage-001")
+```
+
+#### `export(platform_id: str) -> dict`
+Triggers a new export for a specific platform.
+
+```python
+export_result = client.export("bookmarks-001")
+```
+
+## Platform IDs
+
+The following platform IDs are currently supported:
+- `bookmarks-001`: Twitter bookmarks
+- `gmail-001`: Gmail messages
+- `imessage-001`: iMessage conversations
+- `linkedin-001`: LinkedIn connections
+- `notion-001`: Notion workspace
+- `chatgpt-001`: ChatGPT history
+
+## Response Schemas
+
+All API responses follow a standard format:
+
+```python
+{
+    "company": str,        # Company name
+    "name": str,          # Platform name
+    "runID": str,        # Unique export identifier
+    "timestamp": int,    # Unix timestamp of export
+    "content": List[Dict] # Platform-specific data
+}
+```
+
+> To view the full schema for each platform, see the [platforms page](/desktop/platforms) and choose the platform you're interested in.
+
+## Example Applications
+
+### Gmail Viewer
+Create a Streamlit application to view and search Gmail messages:
+
+```python
+import streamlit as st
+from surfer_protocol import SurferClient
+
+client = SurferClient()
+emails = client.get('gmail-001')
+
+# Add search functionality
+search_query = st.text_input("Search in email body")
+if search_query:
+    for email in emails['data']['content']:
+        if search_query.lower() in email.get('body', '').lower():
+            st.write(f"From: {email.get('from')}")
+            st.write(f"Subject: {email.get('subject')}")
+```
+
+### Twitter Bookmarks Viewer
+Create a Streamlit application to view and filter Twitter bookmarks:
+
+```python
+import streamlit as st
+from surfer_protocol import SurferClient
+
+client = SurferClient()
+tweets = client.get('bookmarks-001')
+
+# Add filters
+search_query = st.text_input("Search in tweets")
+if search_query:
+    for tweet in tweets['data']['content']:
+        if search_query.lower() in tweet.get('text', '').lower():
+            st.write(f"@{tweet['username']}: {tweet['text']}")
+```
+
+## Error Handling
+
+The SDK includes built-in error handling for common scenarios:
+
+```python
+try:
+    client = SurferClient()
+    data = client.get("bookmarks-001")
+except ConnectionError as e:
+    print("Failed to connect to Surfer desktop app. Is it running?")
+except Exception as e:
+    print(f"An unexpected error occurred: {e}")
+```
+
+## Best Practices
+
+1. **Connection Management**: The client automatically manages the connection and cleans up resources when destroyed.
+2. **Error Handling**: Always wrap API calls in try-except blocks to handle potential connection issues.
+3. **Resource Efficiency**: Reuse the same client instance for multiple operations instead of creating new instances.
