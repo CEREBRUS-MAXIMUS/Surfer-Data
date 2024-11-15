@@ -99,7 +99,7 @@ try:
     contacts = contacts_cursor.fetchall()
 
     # save contacts to a JSON!!
-    contacts_json_path = os.path.join(output_dir, 'my_contacts.json')
+    contacts_json_path = os.path.join(output_dir, 'contacts-001.json')
     with open(contacts_json_path, 'w') as f:
         json.dump(contacts, f, indent=2)
 
@@ -151,7 +151,7 @@ try:
     }
 
     # Save to JSON file
-    imessage_json_path = os.path.join(output_dir, 'imessages.json')
+    imessage_json_path = os.path.join(output_dir, 'imessage-001.json')
     with open(imessage_json_path, 'w') as f:
         json.dump(imessages, f, indent=2)
 

@@ -1,8 +1,33 @@
 export const metadata = {
-  title: 'Twitter',
+  title: 'Gmail',
   description:
-    'Overview of Surfer Protocol Twitter platform.',
+    'Overview of Surfer Protocol Gmail platform.',
 }
 
-# Twitter
+# Gmail
+
+## Schema
+
+File: `gmail-001.json`
+
+```json
+{
+  "company": "Google",
+  "name": "Gmail",
+  "runID": "gmail-001",
+  "timestamp": 1731700918119,
+  "content": [
+    {
+      "accountID": "0",
+      "from": "From email address",
+      "to": "To email address",
+      "subject": "Subject of email",
+      "timestamp": "Timestamp of email",
+      "body": "Body of email",
+      "added_to_db": "Timestamp of when email was added to database"
+    },
+    ...
+  ]
+}
+```
 

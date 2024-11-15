@@ -110,10 +110,10 @@ async function exportLinkedin(id, platformId, filename, company, name) {
           }
           
           const connectionData = {
-            firstName: memberResult?.firstName || '',
-            lastName: memberResult?.lastName || '',
+            first_name: memberResult?.firstName || '',
+            last_name: memberResult?.lastName || '',
             headline: memberResult?.headline || '',
-            createdAt: connection?.createdAt || ''
+            created_at: connection?.createdAt || ''
           };
 
           const connectionExists = await checkIfConnectionExists(
