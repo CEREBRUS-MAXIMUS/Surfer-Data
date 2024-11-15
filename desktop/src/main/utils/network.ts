@@ -111,3 +111,42 @@ export async function getNotionCredentials(company: string, name: string) {
     );
   });
 }
+
+export async function getLinkedinCredentials(company: string, name: string) {
+  const userData = app.getPath('userData');
+  const linkedinCredentialsPath = path.join(
+    userData,
+    'surfer_data',
+    company,
+    name,
+    'linkedinCredentials.json',
+  );
+  fs.mkdirSync(path.dirname(linkedinCredentialsPath), {
+    recursive: true,
+  });
+  return new Promise((resolve) => {
+    session.defaultSession.webRequest.onBeforeSendHeaders(
+      { urls: ['*://*.linkedin.com/*'] },
+      (details: any, callback) => {
+        let result: any = {
+          cookie: null as string | null,
+          csrfToken: null as string | null,
+        };
+        if (
+          details.requestHeaders['csrf-token'] &&
+          details.requestHeaders['Cookie']
+        ) {
+          result.csrfToken = details.requestHeaders['csrf-token'];
+          result.cookie = details.requestHeaders['Cookie'];
+          fs.writeFileSync(
+            linkedinCredentialsPath,
+            JSON.stringify(result, null, 2),
+          );
+          resolve(result);
+        }
+
+        callback({ requestHeaders: details.requestHeaders });
+      },
+    );
+  });
+}

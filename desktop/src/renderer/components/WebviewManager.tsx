@@ -83,23 +83,15 @@ const HeaderButton = styled.button`
 const StopButton = styled(HeaderButton)`
   background-color: #ff5f56;
   color: white;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 
   &:hover {
     background-color: #ff3b30;
   }
 `;
 
-const TrafficLights = styled.div`
-  display: flex;
-  gap: 8px;
-`;
-
-const TrafficLight = styled.div`
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: ${(props) => props.color};
-`;
 
 const NavButtons = styled.div`
   display: flex;
@@ -464,16 +456,14 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
                 </Button>
               )}
               {isActiveRunStoppable() && (
-                <StopButton onClick={handleStopRun}>
-                  <Square size={16} style={{ marginRight: '4px' }} />
-                  Stop Run
+                <>
+                  <StopButton onClick={handleStopRun}>
+                    <Square size={16} />
+                  <span>Stop Run</span>
                 </StopButton>  
+                  <Button onClick={() => dispatch(toggleRunVisibility())}>Hide</Button>
+                </>
               )}
-              <TrafficLights>
-                <TrafficLight color="#ff5f56" />
-                <TrafficLight color="#ffbd2e" />
-                <TrafficLight color="#27c93f" />
-              </TrafficLights>
             </RightSection>
           </BrowserHeader>
           <div style={{ position: 'relative', height: 'calc(100% - 40px)' }}>

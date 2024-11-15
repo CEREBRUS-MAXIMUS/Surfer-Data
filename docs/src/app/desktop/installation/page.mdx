@@ -5,7 +5,44 @@ export const metadata = {
 }
 
 import DownloadButtons from '@/components/DownloadButtons'
+import { EditPage } from '@/components/EditPage'
 
 # Desktop Application Installation
 
+<EditPage filepath="desktop/installation/page.mdx" />
+
+## Run from release
+
 <DownloadButtons />
+
+## Run locally
+
+Step 1: Clone the repository
+
+```bash
+git clone https://github.com/Surfer-Org/Protocol.git
+```
+
+Step 2: cd into the desktop directory
+
+```bash
+cd Surfer-Protocol/desktop
+```
+
+Step 3: Install dependencies
+
+```bash
+npm install
+```
+
+Step 4: Run the application
+
+```bash
+npm start
+```
+
+Step 5 (optional): Build the application
+
+```bash
+npm run package
+```

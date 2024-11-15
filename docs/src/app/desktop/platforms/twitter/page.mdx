@@ -1,0 +1,40 @@
+export const metadata = {
+  title: 'Twitter',
+  description:
+    'Overview of Surfer Protocol Twitter platform.',
+}
+
+import { EditPage } from '@/components/EditPage'
+
+# Twitter
+
+<EditPage filepath="desktop/platforms/twitter/page.mdx" />
+
+## Schema
+
+```json
+{
+  "company": "X Corp",
+  "name": "Twitter Bookmarks",
+  "runID": "bookmarks-001-1731366667383",
+  "timestamp": 1731366675031,
+  "content": [
+    {
+      "id": "tweet-1855399792379134176",
+      "text": "there used to be 50,000 pay toilets in cities across America until a group of college students in 1970 decided it wasn't fair to have to pay for a natural bodily function and successfully lobbied to get them banned in 12 states and now you can't find public toilets fuckin https://t.co/YE0voWYl7d",
+      "timestamp": "Sat Nov 09 23:59:16 +0000 2024",
+      "media": {
+        "type": "photo",
+        "source": "https://pbs.twimg.com/media/Gb-0R29XsAA_OR6.jpg"
+      },
+      "username": "hyperdiscogirl",
+      "added_to_db": "2024-11-11T23:11:15.032Z"
+    },
+    ...
+  ]
+}
+```
+
+## Export Process
+
+### Method: Intercepting Network Requests

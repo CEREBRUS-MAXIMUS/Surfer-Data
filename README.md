@@ -19,6 +19,11 @@ Your personal data is siloed across many platforms and apps. Big tech companies 
 
 Currently, Surfer Protocol consists of a Python SDK and a Desktop App. The Desktop App is used for exporting your data from your favorite apps and services. The Python SDK is used for building applications off of your personal data.
 
+## Features
+
+- Desktop App for exporting data from your favorite apps and services
+- Python SDK for building applications off of your personal data
+
 ## How it works
 
 ![Surfer Diagram](assets/SurferDiagram.png)

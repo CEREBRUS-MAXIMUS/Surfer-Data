@@ -4,21 +4,48 @@ export const metadata = {
     'Overview of Surfer Protocol Desktop application.',
 }
 
+
 # Desktop Application
 
-Our desktop application provides a user-friendly interface for interacting with Surfer Protocol.
+[Install Now →](/desktop/installation)
+
+
+The Surfer Protocol Desktop application is a cross-platform application that allows you to easily export your data.
+
+## Supported Platforms 
+
+The Desktop Application currently supports the following platforms:
+
+- [Twitter](/desktop/platforms/twitter)
+- [ChatGPT](/desktop/platforms/chatgpt)
+- [Notion](/desktop/platforms/notion)
+- [Gmail](/desktop/platforms/gmail)
+- [iMessage](/desktop/platforms/imessage)
+- [LinkedIn](/desktop/platforms/linkedin)
+
+## Schema Format
+
+The exported data for most platforms is in JSON format like this:
+
+```json
+{
+  "company": "Company Name",
+  "name": "Platform Name",
+  "runID": "platform-run-id",
+  "timestamp": 1234567890,
+  "content": [ 
+    {
+      "key_1": "value_1",
+      "key_2": "value_2",
+      "key_3": "value_3"
+    },
+    ...
+  ]
+}
+```
 
 ## Features
 
-- Intuitive file management
-- Secure data transfer
-- Real-time synchronization
-- Cross-platform support
-
-## System Requirements
-
-- Windows 10 or later
-- macOS 10.15 or later
-- Linux (major distributions)
-
-[Install Now →](/desktop/installation)
+- Local-first
+- Cross-platform
+- Open-source

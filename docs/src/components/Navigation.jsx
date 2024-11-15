@@ -206,16 +206,17 @@ export const navigation = [
   {
     title: 'Desktop',
     links: [
-      { title: 'Installation', href: '/desktop/installation' },
       { title: 'Overview', href: '/desktop' },
-      { title: 'API', href: '/desktop/api' },
+      { title: 'Installation', href: '/desktop/installation' },
+      { title: 'Platforms', href: '/desktop/platforms' },
     ],
   },
   {
     title: 'SDK',
     links: [
-      { title: 'JavaScript', href: '/sdk/javascript' },
       { title: 'Python', href: '/sdk/python' },
+      { title: 'JavaScript', href: '/sdk/javascript' }
+
     ],
   },
 ]

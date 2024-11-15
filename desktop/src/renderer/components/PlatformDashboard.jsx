@@ -5,17 +5,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Button } from "./ui/button";
 import { ArrowUpRight, ArrowRight, Check, X, Link, Download, Search, ChevronLeft, ChevronRight, HardDriveDownload, Folder, Eye } from 'lucide-react';
 import { Input } from "./ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
-import { Checkbox } from "./ui/checkbox";
-import { Progress } from "./ui/progress";
 import RunDetails from './RunDetails';
 import ConfettiExplosion from 'react-confetti-explosion';
-import { Tooltip, TooltipProvider } from "./ui/tooltip";
-import { Info } from 'lucide-react';
-import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
-import { Card } from "./ui/card";
-import { formatLastRunTime, formatExportSize } from '../helpers';
+import { TooltipProvider } from "./ui/tooltip";
+import { formatLastRunTime} from '../helpers';
 import { MoonLoader } from 'react-spinners';
+import { IoSync } from "react-icons/io5";
 
 const PlatformDashboard = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -133,33 +128,6 @@ useEffect(() => {
       window.electron.ipcRenderer.removeListener('element-found', handleElementFound);
     };
   }, [allPlatforms]);
-
-  useEffect(() => {
-    const runisUpdateds = async () => {
-      if (runs.length === 0) return;
-
-      for (const platform of filteredPlatforms) {
-        if (platform.isUpdated) {
-          const platformRuns = runs.filter(run => run.platformId === platform.id);
-          if (platformRuns.length > 0) {
-            const today = new Date().toISOString().split('T')[0];
-            const runsForToday = platformRuns.filter(run => 
-              (run.status === 'success' || run.status === 'running') && 
-              run.startDate.split('T')[0] === today
-            );
-            console.log('runsForToday: ', runsForToday);
-            if (runsForToday.length === 0) {
-              await handleExportClick(platform);
-              await new Promise(resolve => setTimeout(resolve, 5000));
-            }
-          }
-        }
-      }
-    };
-
-    runisUpdateds();
-  }, [allPlatforms]);
-
 
   const pageCount = Math.ceil(filteredPlatforms.length / itemsPerPage);
   const paginatedPlatforms = filteredPlatforms.slice(
@@ -448,12 +416,12 @@ const renderRunStatus = (platform) => {
                           ) : (
                             <Button
                               size="sm"
-                            variant="outline"
-                            onClick={() => handleExportClick(platform)}
-                          >
-                            <HardDriveDownload size={16} className="mr-2" />
-                            Export
-                            {/* {getLatestRun(platform.id) ? (getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export') : 'Export'} */}
+                              variant="outline"
+                              onClick={() => handleExportClick(platform)}
+                            >
+                              <IoSync size={16} className="mr-2" />
+                              Fetch Data
+                              {/* {getLatestRun(platform.id) ? (getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export') : 'Export'} */}
                             </Button>
                           )}
                         </div>

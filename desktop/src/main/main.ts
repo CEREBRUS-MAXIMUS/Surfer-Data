@@ -23,7 +23,7 @@ import { getImessageData } from './utils/imessage';
 const { download } = require('electron-dl');
 import express from 'express';
 import cors from 'cors';
-import { getNotionCredentials, getTwitterCredentials } from './utils/network';
+import { getLinkedinCredentials, getNotionCredentials, getTwitterCredentials } from './utils/network';
 
 // Preventing multiple instances of Surfer
 
@@ -260,39 +260,7 @@ ipcMain.on('get-notion-credentials', async (event, company, name) => {
 });
 
 ipcMain.on('get-linkedin-credentials', async (event, company, name) => {
-  const userData = app.getPath('userData');
-  const linkedinCredentialsPath = path.join(
-    userData,
-    'surfer_data',
-    company,
-    name,
-    'linkedinCredentials.json',
-  );
-  fs.mkdirSync(path.dirname(linkedinCredentialsPath), {
-    recursive: true,
-  });
-  return new Promise((resolve) => {
-    session.defaultSession.webRequest.onBeforeSendHeaders(
-      { urls: ['*://*.linkedin.com/*'] },
-      (details: any, callback) => {
-      let result: any = {
-        cookie: null as string | null,
-        csrfToken: null as string | null,
-      };
-      if (details.requestHeaders['csrf-token'] && details.requestHeaders['Cookie']) {
-          result.csrfToken = details.requestHeaders['csrf-token'];
-          result.cookie = details.requestHeaders['Cookie'];
-          fs.writeFileSync(
-            linkedinCredentialsPath,
-            JSON.stringify(result, null, 2),
-          );
-          resolve(result);
-        }
-
-        callback({ requestHeaders: details.requestHeaders });
-      },
-    );
-  });
+  return await getLinkedinCredentials(company, name);
 });
 
 ipcMain.handle('check-connected-platforms', async (event, platforms) => {
@@ -454,7 +422,6 @@ export const createWindow = async (visible: boolean = true) => {
 
   mainWindow = new BrowserWindow({
     show: true, 
-    //set to max with on mac screen
     width: 1560,
     height: 1024,
     minWidth: 720,
@@ -732,14 +699,22 @@ export const createWindow = async (visible: boolean = true) => {
     },
   );
 
-  mainWindow.on('close', (event) => {
-    if (!isQuitting) {
-      event.preventDefault();
-      mainWindow?.hide();
-      return false;
-    }
-    return true;
-  });
+  // Only handle background running in production
+  if (app.isPackaged) {
+    mainWindow.on('close', (event) => {
+      if (!isQuitting) {
+        event.preventDefault();
+        mainWindow?.hide();
+        return false;
+      }
+      return true;
+    });
+  } else {
+    // In development, just close normally
+    mainWindow.on('close', () => {
+      mainWindow = null;
+    });
+  }
 };
 
 
@@ -977,18 +952,18 @@ let tray: Tray | null = null;
 let forceQuit = false;
 
 app.on('window-all-closed', () => {
-  try {
+  try { 
     downloadingItems.forEach((item, key) => {
       if (item) {
         item.cancel();
-        downloadingItems.delete(key);
+        downloadingItems.delete(key); 
       }
     });
   } catch (error) {
     console.log('DOWNLOAD CANCEL ERROR: ', error);
   }
 
-  if (forceQuit) {
+  if (!app.isPackaged || forceQuit) {
     isQuitting = true;
     app.quit();
   }
@@ -999,11 +974,14 @@ app
   .then(async () => {
     app.setAccessibilitySupportEnabled(true);
 
+    // Only set login items in production
+    if (app.isPackaged) {
       app.setLoginItemSettings({
         openAtLogin: true,
         openAsHidden: true,
         path: app.getPath('exe'),
       });
+    }
     
     createWindow();
 
@@ -1017,51 +995,52 @@ app
       }
     });
 
-    // Create the tray icon
-    const iconPath = getAssetPath('icon.png');
-    let icon = nativeImage.createFromPath(iconPath);
-    icon = icon.resize({
-      height: 16,
-      width: 16,
-    });
-    
-    tray = new Tray(icon);
-    tray.setToolTip('Surfer');
+    // Only create tray icon in production
+    if (app.isPackaged) {
+      const iconPath = getAssetPath('icon.png');
+      let icon = nativeImage.createFromPath(iconPath);
+      icon = icon.resize({
+        height: 16,
+        width: 16,
+      });
+      
+      tray = new Tray(icon);
+      tray.setToolTip('Surfer');
 
-    const contextMenu = Menu.buildFromTemplate([
-      {
-        label: 'Show Window',
-        click: () => {
-          if (mainWindow === null) {
-            createWindow();
-          } else {
-            mainWindow.show();
-          }
+      const contextMenu = Menu.buildFromTemplate([
+        {
+          label: 'Show Window',
+          click: () => {
+            if (mainWindow === null) {
+              createWindow();
+            } else {
+              mainWindow.show();
+            }
+          },
         },
-      },
-      {
-        type: 'separator'
-      },
-      {
-        label: 'Quit',
-        click: () => {
-          isQuitting = true;
-          forceQuit = true;
-          app.quit();
+        {
+          type: 'separator'
         },
-      },
-    ]);
+        {
+          label: 'Quit',
+          click: () => {
+            isQuitting = true;
+            forceQuit = true;
+            app.quit();
+          },
+        },
+      ]);
 
-    tray.setContextMenu(contextMenu);
-    
-    // Optional: Add click handler to show window
-    tray.on('click', () => {
-      if (mainWindow === null) {
-        createWindow();
-      } else {
-        mainWindow.show();
-      } 
-    });
+      tray.setContextMenu(contextMenu);
+      
+      tray.on('click', () => {
+        if (mainWindow === null) {
+          createWindow();
+        } else {
+          mainWindow.show();
+        } 
+      });
+    }
   })
   .catch(console.log);
  
