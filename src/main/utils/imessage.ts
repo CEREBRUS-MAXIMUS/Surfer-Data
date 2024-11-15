@@ -94,6 +94,7 @@ export async function getImessageData(
     );
     console.log(defaultPath);
 
+    // needs full disk access to electron and vs code
     const hasAccess = fs.existsSync(defaultPath);
     if (!hasAccess) {
       console.log('Permission denied to access iMessage database file.');
@@ -129,13 +130,17 @@ export async function getImessageData(
       return null;
     }
     try {
-      const db = new sqlite3.Database(defaultPath, (err) => {
-        if (err) {
-          console.error('Error opening database:', err);
-          return null;
-        }
-        console.log('Connected to the chat.db database.');
-      });
+      const db = new sqlite3.Database(
+        defaultPath,
+        //sqlite3.OPEN_READONLY,
+        (err) => {
+          if (err) {
+            console.error('Error opening database1:', err);
+            return null;
+          }
+          console.log('Connected to the chat.db database.');
+        },
+      );
       /*
       db.serialize(() => {
         db.all('SELECT * FROM message', (err, rows) => {
@@ -171,8 +176,8 @@ export async function getImessageData(
         ORDER BY
           message.date DESC;
       `;*/
-      const messageQuery = ` SELECT * FROM message;`;
-      console.log('messageQuery', messageQuery);
+      const messageQuery = `SELECT * FROM message`;
+      console.log('messageQuery3', messageQuery);
 
       // Execute the message query
       db.all(messageQuery, [], (err, messages) => {
