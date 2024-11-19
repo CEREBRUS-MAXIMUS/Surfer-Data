@@ -8,7 +8,7 @@ const { ipcRenderer } = require('electron');
 const { customConsoleLog } = require('./preloadFunctions');
 
 
-ipcRenderer.on('export-website', async (event, runID, platformId, filename, company, name, isUpdated) => {
+ipcRenderer.on('export-platform', async (event, runID, platformId, filename, company, name, isUpdated) => {
   const platform = require(`./platforms/${company}/${filename}.js`);
 
     const data = await platform(runID, platformId, filename, company, name);

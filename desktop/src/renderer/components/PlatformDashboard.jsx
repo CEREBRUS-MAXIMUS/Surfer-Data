@@ -150,7 +150,7 @@ useEffect(() => {
     return () => {
       window.electron.ipcRenderer.removeListener('api-export', handleAPIExport);
     };
-  }, [allPlatforms]);
+  }, []);
 
   const pageCount = Math.ceil(filteredPlatforms.length / itemsPerPage);
   const paginatedPlatforms = filteredPlatforms.slice(
@@ -248,9 +248,9 @@ const renderRunStatus = (platform) => {
   const latestRun = getLatestRun(platform.id);
   if (!latestRun ) return null;
 
-  // // Show loading spinner if running and no logs
+  // Show loading spinner if running and no logs
   if (latestRun.status === 'running' && (!latestRun.logs || latestRun.logs.length === 0)) {
-    return <div><MoonLoader size={16} /></div>;
+    return <div><MoonLoader size={16} color="#888888" /></div>;
   }
 
   const logLines = latestRun && latestRun.logs ? latestRun.logs.split('\n') : [];
@@ -437,15 +437,19 @@ const renderRunStatus = (platform) => {
                               Connect
                             </Button>
                           ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleExportClick(platform)}
-                            >
-                              <IoSync size={16} className="mr-2" />
-                              Fetch Data
-                              {/* {getLatestRun(platform.id) ? (getLatestRun(platform.id).status === 'success' || getLatestRun(platform.id).status === 'running' ? 'Re-Export' : 'Export') : 'Export'} */}
-                            </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleExportClick(platform)}
+                                disabled={isExportRunning(platform.id)}
+                              >
+                                <IoSync
+                                  size={16}
+                                  className={`mr-2 ${isExportRunning(platform.id) ? 'animate-spin' : ''}`}
+                                />
+                                {isExportRunning(platform.id) ? 'Fetching...' : 'Fetch Data'}
+                              </Button>
+    
                           )}
                         </div>
                       </TableCell>

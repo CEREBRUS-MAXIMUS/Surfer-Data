@@ -35,3 +35,61 @@ export const formatExportSize = (sizeInBits: number) => {
 
   return `${formattedSize} ${units[unitIndex]}`;
 };
+
+export const getCodeExamples = (run: any) => {
+    return {
+      dashboard: `import streamlit as st
+from surfer import SurferClient
+
+st.title("My ${run.name} Dashboard")
+
+# Get your data (make sure desktop app is running!)
+client = SurferClient()
+data = client.get("${run.platformId}")
+
+# Display metrics
+st.metric("Status", data['status'])
+
+# Load and display data
+files = client.load_files(data['exportPath'])
+if files:
+    st.write("### Latest Data")
+    st.dataframe(files[0].to_dataframe())`,
+
+      analysis: `import pandas as pd
+from surfer import SurferClient
+
+# Get your data (make sure desktop app is running!)
+client = SurferClient()
+data = client.get("${run.platformId}")
+files = client.load_files(data['exportPath'])
+
+# Convert to DataFrame
+df = files[0].to_dataframe()
+
+# Basic analysis
+summary = df.describe()
+print("Data Summary:")
+print(summary)`,
+
+      aiTraining: `from surfer import SurferClient
+from sklearn.model_selection import train_test_split
+import pandas as pd
+
+# Get your data (make sure desktop app is running!)
+client = SurferClient()
+data = client.get("${run.platformId}")
+files = client.load_files(data['exportPath'])
+
+# Prepare your data
+df = files[0].to_dataframe()
+X_train, X_test, y_train, y_test = train_test_split(
+    df.drop('target', axis=1), 
+    df['target'], 
+    test_size=0.2
+)
+
+# Train your model
+# Add your model training code here`,
+    };    
+};

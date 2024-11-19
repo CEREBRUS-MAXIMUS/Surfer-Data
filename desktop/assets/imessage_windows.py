@@ -99,7 +99,7 @@ try:
     contacts = contacts_cursor.fetchall()
 
     # save contacts to a JSON!!
-    contacts_json_path = os.path.join(output_dir, 'contacts-001.json')
+    contacts_json_path = os.path.join(output_dir, 'my_contacts-001.json')
     with open(contacts_json_path, 'w') as f:
         json.dump(contacts, f, indent=2)
 
@@ -134,7 +134,7 @@ try:
             message_list.append({
                 'id': msg[0],
                 'text': msg[1],
-                'date': apple_time_to_iso(msg[2]) if msg[2] is not None else None,
+                'timestamp': apple_time_to_iso(msg[2]) if msg[2] is not None else None,
                 'contact': name,
                 'is_from_me': True if msg[4] == 1 else False
             })

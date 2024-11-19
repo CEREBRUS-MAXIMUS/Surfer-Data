@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ChevronDown, ChevronRight, Clock, ArrowLeft, XCircle, Eye, Trash2, ChevronLeft, Folder } from 'lucide-react';
+import { ChevronRight, Clock, XCircle, Trash2, Folder, Code, BarChart, Brain } from 'lucide-react';
 import { Button } from "./ui/button";
-import { ScrollArea } from "./ui/scroll-area";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "./ui/breadcrumb";
-import { updateRunStatus, deleteRun } from '../state/actions';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import MonacoEditor from '@monaco-editor/react';
-import { stopRun  } from '../state/actions';
+import { Card, CardContent } from "./ui/card";
+import { Dialog, DialogContent } from "./ui/dialog";
+import { stopRun } from '../state/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
+import CodeBlock from './CodeBlock';
+import { getCodeExamples } from "../helpers";
 
 const StatusIndicator = ({ status }) => {
   switch (status) {
@@ -28,35 +26,19 @@ const StatusIndicator = ({ status }) => {
   }
 };
 
-const RunDetails = ({ runId, onClose, platform }) => {
+const RunDetails = ({ runId, onClose }) => {
   const dispatch = useDispatch();
-  const reduxRuns = useSelector(state => state.app.runs);
-  const activeRunIndex = useSelector((state) => state.app.activeRunIndex);
-  const run = reduxRuns.find(r => r.id === runId);
-  const [selectedTaskId, setSelectedTaskId] = useState(() => run?.tasks[0]?.id || null);
-  const [expandedSteps, setExpandedSteps] = useState({});
-  const [files, setFiles] = useState([]);
-  const [currentFileIndex, setCurrentFileIndex] = useState(0);
+  const run = useSelector(state => state.app.runs.find(r => r.id === runId));
+  const [activeSection, setActiveSection] = useState('dashboard');
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const codeExamples = getCodeExamples(run);
 
   useEffect(() => {
     if (run?.status === 'success' && run?.exportPath) {
+      console.log('this run: ', run);
       window.electron.ipcRenderer.send('get-run-files', run.exportPath);
     }
   }, [run]);
-
-  useEffect(() => {
-    const handleFiles = (files) => {
-      console.log('Files:', files);
-      setFiles(files || []);
-    };
-
-    window.electron.ipcRenderer.on('run-files', handleFiles);
-
-    return () => {
-      window.electron.ipcRenderer.removeListener('run-files', handleFiles);
-    };
-  }, []);
 
   const getElapsedTime = (startTime, endTime) => {
     if (!startTime) return '';
@@ -74,38 +56,13 @@ const RunDetails = ({ runId, onClose, platform }) => {
     if (activeRun && (activeRun.status === 'pending' || activeRun.status === 'running')) {
       dispatch(stopRun(activeRun.id));
       console.log("Stopping run:", activeRun.id);
-
-      // Adjust active run index if necessary
-      if (activeRunIndex >= reduxRuns.length - 1) {
-        dispatch(setActiveRunIndex(Math.max(0, reduxRuns.length - 2)));
-      }
     }
-  };
-
-  const toggleStep = (taskId, stepId) => {
-    setExpandedSteps(prev => ({
-      ...prev,
-      [`${taskId}-${stepId}`]: !prev[`${taskId}-${stepId}`]
-    }));
   };
 
   const handleDeleteRun = async () => {
     dispatch(deleteRun(runId));
     setIsDeleteDialogOpen(false);
     onClose(); // Close the main dialog after deletion
-  };
-
-  const handleViewRun = () => {
-    // Implement the logic to view the run details
-    console.log('View run:', runId);
-  };
-
-  const handlePrevFile = () => {
-    setCurrentFileIndex((prev) => (prev > 0 ? prev - 1 : files.length - 1));
-  };
-
-  const handleNextFile = () => {
-    setCurrentFileIndex((prev) => (prev < files.length - 1 ? prev + 1 : 0));
   };
 
   const handleViewFiles = () => {
@@ -116,106 +73,132 @@ const RunDetails = ({ runId, onClose, platform }) => {
 
   if (!run) return null;
 
+  const sections = [
+    {
+      id: 'dashboard',
+      title: 'Build Streamlit Chatbot',
+      icon: <Code className="h-4 w-4" />,
+      content: <CodeBlock title="Create a Streamlit Chatbot" code={codeExamples.dashboard} />
+    },
+    {
+      id: 'analysis',
+      title: 'Analyze Data',
+      icon: <BarChart className="h-4 w-4" />,
+      content: <CodeBlock title="Analyze Your Data" code={codeExamples.analysis} />
+    },
+    {
+      id: 'ai',
+      title: 'Train AI',
+      icon: <Brain className="h-4 w-4" />,
+      content: <CodeBlock title="Train AI Model" code={codeExamples.aiTraining} />
+    },
+    {
+      id: 'logs',
+      title: 'Logs',
+      icon: <Clock className="h-4 w-4" />,
+      content: (
+        <Card>
+          <CardContent className="pt-6">
+            {run.logs ? (
+              <div className="space-y-2 overflow-y-auto max-h-[75vh]">
+                {run.logs.split('\n').map((log, index) => (
+                  <div key={index}>
+                    <div className="flex items-start gap-2">
+                      <div className="w-1 h-1 flex-shrink-0 rounded-full bg-primary mt-2" />
+                      <div className="break-all whitespace-pre-wrap min-w-0 flex-1">{log}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>No logs available</p>
+            )}
+          </CardContent>
+        </Card>
+      )
+    }
+  ];
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-[70vw] h-[80vh] overflow-y-auto bg-background">
-
-        {run.status === 'success' && files && files.length > 0 && (
-          <div className="mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <Button onClick={handlePrevFile} variant="outline" size="sm">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span>{`${currentFileIndex + 1} / ${files.length}`}</span>
-              <Button onClick={handleNextFile} variant="outline" size="sm">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+      <DialogContent className="max-w-[90vw] h-[90vh] p-0 gap-0">
+        <div className="flex h-full">
+          {/* Sidebar */}
+          <div className="w-64 border-r border-border bg-muted/40 p-4 space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold">Build Options</h2>
+              {sections.map((section) => (
+                <button
+                  key={section.id}
+                  onClick={() => setActiveSection(section.id)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors
+                    ${activeSection === section.id 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'hover:bg-muted'
+                    }`}
+                >
+                  {section.icon}
+                  {section.title}
+                </button>
+              ))}
             </div>
-            {files[currentFileIndex] && (
-              <div className="rounded-lg overflow-hidden">
-                <MonacoEditor
-                  height="200px"
-                  language="json"
-                  theme="vs-dark"
-                  value={files[currentFileIndex].content}
-                  options={{ readOnly: true, minimap: { enabled: false } }}
-                />
-              </div>
-            )}
-          </div>
-        )}
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex space-x-2">
-              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Run
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold">Actions</h2>
+              <div className="space-y-2">
+                {run?.exportPath && (
+                  <Button variant="outline" size="sm" className="w-full justify-start" onClick={handleViewFiles}>
+                    <Folder className="mr-2 h-4 w-4" />
+                    Open Files
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure you want to delete this run?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the run and remove all associated data.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteRun}>Delete</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              {(run?.status === 'pending' || run?.status === 'running') && (
-                <Button variant="destructive" size="sm" onClick={handleStopRun}>
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Stop Run
-                </Button>
-              )}
-              {run?.status === 'success' && run?.exportPath && (
-                <Button variant="outline" size="sm" onClick={handleViewFiles}>
-                  <Folder className="mr-2 h-4 w-4" />
-                  Open Files
-                </Button>
-              )}
+                )}
+                
+                {(run?.status === 'pending' || run?.status === 'running') && (
+                  <Button variant="destructive" size="sm" className="w-full justify-start" onClick={handleStopRun}>
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Stop Run
+                  </Button>
+                )}
+
+                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full justify-start">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Run
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete this run and all associated data.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteRun}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
-          </div>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>{run.name} Export</CardTitle>
-              <div className="flex items-center space-x-2">
+
+            <div className="pt-4 border-t border-border">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <StatusIndicator status={run.status} />
-                <span>{run.status}</span>
-                <Clock size={16} />
+                <span className="capitalize">{run.status}</span>
+                <span>•</span>
                 <span>{getElapsedTime(run.startDate, run.endDate)}</span>
               </div>
-            </CardHeader>
-            <CardContent className="max-w-full"> 
-              {run && run.logs && run.logs.length > 0 ? (
-                <div className="space-y-2">
-                  {run.logs.split('\n').map((log, index) => (
-                    <div
-                      key={index}
-                      className={`p-2 rounded ${
-                        index === run.logs.length - 1 ? 'bg-muted font-medium' : ''
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <div className="w-1 h-1 flex-shrink-0 rounded-full bg-primary mt-2" />
-                        <div className="break-all whitespace-pre-wrap min-w-0 flex-1">
-                          {log}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p>No logs</p>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            <div className="max-w-3xl mx-auto">
+              {sections.find(s => s.id === activeSection)?.content}
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

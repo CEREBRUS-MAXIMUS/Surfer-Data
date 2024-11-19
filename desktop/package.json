@@ -145,6 +145,7 @@
     "react-resizable-panels": "^2.0.22",
     "react-router-dom": "^6.26.0",
     "react-spinners": "^0.14.1",
+    "react-syntax-highlighter": "^15.6.1",
     "react-transition-group": "^4.4.5",
     "sass-loader": "^16.0.0",
     "stream-browserify": "^3.0.0",

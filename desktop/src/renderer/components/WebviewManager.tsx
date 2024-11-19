@@ -13,7 +13,6 @@ import {
   updateRunLogs,
   updateRunConnected
 } from '../state/actions';
-import { useTheme } from './ui/theme-provider';
 import { Button } from './ui/button';
 
 const FullScreenOverlay = styled.div<{ isVisible: boolean }>`
@@ -178,7 +177,7 @@ const WebviewManager: React.FC<WebviewManagerProps> = ({
       
       if (webviewRef.current) {
         webviewRef.current.send(  
-          'export-website',
+          'export-platform',
           newRun.id,
           newRun.platformId,
           newRun.filename,

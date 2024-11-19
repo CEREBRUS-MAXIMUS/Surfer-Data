@@ -215,10 +215,16 @@ const parseTweet = (entry) => {
     };
   };
 
+  // Convert Twitter timestamp to ISO format
+  const convertToISO = (twitterTimestamp) => {
+    if (!twitterTimestamp) return null;
+    return new Date(twitterTimestamp).toISOString();
+  };
+
   return {
     id: entry.entryId,
     text: tweet?.legacy?.full_text,
-    timestamp: tweet?.legacy?.created_at,
+    timestamp: convertToISO(tweet?.legacy?.created_at),
     media: getMediaInfo(media),
     username: user?.screen_name,
     // displayName: user?.name,

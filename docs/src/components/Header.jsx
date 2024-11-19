@@ -79,7 +79,7 @@ export const Header = forwardRef(function Header({ className, ...props }, ref) {
           <ThemeToggle />
         </div>
         <div className="hidden min-[416px]:contents">
-          <Button href="https://github.com/surfer-protocol/protocol" target="_blank">Contribute</Button>
+          <Button href="https://github.com/Surfer-Org/Protocol" target="_blank">Contribute</Button>
         </div>
       </div>
     </motion.div>
