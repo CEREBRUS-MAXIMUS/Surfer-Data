@@ -44,8 +44,8 @@ async function checkIfConnectionExists(id, platformId, company, name, connection
       if (savedConnections && savedConnections.content && Array.isArray(savedConnections.content)) {
         // Check if connection exists using createdAt timestamp
         return savedConnections.content.some(
-          saved => saved.createdAt === connection.createdAt && 
-            saved.firstName === connection.firstName
+          saved => saved.created_at === connection.created_at && 
+            saved.first_name === connection.first_name
         );
       }
     } catch (error) {

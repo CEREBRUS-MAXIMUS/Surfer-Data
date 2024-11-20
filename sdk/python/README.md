@@ -2,6 +2,10 @@
 
 A Python SDK for interacting with the Surfer Protocol desktop application. Easily access and export data from various platforms like Twitter, Gmail, iMessage, and more.
 
+## Prerequisites
+
+The Surfer desktop application must be running in the background for the SDK to work. [Download here](https://github.com/Surfer-Org/Protocol/releases).
+
 ## Installation
 
 ```bash
