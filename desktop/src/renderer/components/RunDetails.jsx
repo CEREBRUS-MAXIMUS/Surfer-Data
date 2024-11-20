@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ChevronRight, Clock, XCircle, Trash2, Folder, Code, BarChart, Brain } from 'lucide-react';
+import { ChevronRight, Clock, XCircle, Trash2, Folder, Code, BarChart, Brain, ChevronLeft } from 'lucide-react';
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent } from "./ui/dialog";
@@ -8,6 +8,7 @@ import { stopRun } from '../state/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 import CodeBlock from './CodeBlock';
 import { getCodeExamples } from "../helpers";
+import MonacoEditor from '@monaco-editor/react'
 
 const StatusIndicator = ({ status }) => {
   switch (status) {
@@ -29,16 +30,44 @@ const StatusIndicator = ({ status }) => {
 const RunDetails = ({ runId, onClose }) => {
   const dispatch = useDispatch();
   const run = useSelector(state => state.app.runs.find(r => r.id === runId));
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState('data');
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const codeExamples = getCodeExamples(run);
+  const [codeExamples, setCodeExamples] = useState({
+    dashboard: '',
+    analysis: '',
+    aiTraining: ''
+  });
+  const [files, setFiles] = useState([]);
+  const [currentFileIndex, setCurrentFileIndex] = useState(0);
+
+  useEffect(() => {
+    const loadCodeExamples = async () => {
+      if (run) {
+        const examples = await getCodeExamples(run);
+        setCodeExamples(examples);
+      }
+    };
+    loadCodeExamples();
+  }, [run]);
 
   useEffect(() => {
     if (run?.status === 'success' && run?.exportPath) {
-      console.log('this run: ', run);
       window.electron.ipcRenderer.send('get-run-files', run.exportPath);
     }
   }, [run]);
+
+  useEffect(() => {
+    const handleFiles = (files) => {
+      console.log('Files:', files);
+      setFiles(files || []);
+    };
+
+    window.electron.ipcRenderer.on('run-files', handleFiles);
+
+    return () => {
+      window.electron.ipcRenderer.removeListener('run-files', handleFiles);
+    };
+  }, []);
 
   const getElapsedTime = (startTime, endTime) => {
     if (!startTime) return '';
@@ -71,26 +100,99 @@ const RunDetails = ({ runId, onClose }) => {
     }
   };
 
+  const handlePrevFile = () => {
+    setCurrentFileIndex(prev => (prev > 0 ? prev - 1 : prev));
+  };
+
+  const handleNextFile = () => {
+    setCurrentFileIndex(prev => (prev < files.length - 1 ? prev + 1 : prev));
+  };
+
   if (!run) return null;
 
   const sections = [
     {
+      id: 'data',
+      title: 'View Data',
+      icon: <Folder className="h-4 w-4" />,
+      content: (
+        <Card>
+          <CardContent className="pt-6">
+            {run.status === 'success' && files.length > 0 ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Button onClick={handlePrevFile} variant="outline" size="sm" disabled={currentFileIndex === 0}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm">{`${currentFileIndex + 1} / ${files.length}`}</span>
+                  <Button onClick={handleNextFile} variant="outline" size="sm" disabled={currentFileIndex === files.length - 1}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                {files[currentFileIndex] && (
+                  <div className="rounded-lg overflow-hidden border border-border">
+                    <MonacoEditor
+                      height="400px"
+                      language="json"
+                      theme="vs-dark"
+                      value={files[currentFileIndex].content}
+                      options={{ 
+                        readOnly: true, 
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p>No data available</p>
+            )}
+          </CardContent>
+        </Card>
+      )
+    },
+    {
       id: 'dashboard',
       title: 'Build Streamlit Chatbot',
       icon: <Code className="h-4 w-4" />,
-      content: <CodeBlock title="Create a Streamlit Chatbot" code={codeExamples.dashboard} />
+      content: (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="h-[75vh] overflow-x-auto overflow-y-auto">
+              <CodeBlock code={codeExamples.dashboard} />
+            </div>
+          </CardContent>
+        </Card>
+      )
     },
     {
       id: 'analysis',
       title: 'Analyze Data',
       icon: <BarChart className="h-4 w-4" />,
-      content: <CodeBlock title="Analyze Your Data" code={codeExamples.analysis} />
+      content: (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="h-[75vh] overflow-y-auto">
+              <CodeBlock code={codeExamples.analysis} />
+            </div>
+          </CardContent>
+        </Card>
+      )
     },
     {
       id: 'ai',
       title: 'Train AI',
       icon: <Brain className="h-4 w-4" />,
-      content: <CodeBlock title="Train AI Model" code={codeExamples.aiTraining} />
+      content: (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="h-[75vh] overflow-y-auto">
+              <CodeBlock code={codeExamples.aiTraining} />
+            </div>
+          </CardContent>
+        </Card>
+      )
     },
     {
       id: 'logs',
@@ -126,7 +228,7 @@ const RunDetails = ({ runId, onClose }) => {
           {/* Sidebar */}
           <div className="w-64 border-r border-border bg-muted/40 p-4 space-y-6">
             <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Build Options</h2>
+              <h2 className="text-lg font-semibold">Next Steps</h2>
               {sections.map((section) => (
                 <button
                   key={section.id}

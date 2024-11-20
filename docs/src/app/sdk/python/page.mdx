@@ -87,7 +87,7 @@ The following platform IDs are currently supported:
 - `bookmarks-001`: Twitter bookmarks
 - `gmail-001`: Gmail messages
 - `imessage-001`: iMessage conversations
-- `linkedin-001`: LinkedIn connections
+- `connections-001`: LinkedIn connections
 - `notion-001`: Notion workspace
 - `chatgpt-001`: ChatGPT history
 
@@ -109,42 +109,34 @@ All API responses follow a standard format:
 
 ## Example Applications
 
-### Gmail Viewer
-Create a Streamlit application to view and search Gmail messages:
+### Streamlit Chatbot
 
-```python
-import streamlit as st
-from surfer_protocol import SurferClient
+Full code: <a target="_blank" href="https://github.com/Surfer-Org/Protocol/blob/main/sdk/python/cookbook/streamlit-chatbot/app.py">Streamlit Chatbot</a>
 
-client = SurferClient()
-emails = client.get('gmail-001')
+Create a Streamlit chatbot that uses Weaviate and OpenAI to analyze your Surfer data:
 
-# Add search functionality
-search_query = st.text_input("Search in email body")
-if search_query:
-    for email in emails['data']['content']:
-        if search_query.lower() in email.get('body', '').lower():
-            st.write(f"From: {email.get('from')}")
-            st.write(f"Subject: {email.get('subject')}")
-```
+<iframe
+  width="100%"
+  height="400"
+  src="https://www.youtube.com/embed/hxLKQQhHoD4"
+  title="Streamlit Chatbot Demo"
+  frameBorder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen
+></iframe>
 
-### Twitter Bookmarks Viewer
-Create a Streamlit application to view and filter Twitter bookmarks:
 
-```python
-import streamlit as st
-from surfer_protocol import SurferClient
+### Knowledge Graph
 
-client = SurferClient()
-tweets = client.get('bookmarks-001')
+Turn your Surfer data into a knowledge graph.
 
-# Add filters
-search_query = st.text_input("Search in tweets")
-if search_query:
-    for tweet in tweets['data']['content']:
-        if search_query.lower() in tweet.get('text', '').lower():
-            st.write(f"@{tweet['username']}: {tweet['text']}")
-```
+Full code: <a target="_blank" href="https://github.com/Surfer-Org/Protocol/blob/main/sdk/python/cookbook/knowledge-graph/app.py">Knowledge Graph</a>
+
+### AI Training
+
+Train an AI model off of your Surfer data.
+
+Full code: <a target="_blank" href="https://github.com/Surfer-Org/Protocol/blob/main/sdk/python/cookbook/ai-training/app.py">AI Training</a>
 
 ## Error Handling
 

@@ -1,5 +1,6 @@
 {
     "name": "LinkedIn Connections",
+    "id": "connections-001",
     "description": "Exports your connections.",
     "logoURL": "https://logo.clearbit.com/linkedin.com",
     "connectURL": "https://linkedin.com/login",

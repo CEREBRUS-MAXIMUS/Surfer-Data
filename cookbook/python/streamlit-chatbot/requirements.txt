@@ -1,0 +1,4 @@
+streamlit
+weaviate-client
+openai
+surfer-protocol

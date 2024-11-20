@@ -1,4 +1,4 @@
-from client import SurferClient
+from surfer_protocol import SurferClient
 from streamlit_calendar import calendar
 import streamlit as st
 from datetime import datetime

@@ -2,7 +2,7 @@ import streamlit as st
 import weaviate
 from weaviate.classes.init import Auth
 from weaviate.classes.config import Configure
-from client import SurferClient
+from surfer_protocol import SurferClient
 from openai import OpenAI
 from helpers import chunk_object
 surfer = SurferClient()
@@ -56,12 +56,12 @@ with tab_intro:
     with st.expander("📋 Prerequisites & Setup Guide"):
         st.write("""
         1. **Surfer Desktop App**
-            - Download and install the Surfer Desktop app
-            - Export your data to use with this chatbot
+            - Download the Surfer Desktop app or run locally from https://docs.surferprotocol.org/desktop/installation 
+            - Export your data from any platform
             
         2. **Set up Weaviate Cloud**
-            - Weaviate Cloud instance credentials
-                
+            - Go to https://weaviate.io/developers/wcs/quickstart to create a Weaviate Cloud instance
+            - Copy the cluster URL and API key
                  
         3. **Add API keys to `.streamlit/secrets_template.toml` and rename file to `secrets.toml`**
             - WEAVIATE_URL
@@ -69,6 +69,7 @@ with tab_intro:
             - OPENAI_API_KEY
         """)
 
+# Set up Weaviate Cloud: https://weaviate.io/developers/wcs/quickstart
 weaviate_client = weaviate.connect_to_weaviate_cloud(
     cluster_url=st.secrets["WEAVIATE_URL"],
     auth_credentials=Auth.api_key(st.secrets["WEAVIATE_API_KEY"]),
@@ -107,7 +108,8 @@ with tab_data:
         st.write("Data deleted from Weaviate!")
 
     if add_data_button:
-        all_data = surfer.get('linkedin-001')
+        # replace with the platform ID you want to add data for
+        all_data = surfer.get('platform-001')
         with data_collection.batch.dynamic() as batch:
             for data in all_data['data']['content']:
                     try:
@@ -126,10 +128,10 @@ with tab_data:
                                     # "text": obj['text'],
                                     # "username": obj['username'],
 
-                                    # example for linkedin-001:
-                                    "first_name": obj['first_name'],
-                                    "last_name": obj['last_name'],
-                                    "headline": obj['headline'],
+                                    # example for connections-001:
+                                    # "first_name": obj['first_name'],
+                                    # "last_name": obj['last_name'],
+                                    # "headline": obj['headline'],
                                 },
                             )
                     except Exception as e:

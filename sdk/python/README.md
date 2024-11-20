@@ -4,7 +4,7 @@ A Python SDK for interacting with the Surfer Protocol desktop application. Easil
 
 ## Prerequisites
 
-The Surfer desktop application must be running in the background for the SDK to work. [Download here](https://github.com/Surfer-Org/Protocol/releases).
+The Surfer desktop application must be running in the background for the SDK to work. [Download here](https://docs.surferprotocol.org/desktop/installation).
 
 ## Installation
 
@@ -38,7 +38,7 @@ The SDK provides two main methods:
 - Twitter Bookmarks (`bookmarks-001`)
 - Gmail (`gmail-001`)
 - iMessage (`imessage-001`)
-- LinkedIn (`linkedin-001`)
+- LinkedIn Connections (`connections-001`)
 - Notion (`notion-001`)
 - ChatGPT (`chatgpt-001`)
 

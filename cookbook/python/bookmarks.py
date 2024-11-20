@@ -1,5 +1,5 @@
 import streamlit as st
-from client import SurferClient
+from surfer_protocol import SurferClient
 from datetime import datetime
 
 st.title("Twitter Bookmarks Viewer")

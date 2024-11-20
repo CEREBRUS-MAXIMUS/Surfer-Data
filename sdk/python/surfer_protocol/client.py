@@ -1,5 +1,4 @@
 import requests
-from typing import Optional
 
 class SurferClient:
     def __init__(self, host: str = "localhost", port: int = 2024):
@@ -13,7 +12,7 @@ class SurferClient:
             response = self.session.get(f"{self.base_url}/health")
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            raise ConnectionError("Could not connect to Surfer-Data desktop app. Is it running?") from e
+            raise ConnectionError("Couldn't connect to the Surfer Desktop app. Is it running?") from e
 
 
     def get(self, platform_id: str) -> dict:

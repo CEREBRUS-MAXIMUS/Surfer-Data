@@ -1,9 +1,0 @@
-README.md
-setup.py
-client/__init__.py
-client/client.py
-surfer_client.egg-info/PKG-INFO
-surfer_client.egg-info/SOURCES.txt
-surfer_client.egg-info/dependency_links.txt
-surfer_client.egg-info/requires.txt
-surfer_client.egg-info/top_level.txt

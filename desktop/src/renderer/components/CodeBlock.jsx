@@ -14,7 +14,7 @@ const CodeBlock = ({ title, code, language = "python" }) => {
   };
 
   return (
-    <div id={title.toLowerCase().replace(/\s+/g, '-')} className="scroll-mt-16">
+    <div id={title ? title.toLowerCase().replace(/\s+/g, '-') : 'code-block'} className="scroll-mt-16">
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <div className="relative">
         <div className="relative rounded-lg">
