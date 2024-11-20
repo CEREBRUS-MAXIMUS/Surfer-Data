@@ -108,6 +108,10 @@ const RunDetails = ({ runId, onClose }) => {
     setCurrentFileIndex(prev => (prev < files.length - 1 ? prev + 1 : prev));
   };
 
+  const handleOpenGithub = (url) => {
+    window.electron.ipcRenderer.send('open-external', url);
+  };
+
   if (!run) return null;
 
   const sections = [
@@ -159,8 +163,20 @@ const RunDetails = ({ runId, onClose }) => {
       content: (
         <Card>
           <CardContent className="pt-6">
-            <div className="h-[75vh] overflow-x-auto overflow-y-auto">
-              <CodeBlock code={codeExamples.dashboard} />
+            <div className="space-y-4">
+              <div className="flex justify-end">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleOpenGithub(codeExamples.dashboard.githubUrl)}
+                >
+                  <Code className="mr-2 h-4 w-4" />
+                  View Full Code
+                </Button>
+              </div>
+              <div className="h-[70vh] overflow-x-auto overflow-y-auto">
+                <CodeBlock code={codeExamples.dashboard.code} />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -173,8 +189,8 @@ const RunDetails = ({ runId, onClose }) => {
       content: (
         <Card>
           <CardContent className="pt-6">
-            <div className="h-[75vh] overflow-y-auto">
-              <CodeBlock code={codeExamples.analysis} />
+            <div className="h-[70vh] overflow-y-auto">
+              <CodeBlock code={codeExamples.analysis.code} />
             </div>
           </CardContent>
         </Card>
@@ -188,7 +204,7 @@ const RunDetails = ({ runId, onClose }) => {
         <Card>
           <CardContent className="pt-6">
             <div className="h-[75vh] overflow-y-auto">
-              <CodeBlock code={codeExamples.aiTraining} />
+              <CodeBlock code={codeExamples.aiTraining.code} />
             </div>
           </CardContent>
         </Card>

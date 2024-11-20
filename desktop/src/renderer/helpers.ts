@@ -1,5 +1,7 @@
 import { parseISO, isToday, isYesterday, format } from 'date-fns';
 
+const GITHUB_BASE_URL = 'https://github.com/Surfer-Org/Protocol/tree/main';
+
 export const formatLastRunTime = (dateString: string) => {
   const date = parseISO(dateString);
   if (isToday(date)) {
@@ -44,11 +46,16 @@ export const getCodeExamples = async (run: any) => {
     return response.text();
   };
 
-  const dashboardCode = await fetchGithubFile('cookbook/streamlit-chatbot/app.py');
+  const dashboardPath = 'cookbook/python/streamlit-chatbot/app.py';
+  const dashboardCode = await fetchGithubFile(dashboardPath);
 
   return {
-    dashboard: dashboardCode,
-    analysis: `import pandas as pd
+    dashboard: {
+      code: dashboardCode,
+      githubUrl: `${GITHUB_BASE_URL}/${dashboardPath}`
+    },
+    analysis: {
+      code: `import pandas as pd
 from surfer import SurferClient
 
 # Get your data (make sure desktop app is running!)
@@ -63,8 +70,10 @@ df = files[0].to_dataframe()
 summary = df.describe()
 print("Data Summary:")
 print(summary)`,
-
-      aiTraining: `from surfer import SurferClient
+      githubUrl: `${GITHUB_BASE_URL}/cookbook/python/analysis`
+    },
+    aiTraining: {
+      code: `from surfer import SurferClient
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
@@ -83,5 +92,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 # Train your model
 # Add your model training code here`,
-    };    
+      githubUrl: `${GITHUB_BASE_URL}/cookbook/python/ml-training`
+    }
+  };    
 };
