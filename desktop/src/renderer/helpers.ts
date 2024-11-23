@@ -49,30 +49,19 @@ export const getCodeExamples = async (run: any) => {
   const dashboardPath = 'cookbook/python/streamlit-chatbot/app.py';
   const dashboardCode = await fetchGithubFile(dashboardPath);
 
+  const knowledgeGraphPath = 'cookbook/python/knowledge-graph/app.py';
+  const knowledgeGraphCode = await fetchGithubFile(knowledgeGraphPath);
+
   return {
     dashboard: {
       code: dashboardCode,
       githubUrl: `${GITHUB_BASE_URL}/${dashboardPath}`
     },
-    analysis: {
-      code: `import pandas as pd
-from surfer import SurferClient
-
-# Get your data (make sure desktop app is running!)
-client = SurferClient()
-data = client.get("${run.platformId}")
-files = client.load_files(data['exportPath'])
-
-# Convert to DataFrame
-df = files[0].to_dataframe()
-
-# Basic analysis
-summary = df.describe()
-print("Data Summary:")
-print(summary)`,
-      githubUrl: `${GITHUB_BASE_URL}/cookbook/python/analysis`
+    knowledge_graph: {
+      code: knowledgeGraphCode,
+      githubUrl: `${GITHUB_BASE_URL}/${knowledgeGraphPath}`
     },
-    aiTraining: {
+    ai_training: {
       code: `from surfer import SurferClient
 from sklearn.model_selection import train_test_split
 import pandas as pd

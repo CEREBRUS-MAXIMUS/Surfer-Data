@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ChevronRight, Clock, XCircle, Trash2, Folder, Code, BarChart, Brain, ChevronLeft } from 'lucide-react';
+import { ChevronRight, Clock, XCircle, Trash2, Folder, Code, Network, Brain, ChevronLeft } from 'lucide-react';
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent } from "./ui/dialog";
@@ -34,8 +34,8 @@ const RunDetails = ({ runId, onClose }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [codeExamples, setCodeExamples] = useState({
     dashboard: '',
-    analysis: '',
-    aiTraining: ''
+    knowledge_graph: '',
+    ai_training: ''
   });
   const [files, setFiles] = useState([]);
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
@@ -183,28 +183,40 @@ const RunDetails = ({ runId, onClose }) => {
       )
     },
     {
-      id: 'analysis',
-      title: 'Analyze Data',
-      icon: <BarChart className="h-4 w-4" />,
+      id: 'knowledge_graph',
+      title: 'Create Knowledge Graph',
+      icon: <Network className="h-4 w-4" />,
       content: (
         <Card>
           <CardContent className="pt-6">
-            <div className="h-[70vh] overflow-y-auto">
-              <CodeBlock code={codeExamples.analysis.code} />
+            <div className="space-y-4">
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenGithub(codeExamples.knowledge_graph.githubUrl)}
+                >
+                  <Code className="mr-2 h-4 w-4" />
+                  View Full Code
+                </Button>
+              </div>
+              <div className="h-[70vh] overflow-y-auto">
+                <CodeBlock code={codeExamples.knowledge_graph.code} />
+              </div>
             </div>
           </CardContent>
         </Card>
       )
     },
     {
-      id: 'ai',
+      id: 'ai_training',
       title: 'Train AI',
       icon: <Brain className="h-4 w-4" />,
       content: (
         <Card>
           <CardContent className="pt-6">
             <div className="h-[75vh] overflow-y-auto">
-              <CodeBlock code={codeExamples.aiTraining.code} />
+              <CodeBlock code={codeExamples.ai_training.code} />
             </div>
           </CardContent>
         </Card>
