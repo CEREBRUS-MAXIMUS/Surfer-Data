@@ -1,7 +1,6 @@
 import networkx as nx
 from pyvis.network import Network
 import matplotlib.pyplot as plt
-import time
 from surfer_protocol import SurferClient
 from llm import extract_nodes, extract_edges
 import json
@@ -12,9 +11,13 @@ data = surfer_client.get('bookmarks-001')
 
 # Initialize both NetworkX and Pyvis graphs
 G = nx.Graph()
-net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
+net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black", select_menu=True, filter_menu=True)
+net.barnes_hut()
 net.toggle_physics(True)
 plt.figure(figsize=(15, 10))
+
+# Add near the top of the file, after network initialization
+net.show_buttons(filter_=['physics'])
 
 def display_graph(G, title):
     # Update Pyvis network
@@ -26,7 +29,8 @@ def display_graph(G, title):
             'size': 25,
             'label': G.nodes[node['id']].get('label', ''),
             'title': G.nodes[node['id']].get('text', ''),  # Hover text
-            'color': '#6AACF0'
+            'color': '#6AACF0',
+            'value': len([n for n in G.neighbors(node['id'])])  # Node size based on connections
         })
     
     for edge in net.edges:
@@ -36,15 +40,14 @@ def display_graph(G, title):
             'font': {'size': 10}
         })
     
-    # Save interactive HTML
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    net.save(f'graph_{timestamp}.html')
+    # Save interactive HTML with a fixed filename during processing
+    net.save_graph('graph_current.html')
 
 def save_graph(G):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    # Save interactive HTML
-    display_graph(G, f'Knowledge Graph (Nodes: {len(G.nodes())}, Edges: {len(G.edges())})')
+    # Save final HTML with timestamp
+    net.save_graph(f'graph_{timestamp}.html')
     
     # Save JSON
     graph_data = {
@@ -67,7 +70,7 @@ def save_graph(G):
     with open(f'graph_{timestamp}.json', 'w') as f:
         json.dump(graph_data, f, indent=2)
     
-    print(f"\nGraph saved as:\ngraph_{timestamp}.html\ngraph_{timestamp}.json")
+    print(f"\nFinal graph saved as:\ngraph_{timestamp}.html\ngraph_{timestamp}.json")
 
 try:
     for bookmark in data['data']['content']:
@@ -95,8 +98,8 @@ try:
         # Display updated graph
         display_graph(G, f'Knowledge Graph (Nodes: {len(G.nodes())}, Edges: {len(G.edges())})')
 
-except KeyboardInterrupt:
-    print("\nProgram interrupted by user. Saving final graph...")
+except Exception as e:
+    print(f"\nAn error occurred: {e}")
     save_graph(G)
 
 finally:
