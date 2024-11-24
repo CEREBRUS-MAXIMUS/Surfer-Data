@@ -1,29 +1,40 @@
+import cors from 'cors';
 import * as dotenv from 'dotenv';
-dotenv.config();
-import {} from '../../';
-import path from 'path';
-import MenuBuilder from './utils/menu';
 import {
   app,
   BrowserWindow,
-  shell,
+  dialog,
   ipcMain,
   Menu,
   nativeImage,
+  shell,
   Tray,
-  dialog,
-  session,
 } from 'electron';
-import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
-import { resolveHtmlPath } from './utils/util';
-import fs from 'fs';
-import { convertMboxToJson, findMboxFile, extractZip, getTotalFolderSize, checkConnectedPlatforms, processNotionExport, parseChatGPTConversations } from './helpers/platforms';
-import { getImessageData } from './utils/imessage';
-const { download } = require('electron-dl');
+import { autoUpdater } from 'electron-updater';
 import express from 'express';
-import cors from 'cors';
-import { getLinkedinCredentials, getNotionCredentials, getTwitterCredentials } from './utils/network';
+import fs from 'fs';
+import path from 'path';
+import {} from '../../';
+import {
+  checkConnectedPlatforms,
+  convertMboxToJson,
+  extractZip,
+  findMboxFile,
+  getTotalFolderSize,
+  parseChatGPTConversations,
+  processNotionExport,
+} from './helpers/platforms';
+import { getImessageData } from './utils/imessage';
+import MenuBuilder from './utils/menu';
+import {
+  getLinkedinCredentials,
+  getNotionCredentials,
+  getTwitterCredentials,
+} from './utils/network';
+import { resolveHtmlPath } from './utils/util';
+dotenv.config();
+const { download } = require('electron-dl');
 
 // Preventing multiple instances of Surfer
 
@@ -58,7 +69,7 @@ const isServerRunning = async (): Promise<boolean> => {
 // Replace the Express setup with this
 const setupExpressServer = async () => {
   const serverRunning = await isServerRunning();
-  
+
   if (serverRunning) {
     console.log(`Server already running on port ${port}, skipping setup`);
     return;
@@ -95,7 +106,8 @@ const setupExpressServer = async () => {
     // Sort by startDate descending and get latest
     const latestRun = successfulRuns.sort(
       (a: any, b: any) =>
-        new Date(b.endDate || b.startDate).getTime() - new Date(a.endDate || b.startDate).getTime(),
+        new Date(b.endDate || b.startDate).getTime() -
+        new Date(a.endDate || b.startDate).getTime(),
     )[0];
 
     if (!latestRun) {
@@ -142,7 +154,9 @@ const setupExpressServer = async () => {
             ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
           });
 
-          const finalRun = runsResponse.find((r: any) => r.id === currentRun.id);
+          const finalRun = runsResponse.find(
+            (r: any) => r.id === currentRun.id,
+          );
           if (finalRun?.status === 'success') {
             clearInterval(statusInterval);
             resolve(finalRun);
@@ -183,15 +197,17 @@ const setupExpressServer = async () => {
     }
   });
 
-  expressApp.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  }).on('error', (err: any) => {
-    if (err.code === 'EADDRINUSE') {
-      console.log(`Port ${port} is busy, server not started`);
-    } else {
-      console.error('Server error:', err);
-    }
-  });
+  expressApp
+    .listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    })
+    .on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        console.log(`Port ${port} is busy, server not started`);
+      } else {
+        console.error('Server error:', err);
+      }
+    });
 };
 
 autoUpdater.autoDownload = false; // Prevent auto-download
@@ -199,7 +215,6 @@ autoUpdater.autoInstallOnAppQuit = false;
 autoUpdater.autoRunAppAfterInstall = true;
 
 let downloadingItems = new Map();
-
 
 ipcMain.on('connect-platform', (event, platform: any) => {
   const { company, name, connectURL, connectSelector, id } = platform;
@@ -231,12 +246,16 @@ ipcMain.on('connect-platform', (event, platform: any) => {
 
         if (elementExists) {
           console.log('ELEMENT FOUND, closing popup');
-          const platformPath = path.join(app.getPath('userData'), 'surfer_data', company, name);
+          const platformPath = path.join(
+            app.getPath('userData'),
+            'surfer_data',
+            company,
+            name,
+          );
           fs.mkdirSync(platformPath, { recursive: true });
           mainWindow?.webContents.send('element-found', id);
           elementFound = true;
           popupWindow.destroy();
-          
         } else {
           console.log('ELEMENT NOT FOUND, STILL LOOKING!');
           mainWindow?.webContents.send('element-not-found', id);
@@ -342,7 +361,7 @@ const getPlatforms = async () => {
           needsConnection: metadata.needsConnection ?? true,
           connectURL: metadata.connectURL || null,
           connectSelector: metadata.connectSelector || null,
-          exportFrequency: metadata.exportFrequency || null
+          exportFrequency: metadata.exportFrequency || null,
         };
       }),
     );
@@ -358,7 +377,7 @@ ipcMain.handle('get-platforms', async () => {
 
 ipcMain.handle('get-user-data-path', () => {
   return app.getPath('userData');
-})
+});
 
 ipcMain.on('get-platform', (event) => {
   event.reply('platform', process.platform);
@@ -369,18 +388,19 @@ app.on('web-contents-created', (_event, contents) => {
     // Use __dirname to get the path of the current directory
     const preloadPath = path.join(__dirname, 'preloadWebview.js');
     webPreferences.preload = preloadPath;
-  }); 
+  });
 });
 
 ipcMain.on('get-version-number', (event) => {
   event.reply('version-number', app.getVersion());
 });
 
-ipcMain.handle('get-imessage-data', async (event, company: string, name: string, id: string) => {
-  //if (process.platform === 'win32') {
-  return getImessageData(event, company, name, id);
-});
-
+ipcMain.handle(
+  'get-imessage-data',
+  async (event, company: string, name: string, id: string) => {
+    return getImessageData(event, company, name, id);
+  },
+);
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -404,16 +424,15 @@ const isDebug =
 if (isDebug) {
   require('electron-debug')();
 }
-  const RESOURCES_PATH = app.isPackaged
-    ? path.join(process.resourcesPath, 'assets')
-    : path.join(__dirname, '../../assets');
+const RESOURCES_PATH = app.isPackaged
+  ? path.join(process.resourcesPath, 'assets')
+  : path.join(__dirname, '../../assets');
 
-  const getAssetPath = (...paths: string[]): string => {
-    return path.join(RESOURCES_PATH, ...paths);
-  };
+const getAssetPath = (...paths: string[]): string => {
+  return path.join(RESOURCES_PATH, ...paths);
+};
 
 let isQuitting = false;
-
 
 export const createWindow = async (visible: boolean = true) => {
   if (mainWindow) {
@@ -421,7 +440,7 @@ export const createWindow = async (visible: boolean = true) => {
   }
 
   mainWindow = new BrowserWindow({
-    show: true, 
+    show: true,
     width: 1560,
     height: 1024,
     minWidth: 720,
@@ -487,14 +506,12 @@ export const createWindow = async (visible: boolean = true) => {
     });
   });
 
-
   app.on('open-url', (event, url) => {
     event.preventDefault();
     if (mainWindow) {
       mainWindow.webContents.send('open-url', url);
     }
   });
-
 
   ipcMain.on('show-dev-tools', (event) => {
     try {
@@ -601,20 +618,21 @@ export const createWindow = async (visible: boolean = true) => {
           console.log('Download completed:', dl.getSavePath());
           const filePath = dl.getSavePath();
           if (filePath.toLowerCase().endsWith('.zip')) {
-
             const extractPath = path.join(idPath, 'extracted');
-            
+
             try {
               await extractZip(filePath, extractPath);
               console.log('Outer ZIP extracted to:', extractPath);
 
-              const innerZipFile = fs.readdirSync(extractPath).find(file => file.endsWith('.zip'));
-              
+              const innerZipFile = fs
+                .readdirSync(extractPath)
+                .find((file) => file.endsWith('.zip'));
+
               if (innerZipFile) {
                 const innerZipPath = path.join(extractPath, innerZipFile);
                 await extractZip(innerZipPath, extractPath);
                 console.log('Inner ZIP extracted to:', extractPath);
-                
+
                 // Delete the inner ZIP file after extraction
                 fs.unlinkSync(innerZipPath);
               }
@@ -700,7 +718,11 @@ export const createWindow = async (visible: boolean = true) => {
                 )
               ) {
                 try {
-                  const outputPath = parseChatGPTConversations(extractPath, platformId, timestamp);
+                  const outputPath = parseChatGPTConversations(
+                    extractPath,
+                    platformId,
+                    timestamp,
+                  );
                   mainWindow?.webContents.send(
                     'export-complete',
                     'OpenAI',
@@ -743,7 +765,7 @@ export const createWindow = async (visible: boolean = true) => {
               path.basename(platformPath),
               platformId,
               idPath,
-              getTotalFolderSize(idPath)
+              getTotalFolderSize(idPath),
             );
           }
         })
@@ -776,166 +798,190 @@ export const createWindow = async (visible: boolean = true) => {
   }
 };
 
-
 ipcMain.on('open-external', (event, url) => {
   shell.openExternal(url);
 });
 
 ipcMain.on('check-for-updates', () => {
-              autoUpdater
-                .checkForUpdates()
-                .then((updateCheckResult) => {
-                  if (
-                    updateCheckResult.updateInfo &&
-                    updateCheckResult.updateInfo.version &&
-                    updateCheckResult.updateInfo.version === app.getVersion()
-                  ) {
-                    dialog.showMessageBox(mainWindow, {
-                      type: 'info',
-                      title: 'No Updates',
-                      buttons: ['OK'],
-                      message: 'You are already on the latest version.',
-                    });
-                  }
-                })
-                .catch((err) => {
-                  dialog.showErrorBox(
-                    'Update Error',
-                    'Failed to check for updates: ' + err.toString(),
-                  );
-                });
+  autoUpdater
+    .checkForUpdates()
+    .then((updateCheckResult) => {
+      if (
+        updateCheckResult.updateInfo &&
+        updateCheckResult.updateInfo.version &&
+        updateCheckResult.updateInfo.version === app.getVersion()
+      ) {
+        dialog.showMessageBox(mainWindow, {
+          type: 'info',
+          title: 'No Updates',
+          buttons: ['OK'],
+          message: 'You are already on the latest version.',
+        });
+      }
+    })
+    .catch((err) => {
+      dialog.showErrorBox(
+        'Update Error',
+        'Failed to check for updates: ' + err.toString(),
+      );
+    });
 });
 
-ipcMain.on('handle-update', (event, company, name, platformId, data, runID, customFilePath = null) => {
+ipcMain.on(
+  'handle-update',
+  (event, company, name, platformId, data, runID, customFilePath = null) => {
+    const userData = app.getPath('userData');
+    const filePath = customFilePath
+      ? customFilePath
+      : path.join(
+          userData,
+          'surfer_data',
+          company,
+          name,
+          platformId,
+          `${platformId}.json`,
+        );
 
-  const userData = app.getPath('userData');
-  const filePath = customFilePath ? customFilePath : path.join(
-    userData,
-    'surfer_data',
-    company,
-    name,
-    platformId,
-    `${platformId}.json`
-  );
-
-let existingData;
-if (fs.existsSync(filePath)) {
-  try {
-    existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    // Check if the existing data has the correct structure
-    if (
-      !existingData.company ||
-      !existingData.name ||
-      !existingData.runID ||
-      !existingData.timestamp ||
-      !Array.isArray(existingData.content)
-    ) {
-      throw new Error('Invalid data structure');
+    let existingData;
+    if (fs.existsSync(filePath)) {
+      try {
+        existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        // Check if the existing data has the correct structure
+        if (
+          !existingData.company ||
+          !existingData.name ||
+          !existingData.runID ||
+          !existingData.timestamp ||
+          !Array.isArray(existingData.content)
+        ) {
+          throw new Error('Invalid data structure');
+        }
+      } catch (error) {
+        console.error('Error reading or parsing existing file:', error);
+        // If there's an error or invalid structure, we'll create a new structure
+        existingData = null;
+      }
     }
-  } catch (error) {
-    console.error('Error reading or parsing existing file:', error);
-    // If there's an error or invalid structure, we'll create a new structure
-    existingData = null;
-  }
-}
 
-if (!existingData) {
-  // Create the necessary directories if they don't exist
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  // Initialize the file with the basic structure
-  existingData = {
-    company,
-    name,
-    runID,
-    timestamp: Date.now(),
-    content: [],
-  };
-  fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
-}
+    if (!existingData) {
+      // Create the necessary directories if they don't exist
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      // Initialize the file with the basic structure
+      existingData = {
+        company,
+        name,
+        runID,
+        timestamp: Date.now(),
+        content: [],
+      };
+      fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
+    }
 
-  let parsedData = JSON.parse(data);
+    let parsedData = JSON.parse(data);
 
-  // Add the added_to_db key
-  parsedData.added_to_db = new Date().toISOString();
+    // Add the added_to_db key
+    parsedData.added_to_db = new Date().toISOString();
 
-  // Append the updated email content to the existing data
-  existingData.content.push(parsedData);
+    // Append the updated email content to the existing data
+    existingData.content.push(parsedData);
 
-  // Write the updated data
-  fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
-});
- 
-ipcMain.on('handle-update-complete', (event, runID, platformId, company, name, customFilePath = null) => {
-  const filePath = customFilePath ? customFilePath : path.join(app.getPath('userData'), 'surfer_data', company, name, platformId, `${platformId}.json`)
-  console.log('this filepath: ', filePath)
-  let folderPath;
-  if (filePath.includes('extracted')) {
-  folderPath = path.join(
-    app.getPath('userData'),
-    'surfer_data',
-    company,
-    name,
-    platformId,
-    'extracted',
-  );
-  }
+    // Write the updated data
+    fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
+  },
+);
 
-  else {
-    folderPath = path.join(
+ipcMain.on(
+  'handle-update-complete',
+  (event, runID, platformId, company, name, customFilePath = null) => {
+    const filePath = customFilePath
+      ? customFilePath
+      : path.join(
+          app.getPath('userData'),
+          'surfer_data',
+          company,
+          name,
+          platformId,
+          `${platformId}.json`,
+        );
+    console.log('this filepath: ', filePath);
+    let folderPath;
+    if (filePath.includes('extracted')) {
+      folderPath = path.join(
+        app.getPath('userData'),
+        'surfer_data',
+        company,
+        name,
+        platformId,
+        'extracted',
+      );
+    } else {
+      folderPath = path.join(
+        app.getPath('userData'),
+        'surfer_data',
+        company,
+        name,
+        platformId,
+      );
+    }
+
+    if (fs.existsSync(filePath)) {
+      // here folder path is sent, but could we send filepath?
+      mainWindow?.webContents.send(
+        'export-complete',
+        company,
+        name,
+        runID,
+        folderPath,
+        getTotalFolderSize(folderPath),
+      );
+    }
+  },
+);
+
+ipcMain.on(
+  'handle-export',
+  (event, runID, platformId, filename, company, name, content, isUpdated) => {
+    // Create export path
+    const exportPath = path.join(
       app.getPath('userData'),
       'surfer_data',
       company,
       name,
-      platformId,
+      runID,
     );
-  }
 
-  if (fs.existsSync(filePath)) { // here folder path is sent, but could we send filepath?
-  mainWindow?.webContents.send(
-    'export-complete',
-    company,
-    name,
-    runID,
-    folderPath,
-    getTotalFolderSize(folderPath),
-  );
-  }
-})
+    // Create directory structure
+    fs.mkdirSync(exportPath, { recursive: true });
 
-ipcMain.on('handle-export', (event, runID, platformId, filename, company, name, content, isUpdated) => {
-  // Create export path
-  const exportPath = path.join(
-    app.getPath('userData'),
-    'surfer_data',
-    company,
-    name,
-    runID
-  );
+    const filePath = path.join(exportPath, `${platformId}_${Date.now()}.json`);
 
-  // Create directory structure
-  fs.mkdirSync(exportPath, { recursive: true });
+    // Write data
+    fs.writeFileSync(
+      filePath,
+      JSON.stringify(
+        {
+          company,
+          name,
+          runID,
+          timestamp: Date.now(),
+          content: Array.isArray(content) ? content : [content],
+        },
+        null,
+        2,
+      ),
+    );
 
-  const filePath = path.join(exportPath, `${platformId}_${Date.now()}.json`);
-  
-  // Write data
-  fs.writeFileSync(filePath, JSON.stringify({
-    company,
-    name,
-    runID,
-    timestamp: Date.now(),
-    content: Array.isArray(content) ? content : [content],
-  }, null, 2));
-
-  // Notify completion
-  mainWindow?.webContents.send(
-    'export-complete',
-    company,
-    name,
-    runID,
-    exportPath,
-    getTotalFolderSize(exportPath)
-  );
-});
+    // Notify completion
+    mainWindow?.webContents.send(
+      'export-complete',
+      company,
+      name,
+      runID,
+      exportPath,
+      getTotalFolderSize(exportPath),
+    );
+  },
+);
 
 ipcMain.on('connect-website', (event, company) => {
   mainWindow?.webContents.send('connect-website', company);
@@ -954,7 +1000,7 @@ autoUpdater.on('update-available', (info) => {
     .then((result) => {
       if (result.response === 0) {
         // User clicked 'Yes'
-        mainWindow?.webContents.send('update-download-progress', 0);        
+        mainWindow?.webContents.send('update-download-progress', 0);
         autoUpdater.downloadUpdate();
       }
     });
@@ -980,11 +1026,9 @@ autoUpdater.on('update-downloaded', (info) => {
     })
     .then((result) => {
       if (result.response === 0) {
-        mainWindow?.webContents.send('update-download-progress', 100);      
+        mainWindow?.webContents.send('update-download-progress', 100);
         autoUpdater.quitAndInstall();
-      }
-
-      else {
+      } else {
         mainWindow?.webContents.send('update-download-progress', null);
       }
     });
@@ -1011,11 +1055,11 @@ let tray: Tray | null = null;
 let forceQuit = false;
 
 app.on('window-all-closed', () => {
-  try { 
+  try {
     downloadingItems.forEach((item, key) => {
       if (item) {
         item.cancel();
-        downloadingItems.delete(key); 
+        downloadingItems.delete(key);
       }
     });
   } catch (error) {
@@ -1041,7 +1085,7 @@ app
         path: app.getPath('exe'),
       });
     }
-    
+
     createWindow();
 
     autoUpdater.checkForUpdates();
@@ -1062,7 +1106,7 @@ app
         height: 16,
         width: 16,
       });
-      
+
       tray = new Tray(icon);
       tray.setToolTip('Surfer');
 
@@ -1078,7 +1122,7 @@ app
           },
         },
         {
-          type: 'separator'
+          type: 'separator',
         },
         {
           label: 'Quit',
@@ -1091,18 +1135,18 @@ app
       ]);
 
       tray.setContextMenu(contextMenu);
-      
+
       tray.on('click', () => {
         if (mainWindow === null) {
           createWindow();
         } else {
           mainWindow.show();
-        } 
+        }
       });
     }
   })
   .catch(console.log);
- 
+
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
     event.preventDefault();
@@ -1169,7 +1213,12 @@ ipcMain.on('get-run-files', (event, exportPath) => {
 
 ipcMain.on('open-platform-export-folder', (event, company, name) => {
   console.log('open-platform-export-folder', company, name);
-  const exportFolderPath = path.join(app.getPath('userData'), 'surfer_data', company, name);
+  const exportFolderPath = path.join(
+    app.getPath('userData'),
+    'surfer_data',
+    company,
+    name,
+  );
   console.log('exportFolderPath', exportFolderPath);
   shell.openPath(exportFolderPath);
 });
