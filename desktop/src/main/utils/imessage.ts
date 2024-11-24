@@ -264,13 +264,12 @@ export async function getImessageData(
         return {
           id: msg.id,
           text: msg.text,
-          timestamp: new Date(msg.date / 1e9 + 978307200000).toISOString(),
+          timestamp: new Date(msg.date / 1e6 + 978307200000).toISOString(),
           contact: contactName,
           is_from_me: msg.is_from_me === 1,
         };
       });
 
-      // Create output JSON
       const output = {
         company,
         name,
