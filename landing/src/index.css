@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  hr {
+    @apply border-t border-gray-600/20 my-0;
+  }
+}
