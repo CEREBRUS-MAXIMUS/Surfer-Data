@@ -490,7 +490,7 @@ const renderRunStatus = (platform) => {
       ) : (
         <div className="flex-grow flex items-center justify-center">
           <div className="text-center py-8 bg-gray-100 rounded-md">
-            <p className="text-gray-500 text-lg">Didn't find anything? <a className="underline cursor-pointer" onClick={() => window.electron.ipcRenderer.send('open-external', 'https://github.com/Surfer-Org/Desktop-App/blob/main/docs/ADD_PLATFORMS.md')}>Build a platform for "{searchTerm}"</a></p>
+            <p className="text-gray-500 text-lg">Didn't find anything? <a className="underline cursor-pointer" onClick={() => window.electron.ipcRenderer.send('open-external', 'https://github.com/Surfer-Org/Protocol/blob/main/desktop/ADD_PLATFORMS.md')}>Build a platform for "{searchTerm}"</a></p>
             <button
               onClick={clearSearch}
               className="mt-2 text-blue-500 hover:underline"

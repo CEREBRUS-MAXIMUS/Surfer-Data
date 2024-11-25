@@ -12,19 +12,19 @@
     "hot",
     "reload"
   ],
-  "homepage": "https://github.com/Surfer-Org/Desktop-App",
+  "homepage": "https://github.com/Surfer-Org/Protocol/desktop/",
   "bugs": {
-    "url": "https://github.com/Surfer-Org/Desktop-App/issues"
+    "url": "https://github.com/Surfer-Org/Protocol/issues"
   },
-  "repository": "https://github.com/Surfer-Org/Desktop-App",
+  "repository": "https://github.com/Surfer-Org/Protocol/desktop/",
   "publish": {
     "provider": "github",
     "releaseType": "release"
   },
   "author": {
-    "name": "Surfer",
-    "email": "slalani304@gmail.com",
-    "url": "https://surfsup.ai"
+    "name": "Surfer Protocol",
+    "email": "lihas1002@gmail.com",
+    "url": "https://surferprotocol.org"
   },
   "main": "./src/main/main.ts",
   "scripts": {

@@ -60,28 +60,6 @@ export const getCodeExamples = async (run: any) => {
     knowledge_graph: {
       code: knowledgeGraphCode,
       githubUrl: `${GITHUB_BASE_URL}/${knowledgeGraphPath}`
-    },
-    ai_training: {
-      code: `from surfer import SurferClient
-from sklearn.model_selection import train_test_split
-import pandas as pd
-
-# Get your data (make sure desktop app is running!)
-client = SurferClient()
-data = client.get("${run.platformId}")
-files = client.load_files(data['exportPath'])
-
-# Prepare your data
-df = files[0].to_dataframe()
-X_train, X_test, y_train, y_test = train_test_split(
-    df.drop('target', axis=1), 
-    df['target'], 
-    test_size=0.2
-)
-
-# Train your model
-# Add your model training code here`,
-      githubUrl: `${GITHUB_BASE_URL}/cookbook/python/ml-training`
     }
   };    
 };

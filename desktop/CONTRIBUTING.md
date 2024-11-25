@@ -6,14 +6,16 @@ Thank you for your interest in contributing to the Surfer project! We welcome co
 
 Before you can start contributing, please follow these steps to set up the development environment:
 
-1. Clone the repository:
+1. Fork the repository:
+
+2. Clone the forked repository:
    ```
-   git clone https://github.com/Surfer-Org/Desktop-App.git
+   git clone https://github.com/YOUR_GITHUB_USERNAME/Protocol.git
    ```
 
 2. Install the required dependencies:
    ```
-   cd Surfer-Data
+   cd Surfer-Protocol/desktop
    npm install
    ```
 
@@ -26,9 +28,9 @@ This will run the application in development mode, allowing you to test your cha
 
 ## Contribution Guidelines
 
-1. **Reporting Bugs**: If you encounter any bugs or issues, please open a new issue in the [GitHub repository](https://github.com/Surfer-Org/Desktop-App/issues/new?labels=bug&template=bug-report---.md). Provide a clear and detailed description of the problem, along with any relevant steps to reproduce the issue.
+1. **Reporting Bugs**: If you encounter any bugs or issues, please open a new issue in the [GitHub repository](https://github.com/Surfer-Org/Protocol/issues/new?labels=bug&template=bug-report---.md). Provide a clear and detailed description of the problem, along with any relevant steps to reproduce the issue.
 
-2. **Suggesting Features**: If you have an idea for a new feature or improvement, please open a new issue in the [GitHub repository](https://github.com/Surfer-Org/Desktop-App/issues/new?labels=enhancement&template=feature-request---.md). Describe the feature in detail, explain its benefits, and provide any additional context that might be helpful.
+2. **Suggesting Features**: If you have an idea for a new feature or improvement, please open a new issue in the [GitHub repository](https://github.com/Surfer-Org/Protocol/issues/new?labels=enhancement&template=feature-request---.md). Describe the feature in detail, explain its benefits, and provide any additional context that might be helpful.
 
 3. **Submitting Pull Requests**: If you would like to contribute code changes to the project, follow these steps:
    - Fork the repository
@@ -41,7 +43,7 @@ We appreciate all contributions, whether they are bug reports, feature suggestio
 
 ## Platform-specific Modules
 
-The Surfer project is designed to be modular, with each platform-specific scraping functionality encapsulated in its own module. For details on adding support for a new platform, please refer to our [Guide to Adding New Platforms](./docs/ADD_PLATFORMS.md).
+The Surfer project is designed to be modular, with each platform-specific scraping functionality encapsulated in its own module. For details on adding support for a new platform, please refer to our [Guide to Adding New Platforms](ADD_PLATFORMS.md).
 
 ## Helper Functions
 

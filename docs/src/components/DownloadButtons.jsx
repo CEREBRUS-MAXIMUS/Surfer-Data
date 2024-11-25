@@ -10,7 +10,7 @@ const DownloadButton = ({ children, assetFilter }) => {
     const getReleases = async () => {
         try {
             return await axios.get(
-                "https://api.github.com/repos/CEREBRUS-MAXIMUS/Surfer-Data/releases"
+                "https://api.github.com/repos/Surfer-Org/Protocol/releases"
             )
         } catch (error) {
             console.error(`Error getting releases: ${error}`)

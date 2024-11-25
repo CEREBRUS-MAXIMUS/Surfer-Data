@@ -210,12 +210,17 @@ export const navigation = [
       { title: 'Platforms', href: '/desktop/platforms' },
     ],
   },
+
   {
     title: 'SDK',
     links: [
       { title: 'Python', href: '/sdk/python' },
-      { title: 'JavaScript', href: '/sdk/javascript' }
-
+    ],
+  },
+  {
+    title: 'Cookbook',
+    links: [
+      { title: 'Python', href: '/cookbook/python' },
     ],
   },
 ]

@@ -4,14 +4,6 @@
 > Protocol: [Surfer Protocol](https://github.com/Surfer-Org/Protocol)\
 > SDK: [Surfer Python SDK](https://github.com/Surfer-Org/Python-SDK)
 
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![](https://dcbadge.vercel.app/api/server/5KQkWApkYC)](https://discord.gg/5KQkWApkYC)
-
-
 ## Demo (click to view)
 
 [![YouTube](http://i.ytimg.com/vi/2P25iOd14qw/hqdefault.jpg)](https://www.youtube.com/watch?v=2P25iOd14qw)
@@ -59,15 +51,15 @@
 
 ## Getting Started
 
-To download the app, head over to [https://surfsup.ai](https://surfsup.ai). Or you can go to the releases page.
+To download the app, head over to [https://surferprotocol.org/desktop/installation](https://surferprotocol.org/desktop/installation). Or you can go to the releases page.
 
 For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md), [Helper Functions Documentation](docs/HELPER_FUNCTIONS.md), and [Guide to Adding New Platforms](docs/ADD_PLATFORMS.md).
 
-See the [open issues](https://github.com/Surfer-Org/Desktop-App/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/Surfer-Org/Protocol/issues) for a full list of proposed features (and known issues).
 
 ## License
 
-Distributed under the MIT License. See [`LICENSE`](https://github.com/Surfer-Org/Desktop-App/blob/main/LICENSE) for more information.
+Distributed under the MIT License. See [`LICENSE`](https://github.com/Surfer-Org/Protocol/desktop//blob/main/LICENSE) for more information.
 
 ## Built With
 
@@ -80,33 +72,8 @@ Distributed under the MIT License. See [`LICENSE`](https://github.com/Surfer-Org
 
 [Surfer Discord Server](https://discord.gg/Tjg7pjcFNP) - [@SahilLalani0](https://x.com/SahilLalani0) - [@JackBlair87](https://x.com/JackBlair87) - [@T0M_3D](https://x.com/T0M_3D)
 
-Project Link: [https://github.com/Surfer-Org/Desktop-App](https://github.com/Surfer-Org/Desktop-App)
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Surfer-Org/Desktop-App&type=Date)](https://star-history.com/#Surfer-Org/Desktop-App&Date)
+Project Link: [https://github.com/Surfer-Org/Protocol/desktop/](https://github.com/Surfer-Org/Protocol/desktop/)
 
 ## Acknowledgements
 
 - [Electron React Boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate)
-
-[contributors-shield]: https://img.shields.io/github/contributors/Surfer-Org/Desktop-App.svg?style=for-the-badge
-[contributors-url]: https://github.com/Surfer-Org/Desktop-App/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/Surfer-Org/Desktop-App.svg?style=for-the-badge
-[forks-url]: https://github.com/Surfer-Org/Desktop-App/network/members
-[stars-shield]: https://img.shields.io/github/stars/Surfer-Org/Desktop-App.svg?style=for-the-badge
-[stars-url]: https://github.com/Surfer-Org/Desktop-App/stargazers
-[issues-shield]: https://img.shields.io/github/issues/Surfer-Org/Desktop-App.svg?style=for-the-badge
-[issues-url]: https://github.com/Surfer-Org/Desktop-App/issues
-[license-shield]: https://img.shields.io/github/license/Surfer-Org/Desktop-App.svg?style=for-the-badge
-[license-url]: https://github.com/Surfer-Org/Desktop-App/blob/master/LICENSE
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/cerebrus-maximus
-[React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
-[React-url]: https://reactjs.org/
-[Tailwind.css]: https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white
-[Tailwind-url]: https://tailwindcss.com/
-[Electron.js]: https://img.shields.io/badge/Electron-2B2E3A?style=for-the-badge&logo=electron&logoColor=9FEAF9
-[Electron-url]: https://www.electronjs.org/
-[Shadcn.ui]: https://img.shields.io/badge/Shadcn_UI-F05032?style=for-the-badge&logo=shadcn&logoColor=white
-[Shadcn-url]: https://ui.shadcn.com/

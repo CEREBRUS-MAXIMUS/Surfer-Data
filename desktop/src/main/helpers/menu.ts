@@ -216,7 +216,7 @@ export default class MenuBuilder {
         {
           label: 'Learn More',
           click() {
-            shell.openExternal('https://surfsup.ai');
+            shell.openExternal('https://surferprotocol.org');
           },
         },
         {
@@ -229,7 +229,7 @@ export default class MenuBuilder {
           label: 'Releases',
           click() {
             shell.openExternal(
-              'https://github.com/Surfer-Org/Desktop-App',
+              'https://github.com/Surfer-Org/Protocol/desktop/',
             );
           },
         },
@@ -337,7 +337,7 @@ export default class MenuBuilder {
           {
             label: 'Learn More',
             click() {
-              shell.openExternal('https://surfsup.ai');
+              shell.openExternal('https://surferprotocol.org');
             },
           },
           {
@@ -350,7 +350,7 @@ export default class MenuBuilder {
             label: 'Releases',
             click() {
               shell.openExternal(
-                'https://github.com/Surfer-Org/Desktop-App',
+                'https://github.com/Surfer-Org/Protocol/desktop/',
               );
             },
           },

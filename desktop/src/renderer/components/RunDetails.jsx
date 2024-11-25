@@ -35,7 +35,6 @@ const RunDetails = ({ runId, onClose }) => {
   const [codeExamples, setCodeExamples] = useState({
     dashboard: '',
     knowledge_graph: '',
-    ai_training: ''
   });
   const [files, setFiles] = useState([]);
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
@@ -203,20 +202,6 @@ const RunDetails = ({ runId, onClose }) => {
               <div className="h-[70vh] overflow-y-auto">
                 <CodeBlock code={codeExamples.knowledge_graph.code} />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )
-    },
-    {
-      id: 'ai_training',
-      title: 'Train AI',
-      icon: <Brain className="h-4 w-4" />,
-      content: (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="h-[75vh] overflow-y-auto">
-              <CodeBlock code={codeExamples.ai_training.code} />
             </div>
           </CardContent>
         </Card>

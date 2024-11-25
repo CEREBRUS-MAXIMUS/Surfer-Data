@@ -16,15 +16,15 @@
     "gpt4",
     "chatbot"
   ],
-  "repository": "https://github.com/Surfer-Org/Desktop-App",
+  "repository": "https://github.com/Surfer-Org/Protocol/desktop/",
   "publish": {
     "provider": "github",
     "releaseType": "release"
   },
   "author": {
-    "name": "Jack Blair, Thomas Stahura, Sahil Lalani",
-    "email": "jackblairing@gmail.com",
-    "url": "https://surfsup.ai"
+    "name": "Sahil Lalani, Jack Blair, Thomas Stahura",
+    "email": "lihas1002@gmail.com",
+    "url": "https://surferprotocol.org"
   },
   "main": "./dist/main/main.js",
   "scripts": {

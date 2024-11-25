@@ -55,15 +55,15 @@ Currently, Surfer Protocol consists of a Python SDK and a Desktop App. The Deskt
 
 ## Getting Started
 
-To download the app, head over to [https://surfsup.ai](https://surfsup.ai). Or you can go to the releases page.
+To download the app, head over to [https://surferprotocol.org/desktop/installation](https://surferprotocol.org/desktop/installation). Or you can go to the releases page.
 
-For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md), [Helper Functions Documentation](docs/HELPER_FUNCTIONS.md), and [Guide to Adding New Platforms](docs/ADD_PLATFORMS.md).
+For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md), [Helper Functions Documentation](HELPER_FUNCTIONS.md), and [Guide to Adding New Platforms](ADD_PLATFORMS.md).
 
-See the [open issues](https://github.com/Surfer-Org/Desktop-App/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/Surfer-Org/Protocol/issues) for a full list of proposed features (and known issues).
 
 ## License
 
-Distributed under the MIT License. See [`LICENSE`](https://github.com/Surfer-Org/Desktop-App/blob/main/LICENSE) for more information.
+Distributed under the MIT License. See [`LICENSE`](https://github.com/Surfer-Org/Protocol/blob/main/LICENSE) for more information.
 
 ## Built With
 
@@ -76,26 +76,26 @@ Distributed under the MIT License. See [`LICENSE`](https://github.com/Surfer-Org
 
 [Surfer Discord Server](https://discord.gg/Tjg7pjcFNP) - [@SahilLalani0](https://x.com/SahilLalani0) - [@JackBlair87](https://x.com/JackBlair87) - [@T0M_3D](https://x.com/T0M_3D)
 
-Project Link: [https://github.com/Surfer-Org/Desktop-App](https://github.com/Surfer-Org/Desktop-App)
+Project Link: [https://github.com/Surfer-Org/Protocol/](https://github.com/Surfer-Org/Protocol/)
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Surfer-Org/Desktop-App&type=Date)](https://star-history.com/#Surfer-Org/Desktop-App&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Surfer-Org/Protocol/desktop/&type=Date)](https://star-history.com/#Surfer-Org/Protocol/desktop/&Date)
 
 ## Acknowledgements
 
 - [Electron React Boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate)
 
-[contributors-shield]: https://img.shields.io/github/contributors/Surfer-Org/Desktop-App.svg?style=for-the-badge
-[contributors-url]: https://github.com/Surfer-Org/Desktop-App/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/Surfer-Org/Desktop-App.svg?style=for-the-badge
-[forks-url]: https://github.com/Surfer-Org/Desktop-App/network/members
-[stars-shield]: https://img.shields.io/github/stars/Surfer-Org/Desktop-App.svg?style=for-the-badge
-[stars-url]: https://github.com/Surfer-Org/Desktop-App/stargazers
-[issues-shield]: https://img.shields.io/github/issues/Surfer-Org/Desktop-App.svg?style=for-the-badge
-[issues-url]: https://github.com/Surfer-Org/Desktop-App/issues
-[license-shield]: https://img.shields.io/github/license/Surfer-Org/Desktop-App.svg?style=for-the-badge
-[license-url]: https://github.com/Surfer-Org/Desktop-App/blob/master/LICENSE
+[contributors-shield]: https://img.shields.io/github/contributors/Surfer-Org/Protocol/.svg?style=for-the-badge
+[contributors-url]: https://github.com/Surfer-Org/Protocol/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/Surfer-Org/Protocol/.svg?style=for-the-badge
+[forks-url]: https://github.com/Surfer-Org/Protocol/network/members
+[stars-shield]: https://img.shields.io/github/stars/Surfer-Org/Protocol/.svg?style=for-the-badge
+[stars-url]: https://github.com/Surfer-Org/Protocol//stargazers
+[issues-shield]: https://img.shields.io/github/issues/Surfer-Org/Protocol/.svg?style=for-the-badge
+[issues-url]: https://github.com/Surfer-Org/Protocol/issues
+[license-shield]: https://img.shields.io/github/license/Surfer-Org/Protocol/.svg?style=for-the-badge
+[license-url]: https://github.com/Surfer-Org/Protocol/blob/main/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/cerebrus-maximus
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB

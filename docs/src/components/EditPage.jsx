@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from './Button'
+import { Pencil } from 'lucide-react'
 
 export function EditPage({ filepath }) {
   // Base GitHub repo URL - replace with your repository details
@@ -15,8 +16,10 @@ export function EditPage({ filepath }) {
       href={editUrl}
       target="_blank"
       rel="noopener noreferrer"
+      className="flex items-center"
     >
-      Edit this page on GitHub
+      <Pencil className="w-4 h-4 mr-2" />
+      <span>Edit this page on GitHub</span>
     </Button>
   )
 }
