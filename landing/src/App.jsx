@@ -50,7 +50,7 @@ export default function App() {
                 )}
               </a>
               <a target="_blank" 
-                href="https://github.com/Surfer-Org/Protocol" 
+                href="https://docs.surferprotocol.org/#get-started" 
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                 <Hammer className="w-5 h-5 mr-2" />
                 Start Building
@@ -100,7 +100,7 @@ export default function App() {
               </a>
               <hr />
               <a
-                href="https://github.com/Surfer-Org/Protocol"
+                href="https://docs.surferprotocol.org/#get-started"
                 target="_blank"
                 className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700"
               >
@@ -128,15 +128,8 @@ export default function App() {
                   </p>
                   <div className="mt-5 sm:mt-8 flex flex-col sm:flex-row justify-center gap-3">
                     <div className="rounded-md shadow">
-                      <a target="_blank" href="https://docs.surferprotocol.org/desktop/installation" 
+                      <a target="_blank" href="https://docs.surferprotocol.org/#get-started" 
                          className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10">
-                        <Download className="w-5 h-5 mr-2" />
-                        Download Desktop App
-                      </a>
-                    </div>
-                    <div>
-                      <a target="_blank" href="https://github.com/Surfer-Org/Protocol" 
-                         className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10">
                         <Hammer className="w-5 h-5 mr-2" />
                         Start Building
                       </a>
@@ -316,11 +309,11 @@ export default function App() {
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
           <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
             <span className="block">Ready to start building?</span>
-            <span className="block text-blue-200">Download Surfer Protocol today.</span>
+            <span className="block text-blue-200">Get started with Surfer Protocol today.</span>
           </h2>
           <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
             <div className="inline-flex rounded-md shadow">
-              <a target="_blank" href="https://github.com/Surfer-Org/Protocol" 
+              <a target="_blank" href="https://docs.surferprotocol.org/#get-started" 
                  className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50">
                 <Hammer className="w-5 h-5 mr-2" />
                 Start Building
