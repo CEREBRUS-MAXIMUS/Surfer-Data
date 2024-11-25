@@ -1,69 +1,53 @@
-import { app, dialog } from 'electron';
+import { app, dialog, ipcMain } from 'electron';
 import fs from 'fs';
 import path from 'path';
-import sqlite3 from 'sqlite3';
 import { promisify } from 'util';
 import { getTotalFolderSize } from '../helpers/platforms';
 import { mainWindow } from '../main';
-import { PythonUtils } from './python';
+import { spawn } from 'child_process';
+import { exec } from 'child_process';
+const execAsync = promisify(exec);
+import { BrowserWindow } from 'electron';
 
-interface Message {
-  id: number;
-  text: string;
-  date: number;
-  contact: string;
-  is_from_me: number;
+    const RESOURCES_PATH = app.isPackaged
+      ? path.join(process.resourcesPath, 'assets')
+      : path.join(__dirname, '../../../assets');
+
+    const getAssetPath = (...paths: string[]): string => {
+      return path.join(RESOURCES_PATH, ...paths);
+    };
+
+// Add this function at the top level, outside getImessageData
+const showPasswordPrompt = (): Promise<string | null> => {
+  return new Promise((resolve) => {
+    const promptWindow = new BrowserWindow({
+      width: 500,
+      height: 300,
+      show: false,
+      alwaysOnTop: true,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+      },
+    });
+
+    promptWindow.loadURL(getAssetPath('password-prompt.html'));
+
+    promptWindow.once('ready-to-show', () => {
+      promptWindow.show();
+    });
+
+    ipcMain.once('submit-password', (event, password) => {
+      promptWindow.close();
+      resolve(password);
+    });
+
+    promptWindow.on('closed', () => {
+      resolve(null);
+    });
+  });
 }
 
-interface ContactRecord {
-  first_name: string | null;
-  last_name: string | null;
-  phone_number: string | null;
-  email: string | null;
-}
-
-const pythonUtils = new PythonUtils();
-
-/**
- * Finds the path to the macOS AddressBook SQLite database.
- *
- * This function searches the "Sources" directory, which contains dynamic subfolders
- * (unique for each contact source), and returns the path to the first valid
- * AddressBook database file it finds. Since the subfolder are dynamic, we cannot hard code the path.
- *
- * TODO: MORE TESTING NEEDED
- */
-const getContactsDbPath = (username: string) => {
-  const sourcesDir = path.join(
-    '/Users',
-    username,
-    'Library',
-    'Application Support',
-    'AddressBook',
-    'Sources',
-  );
-
-  if (!fs.existsSync(sourcesDir)) {
-    throw new Error(`Sources directory not found: ${sourcesDir}`);
-  }
-
-  const sourceFolders = fs.readdirSync(sourcesDir);
-
-  // Iterate through all subfolders
-  for (const folder of sourceFolders) {
-    const dbPath = path.join(sourcesDir, folder, 'AddressBook-v22.abcddb');
-    if (fs.existsSync(dbPath)) {
-      return dbPath; // Return the first valid database file. Maybe edit later to aggregate/join all sources.
-    }
-  }
-
-  throw new Error('No AddressBook database found in Sources.');
-};
-
-/**
- * Gets iMessage data from either Windows or macOS.
- * TODO: Refactor to use the same language for both platforms. Improves maintainability.
- */
 export async function getImessageData(
   event: any,
   company: string,
@@ -107,202 +91,209 @@ export async function getImessageData(
         'Got folder, now exporting iMessages (will take a few minutes)',
       );
 
+      // Rest of your Windows logic here
       try {
-        const scriptOutput = await pythonUtils.iMessageScript(
-          process.platform,
-          selectedFolder,
-          company,
-          name,
-          id,
-        );
+        const { stdout } = await execAsync('python --version');
+        console.log('Found Python:', stdout);
 
-        if (!scriptOutput) {
-          throw new Error('No script output received');
+      } catch (error) {
+        console.log('Python not found, please install...');
+        dialog.showMessageBox({
+          type: 'question',
+          title: 'Python Required for iMessage Export',
+          message:
+            'Python is required for iMessage export. Please go to https://www.python.org/downloads/ and install Python 3.10 or later.',
+        });
+        return null;
+      }
+
+      const requirementsPath = getAssetPath('imessage_windows_reqs.txt');
+      const requirements = fs.readFileSync(requirementsPath, 'utf-8').split('\n');
+      const imessagePath = path.join(
+        app.getPath('userData'),
+        'surfer_data',
+        company,
+        name,
+      );
+
+      let packagesInstalled = false;
+      for (const req of requirements) {
+        if (req.trim() !== '' && !fs.existsSync(imessagePath)) {
+          console.log('Installing', req.trim());
+          try {
+            const { stdout, stderr } = await execAsync(
+              `python -m pip install ${req.trim()}`,
+            );
+            console.log(`Installed ${req.trim()} successfully.`);
+            packagesInstalled = true;
+          } catch (installError) {
+            console.error(`Failed to install ${req.trim()}:`, installError);
+          }
+        }
+      }
+
+      if (packagesInstalled && !fs.existsSync(imessagePath)) {
+        fs.mkdirSync(imessagePath, { recursive: true });
+        console.log(`Created directory: ${imessagePath}`);
+      }
+
+      let isValidPassword = false;
+      let pythonProcess: ChildProcess;
+
+      while (!isValidPassword) {
+        const password = await showPasswordPrompt();
+
+        if (password === null) {
+          throw new Error('Password input cancelled');
         }
 
+        const scriptPath = getAssetPath('imessage_windows.py');
+
+        try {
+          const output = await new Promise<string>((resolve, reject) => {
+            pythonProcess = spawn(
+              'python',
+              [
+                scriptPath,
+                selectedFolder, // Use the selected folder path
+                company,
+                name,
+                password,
+                app.getPath('userData'),
+                id,
+              ],
+              { shell: true },
+            );
+
+            let output = '';
+
+            pythonProcess.stdout.on('data', (data) => {
+              const dataStr = data.toString();
+              output += dataStr;
+              console.log('Python script output:', dataStr);
+              mainWindow?.webContents.send('console-log', id, dataStr);
+            });
+
+            pythonProcess.stderr.on('data', (data) => {
+              const error = data.toString();
+              console.error('Python script error:', error);
+              mainWindow?.webContents.send('console-error', id, error);
+            });
+
+            pythonProcess.on('close', (code) => {
+              console.log('Python script exited with code', code);
+              if (code === 0) {
+                resolve(output.trim());
+              } else {
+                reject(new Error(`Python script exited with code ${code}`));
+              }
+            });
+          });
+
+          if (output.includes('Backup decrypted successfully')) {
+            isValidPassword = true;
+            // Get the output directory path from the last line of Python output
+            const outputDir = output.split('\n').filter(Boolean).pop() || '';
+            
+            mainWindow?.webContents.send(
+              'console-log',
+              id,
+              'iMessage export complete!'
+            );
+            mainWindow?.webContents.send(
+              'export-complete',
+              company,
+              name,
+              id,
+              outputDir,  // Use the output directory instead of selectedFolder
+              getTotalFolderSize(outputDir)  // Use the output directory for size calculation
+            );
+            return outputDir;  // Return the output directory path
+          } else if (output.includes('INVALID_PASSWORD')) {
+            await dialog.showMessageBox({
+              type: 'error',
+              title: 'Invalid Password',
+              message: 'The entered password is incorrect. Please try again.',
+            });
+          } else {
+            throw new Error('Unexpected output from Python script');
+          }
+        } catch (error) {
+          console.error('Error running Python script:', error);
+          await dialog.showMessageBox({
+            type: 'error',
+            title: 'Invalid Password',
+            message: `The entered password is incorrect. Please try again.`,
+          });
+        }
+      }
+    }
+  }
+    //Use native ts for macOS
+    else if (process.platform === 'darwin') {
+      try {
+        const scriptPath = getAssetPath('imessage_mac.py');
+        const output = await new Promise<string>((resolve, reject) => {
+          const pythonProcess = spawn(
+            'python',
+            [
+              scriptPath,
+              company,
+              name,
+              id,
+              app.getPath('userData')
+            ],
+            { shell: true }
+          );
+
+          let output = '';
+
+          pythonProcess.stdout.on('data', (data) => {
+            const dataStr = data.toString();
+            output += dataStr;
+            console.log('Python script output:', dataStr);
+            mainWindow?.webContents.send('console-log', id, dataStr);
+          });
+
+          pythonProcess.stderr.on('data', (data) => {
+            const error = data.toString();
+            console.error('Python script error:', error);
+            mainWindow?.webContents.send('console-error', id, error);
+          });
+
+          pythonProcess.on('close', (code) => {
+            if (code === 0) {
+              resolve(output.trim());
+            } else {
+              reject(new Error(`Python script exited with code ${code}`));
+            }
+          });
+        });
+
+        const outputDir = output.split('\n').filter(Boolean).pop() || '';
+        
         mainWindow?.webContents.send(
           'console-log',
           id,
-          'iMessage export complete!',
+          'iMessage export complete!'
         );
-
-        const folderPath = scriptOutput.split('\n').pop()?.trim();
-        if (!folderPath) {
-          throw new Error('No folder path received');
-        }
-
-        console.log('JSON file path:', folderPath);
         mainWindow?.webContents.send(
           'export-complete',
           company,
           name,
           id,
-          folderPath,
-          getTotalFolderSize(folderPath),
+          outputDir,
+          getTotalFolderSize(outputDir)
         );
-        return folderPath;
+        
+        return outputDir;
       } catch (error) {
-        console.error('Error running iMessage script:', error);
+        console.error('Error accessing Mac iMessage database:', error);
         return null;
       }
-    }
-  }
-  //Use native ts for macOS
-  else if (process.platform === 'darwin') {
-    const macMessageDbPath = path.join(
-      '/Users',
-      username,
-      'Library',
-      'Messages',
-      'chat.db',
-    );
-
-    if (!fs.existsSync(macMessageDbPath)) {
-      console.log('iMessage database not found!');
+    } else {
+      console.log('Unsupported platform:', process.platform);
       return null;
     }
-
-    try {
-      // Create output directory
-      const outputDir = path.join(
-        app.getPath('userData'),
-        'surfer_data',
-        company,
-        name,
-        id,
-      );
-      fs.mkdirSync(outputDir, { recursive: true });
-
-      // Copy database to prevent locked file issues
-      const tempDbPath = path.join(outputDir, 'chat.db');
-      fs.copyFileSync(macMessageDbPath, tempDbPath);
-
-      // Connect to databases
-      const db = new sqlite3.Database(tempDbPath);
-      const query = promisify<string, Message[]>(db.all).bind(db);
-
-      // Fetch messages
-      const messages = await query(`
-        SELECT 
-          message.ROWID as id,
-          message.text,
-          message.date,
-          handle.id as contact_id,
-          message.is_from_me
-        FROM message 
-        LEFT JOIN handle ON message.handle_id = handle.ROWID
-        ORDER BY message.date DESC
-      `);
-
-      // Connect to contacts database
-      const contactsDbPath = getContactsDbPath(username);
-      const contactsDb = new sqlite3.Database(contactsDbPath);
-      const contactQuery = promisify<string, ContactRecord[]>(
-        contactsDb.all,
-      ).bind(contactsDb);
-
-      // Fetch contacts with proper typing
-
-      const contacts = await contactQuery(`
-        SELECT 
-          ZABCDRECORD.ZFIRSTNAME as first_name,
-          ZABCDRECORD.ZLASTNAME as last_name,
-          ZABCDPHONENUMBER.ZFULLNUMBER as phone_number,
-          ZABCDEMAILADDRESS.ZADDRESS as email
-        FROM ZABCDRECORD
-        LEFT JOIN ZABCDPHONENUMBER ON ZABCDRECORD.Z_PK = ZABCDPHONENUMBER.ZOWNER
-        LEFT JOIN ZABCDEMAILADDRESS ON ZABCDRECORD.Z_PK = ZABCDEMAILADDRESS.ZOWNER
-        WHERE ZABCDRECORD.ZFIRSTNAME IS NOT NULL 
-          OR ZABCDRECORD.ZLASTNAME IS NOT NULL
-      `);
-
-      // Create contact mapping using both email and phone
-      const contactDict: { [key: string]: string } = {};
-      contacts.forEach((contact: any) => {
-        const fullName =
-          contact.first_name && contact.last_name
-            ? `${contact.first_name} ${contact.last_name}`
-            : contact.first_name || contact.last_name;
-
-        // Map phone numbers
-        if (contact.phone_number) {
-          // Clean the phone number to match iMessage format
-          const cleanPhone = contact.phone_number.replace(/\D/g, '');
-          // Map various formats to be sure safe
-          contactDict[`+${cleanPhone}`] = fullName;
-          contactDict[cleanPhone] = fullName;
-          contactDict[`+1${cleanPhone}`] = fullName;
-        }
-
-        // Map email addresses as well
-        if (contact.email) {
-          contactDict[contact.email.toLowerCase()] = fullName;
-        }
-      });
-
-      // Process messages with updated contact matching
-      const messageList = messages.map((msg: any) => {
-        let contactName = msg.contact_id; // This is now the handle ID (phone/email)
-
-        // Try to match the contact
-        if (contactName) {
-          // For phone numbers, try different formats
-          if (contactName.match(/^\+?[\d-]+$/)) {
-            const cleanPhone = contactName.replace(/\D/g, '');
-            contactName =
-              contactDict[contactName] ||
-              contactDict[`+${cleanPhone}`] ||
-              contactDict[cleanPhone] ||
-              contactDict[`+1${cleanPhone}`] ||
-              contactName;
-          } else {
-            // For emails, try lowercase matching
-            contactName = contactDict[contactName.toLowerCase()] || contactName;
-          }
-        }
-
-        return {
-          id: msg.id,
-          text: msg.text,
-          timestamp: new Date(msg.date / 1e6 + 978307200000).toISOString(),
-          contact: contactName,
-          is_from_me: msg.is_from_me === 1,
-        };
-      });
-
-      const output = {
-        company,
-        name,
-        runID: id,
-        timestamp: parseInt(id.split('-').pop() || '0'),
-        content: messageList,
-      };
-
-      // Save to file
-      const outputPath = path.join(outputDir, 'imessage-001.json');
-      fs.writeFileSync(outputPath, JSON.stringify(output, null, 2));
-
-      // Clean up
-      db.close();
-      contactsDb.close();
-      fs.unlinkSync(tempDbPath);
-
-      mainWindow?.webContents.send(
-        'export-complete',
-        company,
-        name,
-        id,
-        outputDir,
-        getTotalFolderSize(outputDir),
-      );
-
-      return outputDir;
-    } catch (error) {
-      console.error('Error accessing Mac iMessage database:', error);
-      return null;
-    }
-  } else {
-    console.log('Unsupported platform:', process.platform);
-    return null;
-  }
+  
 }
