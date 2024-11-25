@@ -30,3 +30,13 @@ File: `connections-001.json`
 ```
 
 ## Export Process
+
+Steps:
+- The app goes to the LinkedIn homepage.
+- If the user is logged in, the app intercepts a LinkedIn API request and extracts the `csrf-token` and `cookie` tokens.
+- The app makes a request to the following endpoint: `https://www.linkedin.com/voyager/api/relationships/dash/connections?${params}` to start the export process.
+    - The parameters can be found in the `connections.js` file in the Desktop repository.
+  
+Files for reference:
+- `connections.js`
+- `network.ts`

@@ -25,14 +25,14 @@ import {
   parseChatGPTConversations,
   processNotionExport,
 } from './helpers/platforms';
-import { getImessageData } from './utils/imessage';
-import MenuBuilder from './utils/menu';
+import { getImessageData } from './helpers/imessage';
+import MenuBuilder from './helpers/menu';
 import {
   getLinkedinCredentials,
   getNotionCredentials,
   getTwitterCredentials,
-} from './utils/network';
-import { resolveHtmlPath } from './utils/util';
+} from './helpers/network';
+import { resolveHtmlPath } from './helpers/util';
 dotenv.config();
 const { download } = require('electron-dl');
 

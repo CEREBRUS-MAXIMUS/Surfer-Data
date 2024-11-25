@@ -2,7 +2,7 @@ import { app, dialog, ipcMain } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-import { getTotalFolderSize } from '../helpers/platforms';
+import { getTotalFolderSize } from './platforms';
 import { mainWindow } from '../main';
 import { spawn } from 'child_process';
 import { exec } from 'child_process';

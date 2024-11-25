@@ -35,11 +35,13 @@ File: `bookmarks-001.json`
  
 ## Export Process
 
-Method: Intercepting Network Requests
-
 Steps:
 - The app goes to the Twitter homepage.
-- If the user is logged in, the app intercepts the cookies and auth tokens:
+- If the user is logged in, the app intercepts the bookmarks API request and extracts the `bookmarksApiId`, `auth`, `cookie`, and `csrf` tokens.
+- The app makes a request to the following endpoint: `https://x.com/i/api/graphql/[bookmarksApiId]/Bookmarks?variables={endpoint_variables}`
+    - These endpoint variables can be found in the `bookmarks.js` file in the Desktop repository.
+- The app then uses these to export the user's bookmarks.
 
-- The app then uses these to export the user's bookmarks
-- More details can be found in the `network.ts` file in the <a href="https://github.com/surfer-org/Protocol/blob/main/desktop/src/main/utils/network.ts" target="_blank">repository</a>.
+Files for reference:
+- `bookmarks.js`
+- `network.ts`

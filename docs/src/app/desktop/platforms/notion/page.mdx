@@ -25,3 +25,15 @@ File: `notion-001-[timestamp].json`
   ]
 }
 ```
+
+## Export Process
+
+Steps:
+- The app goes to the Notion homepage.
+- If the user is logged in, the app intercepts a Notion API request and extracts the `x-notion-space-id` and `cookie` tokens.
+- The app makes a request to the following endpoint: `https://www.notion.so/api/v3/enqueueTask` to start the export process.
+- To get the status of the export and the final file, the app makes a request to the following endpoint: `https://www.notion.so/api/v3/getTasks`
+  
+Files for reference:
+- `notion.js`
+- `network.ts`

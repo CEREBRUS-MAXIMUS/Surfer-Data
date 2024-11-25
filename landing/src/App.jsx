@@ -34,6 +34,9 @@ export default function App() {
             
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-6">
+              <a href="https://sahillalani.substack.com" target="_blank" className="text-gray-200 hover:text-gray-300">
+                Blog
+              </a>
               <a href="/business" className="text-gray-200 hover:text-gray-300">
                 For businesses
               </a>

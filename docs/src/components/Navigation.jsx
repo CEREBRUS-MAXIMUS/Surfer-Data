@@ -197,9 +197,8 @@ export const navigation = [
     links: [
       { title: 'Home', href: '/' },
       { title: 'About', href: '/about' },
-      { title: 'Community Projects', href: '/community-projects' },
       { title: 'Contributing', href: '/contributing' },
-      { title: 'Roadmap', href: '/roadmap' },
+      { title: 'Community Projects', href: '/community-projects' },
       { title: 'FAQ', href: '/faq' },
     ],
   },
@@ -225,9 +224,6 @@ export function Navigation(props) {
   return (
     <nav {...props}>
       <ul role="list">
-        <TopLevelNavItem href="/">API</TopLevelNavItem>
-        <TopLevelNavItem href="#">Documentation</TopLevelNavItem>
-        <TopLevelNavItem href="#">Support</TopLevelNavItem>
         {navigation.map((group, groupIndex) => (
           <NavigationGroup
             key={group.title}

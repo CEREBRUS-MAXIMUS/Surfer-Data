@@ -33,3 +33,17 @@ File: `1_parsed_conversations.json`
 }
 ```
 
+## Export Process
+
+Steps:
+- The app goes to https://chatgpt.com/#settings/DataControls.
+- The app then clicks the `Export` button.
+- The app then goes to the user's gmail inbox and waits for the email from ChatGPT.
+- Once the email is received, the app opens the email and downloads the zip file.
+- The app then parses the `conversations.json` file for better readability.
+
+Files for reference:
+- `chatgpt.js`
+- `platforms.ts`
+- `main.ts`
+

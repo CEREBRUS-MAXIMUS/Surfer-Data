@@ -28,3 +28,26 @@ File: `imessage-001.json`
   ]
 }
 ```
+
+## Export Process
+
+#### Mac:
+
+Steps:
+- The app uses the 'chat.db' file on the Mac to extract the messages, as well as the 'AddressBook-v22.abcddb' file to extract the contacts.
+- The app runs SQL queries on these files to extract the messages and contacts and merge them into a single JSON file.
+
+Files for reference:
+- `imessage.ts`
+- `imessage_mac.py`
+
+#### Windows:
+
+Steps:
+- The app takes in the path of the iPhone backup file and requires a password to decrypt it.
+- The app uses the `iphone_backup_decrypt` library to decrypt the backup file.
+- The app runs SQL queries on the decrypted backup file to extract the messages and contacts and merge them into a single JSON file.
+
+Files for reference:
+- `imessage.ts`
+- `imessage_windows.py`

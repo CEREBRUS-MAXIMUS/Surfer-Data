@@ -1,7 +1,6 @@
 const {
   customConsoleLog,
   wait,
-  waitForElement,
   features,
 } = require('../../preloadFunctions');
 const { ipcRenderer } = require('electron');

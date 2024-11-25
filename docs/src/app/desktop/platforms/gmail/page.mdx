@@ -31,3 +31,16 @@ File: `gmail-001.json`
 }
 ```
 
+## Export Process
+
+Steps:
+- For the first export, the app goes to Google Takeout and exports the Gmail data.
+- The app then goes to the email and waits for the email from takeout.
+- Once the email is received, the app opens the email and downlaods the zip file.
+- The app then parses the zip file and converts the MBOX format to JSON using the `mbox-parser` library.
+- For future exports, the app goes to the inbox and clicks and scrapes each email that isn't already in the database.
+
+Files for reference:
+- `gmail.js`
+- `platforms.ts`
+- `main.ts`
