@@ -27,6 +27,10 @@ data = client.get("bookmarks-001")
 export_result = client.export("bookmarks-001")
 ```
 
+## Examples
+
+For examples of how to use the Surfer Protocol Python SDK to build applications, please see the [Cookbook](../../cookbook/python/README.md).
+
 ## Basic Usage
 
 The SDK provides two main methods:
@@ -41,10 +45,6 @@ The SDK provides two main methods:
 - LinkedIn Connections (`connections-001`)
 - Notion (`notion-001`)
 - ChatGPT (`chatgpt-001`)
-
-## Prerequisites
-
-The Surfer desktop application must be running in the background for the SDK to work. [Download here](https://github.com/Surfer-Org/Protocol/releases).
 
 ## Documentation
 

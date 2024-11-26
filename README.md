@@ -23,6 +23,7 @@ Currently, Surfer Protocol consists of a Python SDK and a Desktop App. The Deskt
 
 - Desktop App for exporting data from your favorite apps and services
 - Python SDK for building applications off of your personal data
+- Cookbook for examples of how to use the Surfer Protocol Python SDK to build applications
 
 ## How it works
 
@@ -57,7 +58,7 @@ Currently, Surfer Protocol consists of a Python SDK and a Desktop App. The Deskt
 
 To download the app, head over to [https://surferprotocol.org/desktop/installation](https://surferprotocol.org/desktop/installation). Or you can go to the releases page.
 
-For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md), [Helper Functions Documentation](HELPER_FUNCTIONS.md), and [Guide to Adding New Platforms](ADD_PLATFORMS.md).
+For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md) and [Setup Guide](SETUP_GUIDE.md).
 
 See the [open issues](https://github.com/Surfer-Org/Protocol/issues) for a full list of proposed features (and known issues).
 

@@ -1,30 +1,17 @@
 # Contributing Guidelines
 
-Thank you for your interest in contributing to the Surfer project! We welcome contributions from the community to help improve and expand this digital footprint exporter.
+Thank you for your interest in contributing to the Surfer Protocol! We welcome contributions from the community to help improve and expand this project.
 
-## Setup Guide
+## Types of Contributions
 
-Before you can start contributing, please follow these steps to set up the development environment:
+- Adding new platforms in the desktop app and documentation (see [Guide to Adding New Platforms](ADD_PLATFORMS.md))
+- Building applications off of Surfer Protocol (see [Python SDK](sdk/python/README.md) and [Cookbook](cookbook/README.md))
+- Helping with the documentation website (see [Docs](docs/README.md))
+- General Bug Fixes
 
-1. Fork the repository:
+## Setup
 
-2. Clone the forked repository:
-   ```
-   git clone https://github.com/YOUR_GITHUB_USERNAME/Protocol.git
-   ```
-
-2. Install the required dependencies:
-   ```
-   cd Surfer-Protocol/desktop
-   npm install
-   ```
-
-3. Start the development server:
-   ```
-   npm start
-   ```
-
-This will run the application in development mode, allowing you to test your changes and see the results in real-time.
+Please see our [Setup Guide](SETUP_GUIDE.md) for more information on how to set up the development environment.
 
 ## Contribution Guidelines
 
@@ -40,14 +27,6 @@ This will run the application in development mode, allowing you to test your cha
    - Submit a pull request to the main repository, providing a clear description of your changes and the problem they solve
 
 We appreciate all contributions, whether they are bug reports, feature suggestions, or code changes. By working together, we can make Surfer a better and more useful tool for everyone.
-
-## Platform-specific Modules
-
-The Surfer project is designed to be modular, with each platform-specific scraping functionality encapsulated in its own module. For details on adding support for a new platform, please refer to our [Guide to Adding New Platforms](ADD_PLATFORMS.md).
-
-## Helper Functions
-
-Surfer uses various helper functions to streamline the scraping process. These functions assist with tasks such as waiting for elements, cleaning HTML, and managing asynchronous operations. For a complete list and detailed explanations of these helper functions, see our [Helper Functions Documentation](./docs/HELPER_FUNCTIONS.md).
 
 ## Contact
 
