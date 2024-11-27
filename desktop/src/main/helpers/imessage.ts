@@ -1,21 +1,19 @@
-import { app, dialog, ipcMain } from 'electron';
+import { exec, spawn } from 'child_process';
+import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-import { getTotalFolderSize } from './platforms';
 import { mainWindow } from '../main';
-import { spawn } from 'child_process';
-import { exec } from 'child_process';
+import { getTotalFolderSize } from './platforms';
 const execAsync = promisify(exec);
-import { BrowserWindow } from 'electron';
 
-    const RESOURCES_PATH = app.isPackaged
-      ? path.join(process.resourcesPath, 'assets')
-      : path.join(__dirname, '../../../assets');
+const RESOURCES_PATH = app.isPackaged
+  ? path.join(process.resourcesPath, 'assets')
+  : path.join(__dirname, '../../../assets');
 
-    const getAssetPath = (...paths: string[]): string => {
-      return path.join(RESOURCES_PATH, ...paths);
-    };
+const getAssetPath = (...paths: string[]): string => {
+  return path.join(RESOURCES_PATH, ...paths);
+};
 
 // Add this function at the top level, outside getImessageData
 const showPasswordPrompt = (): Promise<string | null> => {
@@ -46,7 +44,30 @@ const showPasswordPrompt = (): Promise<string | null> => {
       resolve(null);
     });
   });
-}
+};
+
+const showDiskAccessInstructions = async () => {
+  const isDev = false;
+  const result = await dialog.showMessageBox({
+    type: 'info',
+    title: `Disk Access Required${isDev ? ' (Development)' : ''}`,
+    message: `Disk Access Required${isDev ? ' (Development)' : ''}`,
+    detail:
+      'To access iMessages, please grant Full Disk Access permission:\n\n' +
+      '1. Open the Privacy tab in System Preferences\n' +
+      '2. Select Full Disk Access from the left sidebar\n' +
+      `3. Check the box next to ${isDev ? 'the application you are running the app locally on' : 'the Surfer Desktop app'}\n\n` +
+      'After granting access, try again.',
+    buttons: ['Open System Preferences', 'Cancel'],
+    defaultId: 0,
+  });
+
+  if (result.response === 0) {
+    exec(
+      'open x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles',
+    );
+  }
+};
 
 export async function getImessageData(
   event: any,
@@ -95,7 +116,6 @@ export async function getImessageData(
       try {
         const { stdout } = await execAsync('python --version');
         console.log('Found Python:', stdout);
-
       } catch (error) {
         console.log('Python not found, please install...');
         dialog.showMessageBox({
@@ -108,7 +128,9 @@ export async function getImessageData(
       }
 
       const requirementsPath = getAssetPath('imessage_windows_reqs.txt');
-      const requirements = fs.readFileSync(requirementsPath, 'utf-8').split('\n');
+      const requirements = fs
+        .readFileSync(requirementsPath, 'utf-8')
+        .split('\n');
       const imessagePath = path.join(
         app.getPath('userData'),
         'surfer_data',
@@ -194,21 +216,21 @@ export async function getImessageData(
             isValidPassword = true;
             // Get the output directory path from the last line of Python output
             const outputDir = output.split('\n').filter(Boolean).pop() || '';
-            
+
             mainWindow?.webContents.send(
               'console-log',
               id,
-              'iMessage export complete!'
+              'iMessage export complete!',
             );
             mainWindow?.webContents.send(
               'export-complete',
               company,
               name,
               id,
-              outputDir,  // Use the output directory instead of selectedFolder
-              getTotalFolderSize(outputDir)  // Use the output directory for size calculation
+              outputDir, // Use the output directory instead of selectedFolder
+              getTotalFolderSize(outputDir), // Use the output directory for size calculation
             );
-            return outputDir;  // Return the output directory path
+            return outputDir; // Return the output directory path
           } else if (output.includes('INVALID_PASSWORD')) {
             await dialog.showMessageBox({
               type: 'error',
@@ -229,71 +251,66 @@ export async function getImessageData(
       }
     }
   }
-    //Use native ts for macOS
-    else if (process.platform === 'darwin') {
-      try {
-        const scriptPath = getAssetPath('imessage_mac.py');
-        const output = await new Promise<string>((resolve, reject) => {
-          const pythonProcess = spawn(
-            'python',
-            [
-              scriptPath,
-              company,
-              name,
-              id,
-              app.getPath('userData')
-            ],
-            { shell: true }
-          );
+  //Use native ts for macOS
+  else if (process.platform === 'darwin') {
+    try {
+      const scriptPath = getAssetPath('imessage_mac.py');
+      const output = await new Promise<string>((resolve, reject) => {
+        const pythonProcess = spawn(
+          'python',
+          [scriptPath, company, name, id, app.getPath('userData')],
+          { shell: true },
+        );
 
-          let output = '';
+        let output = '';
 
-          pythonProcess.stdout.on('data', (data) => {
-            const dataStr = data.toString();
-            output += dataStr;
-            console.log('Python script output:', dataStr);
-            mainWindow?.webContents.send('console-log', id, dataStr);
-          });
-
-          pythonProcess.stderr.on('data', (data) => {
-            const error = data.toString();
-            console.error('Python script error:', error);
-            mainWindow?.webContents.send('console-error', id, error);
-          });
-
-          pythonProcess.on('close', (code) => {
-            if (code === 0) {
-              resolve(output.trim());
-            } else {
-              reject(new Error(`Python script exited with code ${code}`));
-            }
-          });
+        pythonProcess.stdout.on('data', (data) => {
+          const dataStr = data.toString();
+          output += dataStr;
+          console.log('Python script output:', dataStr);
+          mainWindow?.webContents.send('console-log', id, dataStr);
         });
 
-        const outputDir = output.split('\n').filter(Boolean).pop() || '';
-        
-        mainWindow?.webContents.send(
-          'console-log',
-          id,
-          'iMessage export complete!'
-        );
-        mainWindow?.webContents.send(
-          'export-complete',
-          company,
-          name,
-          id,
-          outputDir,
-          getTotalFolderSize(outputDir)
-        );
-        
-        return outputDir;
-      } catch (error) {
-        console.error('Error accessing Mac iMessage database:', error);
-        return null;
-      }
-    } else {
-      console.log('Unsupported platform:', process.platform);
+        pythonProcess.stderr.on('data', (data) => {
+          const error = data.toString();
+          console.error('Python script error:', error);
+          mainWindow?.webContents.send('console-error', id, error);
+        });
+
+        pythonProcess.on('close', (code) => {
+          if (code === 0) {
+            resolve(output.trim());
+          } else {
+            if (code == 13) {
+              showDiskAccessInstructions();
+            }
+            reject(new Error(`Python script exited with code ${code}`));
+          }
+        });
+      });
+
+      const outputDir = output.split('\n').filter(Boolean).pop() || '';
+
+      mainWindow?.webContents.send(
+        'console-log',
+        id,
+        'iMessage export complete!',
+      );
+      mainWindow?.webContents.send(
+        'export-complete',
+        company,
+        name,
+        id,
+        outputDir,
+        getTotalFolderSize(outputDir),
+      );
+
+      return outputDir;
+    } catch (error) {
       return null;
     }
-  
+  } else {
+    console.log('Unsupported platform:', process.platform);
+    return null;
+  }
 }
