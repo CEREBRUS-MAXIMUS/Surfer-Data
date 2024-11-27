@@ -307,6 +307,7 @@ export async function getImessageData(
 
       return outputDir;
     } catch (error) {
+      console.error('Error accessing Mac iMessage database:', error);
       return null;
     }
   } else {
