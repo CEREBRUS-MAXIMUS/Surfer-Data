@@ -5,15 +5,6 @@ import os
 from datetime import datetime
 import re
 
-if len(sys.argv) < 5:
-    print("Error: Not enough arguments provided")
-    print("Usage: python imessage_mac.py <company> <name> <id> <app_data_path>")
-    sys.exit(1)
-
-company = sys.argv[1]
-platform_name = sys.argv[2]
-run_id = sys.argv[3]
-app_data_path = sys.argv[4]
 
 def get_contacts_db_path(username):
     """Find the path to the macOS AddressBook SQLite database."""
@@ -38,25 +29,48 @@ def apple_time_to_iso(timestamp):
     """Convert Apple's timestamp to ISO 8601 format."""
     if timestamp is None:
         return None
-    # Convert from Apple's reference date (2001-01-01) to Unix epoch
-    unix_timestamp = timestamp / 1e6 + 978307200
-    dt = datetime.fromtimestamp(unix_timestamp)
-    return dt.isoformat()
+    try:
+        unix_timestamp = timestamp / 1e9 + 978307200
+        dt = datetime.fromtimestamp(unix_timestamp)
+        return dt.isoformat()
+    except (ValueError, OverflowError) as e:
+        print(f"Warning: Invalid timestamp {timestamp}: {str(e)}")
+        return None
 
 def clean_phone_number(phone):
     """Remove non-digit characters from phone number."""
     return re.sub(r'\D', '', phone) if phone else ''
 
+def check_database_access(db_path):
+    """Check if we have access to the Messages database."""
+    try:
+        with open(db_path, 'rb') as f:
+            # Try to read first byte to verify access
+            f.read(1)
+        return True
+    except PermissionError:
+        print("PERMISSION_ERROR: Full Disk Access required")
+        sys.exit(13)
+    except Exception as e:
+        print(f"ERROR: {str(e)}")
+        sys.exit(1)
+
 def main():
     try:
+        
+        if len(sys.argv) < 5:
+            print("Error: Not enough arguments provided")
+            print("Usage: python imessage_mac.py <company> <name> <id> <app_data_path>")
+            sys.exit(1)
+
+        company = sys.argv[1]
+        platform_name = sys.argv[2]
+        run_id = sys.argv[3]
+        app_data_path = sys.argv[4]
+
         username = os.environ.get('USER')
         if not username:
             print("Error: Could not determine username")
-            sys.exit(1)
-
-        # Check platform
-        if sys.platform != 'darwin':
-            print("Error: This script is only for macOS")
             sys.exit(1)
 
         # Setup paths
@@ -65,7 +79,15 @@ def main():
             print("Error: iMessage database not found!")
             sys.exit(1)
 
-        # Create output directory
+        # Check database access before attempting to copy
+        check_database_access(messages_db_path)
+
+        # Fix the path to ensure use "Application Support" instead of just "Application" - A wierd electron quirk, ask Chat to learn more
+        if app_data_path.endswith('/Library/Application'):
+            app_data_path = app_data_path.replace('/Library/Application', '/Library/Application Support')
+        elif '/Library/Application/' in app_data_path:
+            app_data_path = app_data_path.replace('/Library/Application/', '/Library/Application Support/')
+            
         output_dir = os.path.join(app_data_path, 'surfer_data', company, platform_name, run_id)
         os.makedirs(output_dir, exist_ok=True)
 
