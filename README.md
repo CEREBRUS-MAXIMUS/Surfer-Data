@@ -27,7 +27,7 @@ Currently, Surfer Protocol consists of a Python SDK and a Desktop App. The Deskt
 
 ## How it works
 
-![Surfer Diagram](assets/SurferDiagram.png)
+![Surfer Diagram](desktop/assets/SurferDiagram.png)
 
 1. Click on "Export" to initiate the data extraction process.
 2. The app waits for the target page to load completely.
@@ -87,15 +87,15 @@ Project Link: [https://github.com/Surfer-Org/Protocol/](https://github.com/Surfe
 
 - [Electron React Boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate)
 
-[contributors-shield]: https://img.shields.io/github/contributors/Surfer-Org/Protocol/.svg?style=for-the-badge
+[contributors-shield]: https://img.shields.io/github/contributors/Surfer-Org/Protocol.svg?style=for-the-badge
 [contributors-url]: https://github.com/Surfer-Org/Protocol/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/Surfer-Org/Protocol/.svg?style=for-the-badge
+[forks-shield]: https://img.shields.io/github/forks/Surfer-Org/Protocol.svg?style=for-the-badge
 [forks-url]: https://github.com/Surfer-Org/Protocol/network/members
-[stars-shield]: https://img.shields.io/github/stars/Surfer-Org/Protocol/.svg?style=for-the-badge
+[stars-shield]: https://img.shields.io/github/stars/Surfer-Org/Protocol.svg?style=for-the-badge
 [stars-url]: https://github.com/Surfer-Org/Protocol/stargazers
-[issues-shield]: https://img.shields.io/github/issues/Surfer-Org/Protocol/.svg?style=for-the-badge
+[issues-shield]: https://img.shields.io/github/issues/Surfer-Org/Protocol.svg?style=for-the-badge
 [issues-url]: https://github.com/Surfer-Org/Protocol/issues
-[license-shield]: https://img.shields.io/github/license/Surfer-Org/Protocol/.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/Surfer-Org/Protocol.svg?style=for-the-badge
 [license-url]: https://github.com/Surfer-Org/Protocol/blob/main/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/sahil-lalani
