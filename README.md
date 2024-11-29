@@ -81,7 +81,7 @@ Project Link: [https://github.com/Surfer-Org/Protocol/](https://github.com/Surfe
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Surfer-Org/Protocol/desktop/&type=Date)](https://star-history.com/#Surfer-Org/Protocol/desktop/&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Surfer-Org/Protocol&type=Date)](https://star-history.com/#Surfer-Org/Protocol&Date)
 
 ## Acknowledgements
 
@@ -92,13 +92,13 @@ Project Link: [https://github.com/Surfer-Org/Protocol/](https://github.com/Surfe
 [forks-shield]: https://img.shields.io/github/forks/Surfer-Org/Protocol/.svg?style=for-the-badge
 [forks-url]: https://github.com/Surfer-Org/Protocol/network/members
 [stars-shield]: https://img.shields.io/github/stars/Surfer-Org/Protocol/.svg?style=for-the-badge
-[stars-url]: https://github.com/Surfer-Org/Protocol//stargazers
+[stars-url]: https://github.com/Surfer-Org/Protocol/stargazers
 [issues-shield]: https://img.shields.io/github/issues/Surfer-Org/Protocol/.svg?style=for-the-badge
 [issues-url]: https://github.com/Surfer-Org/Protocol/issues
 [license-shield]: https://img.shields.io/github/license/Surfer-Org/Protocol/.svg?style=for-the-badge
 [license-url]: https://github.com/Surfer-Org/Protocol/blob/main/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/cerebrus-maximus
+[linkedin-url]: https://linkedin.com/in/sahil-lalani
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
 [React-url]: https://reactjs.org/
 [Tailwind.css]: https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white
