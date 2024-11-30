@@ -28,11 +28,15 @@ export async function getTwitterCredentials(company: string, name: string) {
             /https:\/\/x\.com\/i\/api\/graphql\/([^/]+)\/Bookmarks\?/;
           const match = details.url.match(bookmarksUrlPattern);
 
+          const url = new URL(details.url);
+          const features = JSON.parse(decodeURIComponent(url.searchParams.get('features') || '{}'));
+
           let result = {
             bookmarksApiId: null as string | null,
             auth: null as string | null,
             cookie: null as string | null,
             csrf: null as string | null,
+            features: features,
           };
 
           if (match) {

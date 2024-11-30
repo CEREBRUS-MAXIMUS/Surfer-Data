@@ -165,7 +165,7 @@ async function fetchBookmarkBatch(id, twitterCredentials, cursor = "") {
   const API_URL = `https://x.com/i/api/graphql/${
     twitterCredentials.bookmarksApiId
   }/Bookmarks?features=${encodeURIComponent(
-    JSON.stringify(features)
+    JSON.stringify(twitterCredentials.features)
   )}&variables=${encodeURIComponent(JSON.stringify(variables))}`;
 
   return fetch(API_URL, {
