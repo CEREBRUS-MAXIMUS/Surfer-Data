@@ -20,12 +20,9 @@ const PlatformDashboard = ({ onPlatformClick, webviewRef }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-  const [dbUpdateTrigger, setDbUpdateTrigger] = useState(0);
-  const dbRef = useRef(null);
   const [selectedRun, setSelectedRun] = useState(null);
   const [completedRuns, setCompletedRuns] = useState({});
   const prevRunsRef = useRef({});
-  const [hoveredPlatformId, setHoveredPlatformId] = useState(null);
   const [platformLogos, setPlatformLogos] = useState({});
   const [connectedPlatforms, setConnectedPlatforms] = useState({});
   const [filteredPlatforms, setFilteredPlatforms] = useState([]);
@@ -139,9 +136,16 @@ useEffect(() => {
   useEffect(() => {
     const handleAPIExport = (id) => {
       const platform = allPlatforms.find(p => p.id === id);
-      console.log('PLATFORM: ', platform);
-      if (platform) {
+      if (connectedPlatforms[platform.id]) { // if platform is connected then export
         handleExportClick(platform);
+      }
+
+      else {
+        toast({
+          title: `${platform.name} Not Connected!`,
+          description: "Please connect the platform before exporting.",
+          duration: 3000,
+        });
       }
     };
 
@@ -393,8 +397,6 @@ const renderRunStatus = (platform) => {
                   {paginatedPlatforms.map((platform) => (
                     <TableRow
                       key={platform.id}
-                      onMouseEnter={() => setHoveredPlatformId(platform.id)}
-                      onMouseLeave={() => setHoveredPlatformId(null)}
                     >
                       <TableCell className="font-medium">
                         <div className="flex items-center space-x-2">

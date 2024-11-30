@@ -14,7 +14,7 @@ A Streamlit-based chatbot that allows you to interact with your Surfer data usin
 
 1. **Surfer Desktop App**
    - Download and install the Surfer Desktop app
-   - Export your data to use with this chatbot
+   - Connect your platforms and export your data to use with this chatbot
 
 2. **Weaviate Cloud Account**
    - Set up a Weaviate Cloud instance

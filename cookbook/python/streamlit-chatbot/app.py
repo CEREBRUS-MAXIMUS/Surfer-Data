@@ -109,7 +109,7 @@ with tab_data:
 
     if add_data_button:
         # replace with the platform ID you want to add data for
-        all_data = surfer.get('platform-001')
+        all_data = surfer.get('notion-001')
         with data_collection.batch.dynamic() as batch:
             for data in all_data['data']['content']:
                     try:

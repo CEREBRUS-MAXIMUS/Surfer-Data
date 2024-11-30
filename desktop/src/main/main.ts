@@ -103,6 +103,15 @@ const setupExpressServer = async () => {
       (r: any) => r.platformId === platformId && r.status === 'success',
     );
 
+    console.log('successful runs: ', successfulRuns);
+
+    if (successfulRuns.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No successful runs found for this platform, please export data first',
+      });
+    }
+
     // Sort by startDate descending and get latest
     const latestRun = successfulRuns.sort(
       (a: any, b: any) =>
@@ -110,12 +119,7 @@ const setupExpressServer = async () => {
         new Date(a.endDate || b.startDate).getTime(),
     )[0];
 
-    if (!latestRun) {
-      return res.status(404).json({
-        success: false,
-        error: 'No successful runs found for this platform',
-      });
-    }
+
 
     console.log('latest run: ', latestRun.id);
     const exportPath = fs.readdirSync(latestRun.exportPath);
@@ -504,13 +508,6 @@ export const createWindow = async (visible: boolean = true) => {
 
       return { action: 'deny' };
     });
-  });
-
-  app.on('open-url', (event, url) => {
-    event.preventDefault();
-    if (mainWindow) {
-      mainWindow.webContents.send('open-url', url);
-    }
   });
 
   ipcMain.on('show-dev-tools', (event) => {
@@ -1085,7 +1082,7 @@ app
         path: app.getPath('exe'),
       });
     }
-
+    await setupExpressServer();
     createWindow();
 
     autoUpdater.checkForUpdates();
@@ -1146,15 +1143,6 @@ app
     }
   })
   .catch(console.log);
-
-app.on('will-finish-launching', () => {
-  app.on('open-url', (event, url) => {
-    event.preventDefault();
-    if (mainWindow) {
-      mainWindow.webContents.send('open-url', url);
-    }
-  });
-});
 
 ipcMain.on('open-folder', (event, folderPath) => {
   if (folderPath) {
@@ -1221,10 +1209,4 @@ ipcMain.on('open-platform-export-folder', (event, company, name) => {
   );
   console.log('exportFolderPath', exportFolderPath);
   shell.openPath(exportFolderPath);
-});
-
-// Update the app.whenReady() to be async
-app.whenReady().then(async () => {
-  await setupExpressServer();
-  // ... rest of your whenReady code ...
 });

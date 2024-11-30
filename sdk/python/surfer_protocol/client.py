@@ -17,24 +17,47 @@ class SurferClient:
 
     def get(self, platform_id: str) -> dict:
         """Get the most recent run for a specific platform.
+
+        Raises:
+            ConnectionError: If connection to desktop app fails
+            ValueError: If no successful runs are found for the platform
         """
         try:
             response = self.session.post(f"{self.base_url}/get", json={"platformId": platform_id})
+            
+            # Handle 404 status codes specifically
+            if response.status_code == 404:
+                error_data = response.json()
+                raise ValueError(error_data['error'])
+            
+            # Handle other HTTP errors
             response.raise_for_status()
-            return response.json()
+            
+            data = response.json()
+            if not data.get('success'):
+                raise ValueError(data.get('error', 'Unknown error occurred'))
+                
+            return data
+            
         except requests.exceptions.RequestException as e:
             raise ConnectionError(f"Failed to get most recent run: {str(e)}") from e
 
     def export(self, platform_id: str) -> dict:
         """Trigger an export for a specific platform.
         
-        Returns:
-            dict: Response containing 'success' and 'exportComplete' data
+        Raises:
+            ConnectionError: If connection to desktop app fails
+            ValueError: If platform is not connected or export fails
         """
         try:
             response = self.session.post(f"{self.base_url}/export", json={"platformId": platform_id})
             response.raise_for_status()
-            return response.json()  # Return the full response data
+            data = response.json()
+            
+            if not data.get('success'):
+                raise ValueError(data.get('error', 'Export failed'))
+                
+            return data
         except requests.exceptions.RequestException as e:
             raise ConnectionError(f"Failed to trigger export: {str(e)}") from e
 
