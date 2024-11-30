@@ -88,7 +88,7 @@ def main():
         elif '/Library/Application/' in app_data_path:
             app_data_path = app_data_path.replace('/Library/Application/', '/Library/Application Support/')
             
-        output_dir = os.path.join(app_data_path, 'surfer_data', company, platform_name, run_id)
+        output_dir = os.path.join(app_data_path, 'exported_data', company, platform_name, run_id)
         os.makedirs(output_dir, exist_ok=True)
 
         # Copy and connect to Messages database

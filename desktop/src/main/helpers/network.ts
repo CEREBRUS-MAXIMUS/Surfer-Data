@@ -11,7 +11,7 @@ export async function getTwitterCredentials(company: string, name: string) {
   const userData = app.getPath('userData');
   const twitterCredentialsPath = path.join(
     userData,
-    'surfer_data',
+    'exported_data',
     company,
     name,
     'twitterCredentials.json',
@@ -79,7 +79,7 @@ export async function getNotionCredentials(company: string, name: string) {
   const userData = app.getPath('userData');
   const notionCredentialsPath = path.join(
     userData,
-    'surfer_data',
+    'exported_data',
     company,
     name,
     'notionCredentials.json',
@@ -120,7 +120,7 @@ export async function getLinkedinCredentials(company: string, name: string) {
   const userData = app.getPath('userData');
   const linkedinCredentialsPath = path.join(
     userData,
-    'surfer_data',
+    'exported_data',
     company,
     name,
     'linkedinCredentials.json',

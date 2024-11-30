@@ -11,7 +11,7 @@ async function checkIfBookmarkExists(id, platformId, company, name, currentBookm
   const userData = await ipcRenderer.invoke('get-user-data-path');
   const filePath = path.join(
     userData,
-    'surfer_data',
+    'exported_data',
     company,
     name,
     platformId,
@@ -52,7 +52,7 @@ async function checkTwitterCredentials(company, name) {
   const userData = await ipcRenderer.invoke('get-user-data-path');
   const twitterCredentialsPath = path.join(
     userData,
-    'surfer_data',
+    'exported_data',
     company,
     name,
     'twitterCredentials.json',

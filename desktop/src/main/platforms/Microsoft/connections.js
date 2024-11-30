@@ -7,7 +7,7 @@ async function checkLinkedinCredentials(company, name) {
   const userData = await ipcRenderer.invoke('get-user-data-path');
   const linkedinCredentialsPath = path.join(
     userData,
-    'surfer_data',
+    'exported_data',
     company,
     name,
     'linkedinCredentials.json',
@@ -25,7 +25,7 @@ async function checkIfConnectionExists(id, platformId, company, name, connection
   const userData = await ipcRenderer.invoke('get-user-data-path');
   const filePath = path.join(
     userData,
-    'surfer_data',
+    'exported_data',
     company,
     name,
     platformId,

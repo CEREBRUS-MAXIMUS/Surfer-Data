@@ -37,7 +37,7 @@ try:
     backup = EncryptedBackup(backup_directory=folder_path, passphrase=password)
     print('Backup decrypted successfully')
     # Define the output directory using the provided app data path
-    output_dir = os.path.join(app_data_path, 'surfer_data', company, platform_name, id)
+    output_dir = os.path.join(app_data_path, 'exported_data', company, platform_name, id)
  
     # Ensure the directory exists
     os.makedirs(output_dir, exist_ok=True)

@@ -7,7 +7,7 @@ async function checkNotionCredentials(company, name) {
   const userData = await ipcRenderer.invoke('get-user-data-path');
   const notionCredentialsPath = path.join(
     userData,
-    'surfer_data',
+    'exported_data',
     company,
     name,
     'notionCredentials.json',

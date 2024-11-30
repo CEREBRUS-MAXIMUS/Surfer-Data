@@ -10,7 +10,7 @@ export function checkConnectedPlatforms(platforms: any[]) {
 
   for (const platform of platforms) {
     const { company, name } = platform;
-    const platformPath = path.join(userDataPath, 'surfer_data', company, name);
+    const platformPath = path.join(userDataPath, 'exported_data', company, name);
     connectedPlatforms[platform.id] = fs.existsSync(platformPath);
   }
 

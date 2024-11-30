@@ -252,7 +252,7 @@ ipcMain.on('connect-platform', (event, platform: any) => {
           console.log('ELEMENT FOUND, closing popup');
           const platformPath = path.join(
             app.getPath('userData'),
-            'surfer_data',
+            'exported_data',
             company,
             name,
           );
@@ -555,7 +555,7 @@ export const createWindow = async (visible: boolean = true) => {
       console.log('Intercepted download:', { url, fileName, fileSize });
 
       const userData = app.getPath('userData');
-      const surferDataPath = path.join(userData, 'surfer_data');
+      const surferDataPath = path.join(userData, 'exported_data');
       let companyPath: string;
       let platformPath: string;
       let idPath: string;
@@ -832,7 +832,7 @@ ipcMain.on(
       ? customFilePath
       : path.join(
           userData,
-          'surfer_data',
+          'exported_data',
           company,
           name,
           platformId,
@@ -894,7 +894,7 @@ ipcMain.on(
       ? customFilePath
       : path.join(
           app.getPath('userData'),
-          'surfer_data',
+          'exported_data',
           company,
           name,
           platformId,
@@ -905,7 +905,7 @@ ipcMain.on(
     if (filePath.includes('extracted')) {
       folderPath = path.join(
         app.getPath('userData'),
-        'surfer_data',
+        'exported_data',
         company,
         name,
         platformId,
@@ -914,7 +914,7 @@ ipcMain.on(
     } else {
       folderPath = path.join(
         app.getPath('userData'),
-        'surfer_data',
+        'exported_data',
         company,
         name,
         platformId,
@@ -941,7 +941,7 @@ ipcMain.on(
     // Create export path
     const exportPath = path.join(
       app.getPath('userData'),
-      'surfer_data',
+      'exported_data',
       company,
       name,
       runID,
@@ -1203,7 +1203,7 @@ ipcMain.on('open-platform-export-folder', (event, company, name) => {
   console.log('open-platform-export-folder', company, name);
   const exportFolderPath = path.join(
     app.getPath('userData'),
-    'surfer_data',
+    'exported_data',
     company,
     name,
   );

@@ -11,7 +11,7 @@ async function checkIfEmailExists(id, platformId, company, name, emailContent) {
   const userDataPath = await ipcRenderer.invoke('get-user-data-path');
   const gmailPath = path.join(
     userDataPath,
-    'surfer_data',
+    'exported_data',
     company,
     name,
     platformId,
@@ -44,7 +44,7 @@ async function exportGmail(id, platformId, filename, company, name) {
   const userDataPath = await ipcRenderer.invoke('get-user-data-path');
   const gmailPath = path.join(
     userDataPath,
-    'surfer_data',
+    'exported_data',
     company,
     name,
     platformId,

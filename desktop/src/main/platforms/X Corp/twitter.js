@@ -11,7 +11,7 @@ async function checkIfTweetExists(id, platformId, company, name, currentTweet) {
   const userData = await ipcRenderer.invoke('get-user-data-path');
   const filePath = path.join(
     userData,
-    'surfer_data',
+    'exported_data',
     company,
     name,
     platformId,

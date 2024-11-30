@@ -133,7 +133,7 @@ export async function getImessageData(
         .split('\n');
       const imessagePath = path.join(
         app.getPath('userData'),
-        'surfer_data',
+        'exported_data',
         company,
         name,
       );
