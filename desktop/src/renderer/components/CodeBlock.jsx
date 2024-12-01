@@ -23,7 +23,7 @@ const CodeBlock = ({ run, code, filename }) => {
     formattedCode = code.replace('platform-001', run.platformId);
   }
   else if (detectedLanguage === 'markdown') {
-    formattedCode = code.replace('[insert-filepath-here]', run.exportPath);
+    formattedCode = code.replace('[insert-folder-path-of-your-choice-here]', run.exportPath);
   }
   else {
     formattedCode = code;

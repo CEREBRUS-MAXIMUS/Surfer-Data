@@ -11,16 +11,16 @@
       "command": "node",
       "args": [
         "C:/Users/username/AppData/Roaming/npm/node_modules/@modelcontextprotocol/server-filesystem/dist/index.js",
-        "[insert-filepath-here]"
+        "[insert-folder-path-of-your-choice-here]"
       ]
     }
   }
 }
 ```
 
-3. Restart the Claude Desktop App. You should see a plug and tool icon in the chat window:
+**Note:** The path for the @modelcontextprotocol/server-filesystem package may vary based on your operating system. Look [here](https://github.com/modelcontextprotocol/servers/blob/main/src/filesystem/README.md) for more details.
 
-![Claude Desktop](image.png)
+3. Restart the Claude Desktop App. You should see a plug and tool icon in the chat window:
 
 4. You should be able to ask Claude about your data from Surfer. For example, you can ask it to read all the data in the exported folder and tell you what it found.
 

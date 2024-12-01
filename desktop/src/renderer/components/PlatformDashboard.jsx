@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { startRun, toggleRunVisibility, setExportRunning, updateExportStatus, addRun } from '../state/actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Button } from "./ui/button";
-import { ArrowUpRight, ArrowRight, Check, X, Link, Download, Search, ChevronLeft, ChevronRight, HardDriveDownload, Folder, Eye } from 'lucide-react';
+import { ArrowUpRight, Check, X, Link, Search, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { Input } from "./ui/input";
 import RunDetails from './RunDetails';
 import ConfettiExplosion from 'react-confetti-explosion';
@@ -240,10 +240,6 @@ useEffect(() => {
     return runs.some(run => run.platformId === platformId && run.status === 'running');
   }, [runs]);
 
-  const onViewRunDetails = (run, platform) => {
-    setSelectedRun({ run, platform });
-  };
-
   const handleCloseDetails = () => {
     setSelectedRun(null);
   };
@@ -293,7 +289,7 @@ const renderRunStatus = (platform) => {
           <span className="text-gray-500">-</span>
           <span
             className="cursor-pointer flex items-center hover:underline"
-            onClick={() => onViewRunDetails(latestRun, platform)}
+            onClick={() => setSelectedRun(latestRun)}
           >
             {formatLastRunTime(latestRun.endDate || latestRun.startDate)}
             <ArrowUpRight size={22} className="ml-1" color="#5a5a5a" />
@@ -307,7 +303,7 @@ const renderRunStatus = (platform) => {
         <div className="flex items-center space-x-2">
           <X className="text-red-500" size={16} />
           <span className="text-gray-500">-</span>
-          <span className="hover:underline cursor-pointer" onClick={() => onViewRunDetails(latestRun, platform)}>
+          <span className="hover:underline cursor-pointer" onClick={() => setSelectedRun(latestRun)}>
           {formatLastRunTime(latestRun.endDate || latestRun.startDate)}
           </span>
         </div>
@@ -332,6 +328,7 @@ const renderRunStatus = (platform) => {
       const prevRun = prevRunsRef.current[run.id];
       if (prevRun && prevRun.status === 'running' && run.status === 'success' && !completedRuns[run.id]) {
         setCompletedRuns(prev => ({ ...prev, [run.id]: true }));
+        setSelectedRun(run);
         setTimeout(() => {
           setCompletedRuns(prev => {
             const newState = { ...prev };
@@ -504,9 +501,8 @@ const renderRunStatus = (platform) => {
       )}
       {selectedRun && (
         <RunDetails
-          runId={selectedRun.run.id}
-          onClose={handleCloseDetails}
-          platform={selectedRun.platform}
+          runId={selectedRun.id}
+          onClose={() => setSelectedRun(null)}
         />
       )}
     </div>

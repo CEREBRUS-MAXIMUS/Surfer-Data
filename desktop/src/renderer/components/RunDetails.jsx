@@ -270,7 +270,7 @@ const RunDetails = ({ runId, onClose }) => {
                     key={section.id}
                     onClick={() => setActiveSection(section.id)}
                     variant={activeSection === section.id ? "default" : "ghost"}
-                    className={`w-full justify-start ${activeSection === section.id ? '' : 'border border-border/50'}`}
+                    className={`w-full justify-start ${activeSection === section.id ? '' : 'border border-border/100'}`}
                   >
                     {section.icon}
                     <span className="ml-2">{section.title}</span>
@@ -284,7 +284,7 @@ const RunDetails = ({ runId, onClose }) => {
               <div className="space-y-2">
                 <Button 
                   variant={activeSection === 'data' ? "default" : "ghost"}
-                  className={`w-full justify-start ${activeSection === 'data' ? '' : 'border border-border/50'}`}
+                  className={`w-full justify-start ${activeSection === 'data' ? '' : 'border border-border/100'}`}
                   onClick={() => setActiveSection('data')}
                 >
                   <Folder className="mr-2 h-4 w-4" />
@@ -293,7 +293,7 @@ const RunDetails = ({ runId, onClose }) => {
 
                 <Button 
                   variant={activeSection === 'logs' ? "default" : "ghost"}
-                  className={`w-full justify-start ${activeSection === 'logs' ? '' : 'border border-border/50'}`}
+                  className={`w-full justify-start ${activeSection === 'logs' ? '' : 'border border-border/100'}`}
                   onClick={() => setActiveSection('logs')}
                 >
                   <Clock className="mr-2 h-4 w-4" />
@@ -304,7 +304,7 @@ const RunDetails = ({ runId, onClose }) => {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className={`w-full justify-start ${activeSection === 'files' ? '' : 'border border-border/50'}`}
+                    className={`w-full justify-start ${activeSection === 'files' ? '' : 'border border-border/100'}`}
                     onClick={handleViewFiles}
                   >
                     <Folder className="mr-2 h-4 w-4" />
@@ -316,7 +316,7 @@ const RunDetails = ({ runId, onClose }) => {
                   <Button 
                     variant="destructive" 
                     size="sm" 
-                    className={`w-full justify-start ${activeSection === 'stop' ? '' : 'border border-border/50'}`}
+                    className={`w-full justify-start ${activeSection === 'stop' ? '' : 'border border-border/100'}`}
                     onClick={handleStopRun}
                   >
                     <XCircle className="mr-2 h-4 w-4" />
@@ -329,7 +329,7 @@ const RunDetails = ({ runId, onClose }) => {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className={`w-full justify-start ${activeSection === 'delete' ? '' : 'border border-border/50'}`}
+                      className={`w-full justify-start ${activeSection === 'delete' ? '' : 'border border-border/100'}`}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete Run
