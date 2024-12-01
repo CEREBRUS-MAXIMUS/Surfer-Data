@@ -35,6 +35,7 @@ const RunDetails = ({ runId, onClose }) => {
   const [codeExamples, setCodeExamples] = useState({
     dashboard: '',
     knowledge_graph: '',
+    claude: ''
   });
   const [files, setFiles] = useState([]);
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
@@ -164,7 +165,10 @@ const RunDetails = ({ runId, onClose }) => {
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="h-[70vh] overflow-y-auto">
-                <CodeBlock code={codeExamples.claude.code} />
+                <CodeBlock 
+                  code={codeExamples.claude.code} 
+                  filename={codeExamples.claude.githubUrl} 
+                />
               </div>
             </div>
           </CardContent>
@@ -190,7 +194,10 @@ const RunDetails = ({ runId, onClose }) => {
                 </Button>
               </div>
               <div className="h-[70vh] overflow-x-auto overflow-y-auto">
-                <CodeBlock code={codeExamples.dashboard.code} />
+                <CodeBlock 
+                  code={codeExamples.dashboard.code}
+                  filename={codeExamples.dashboard.githubUrl}
+                />
               </div>
             </div>
           </CardContent>
@@ -216,7 +223,10 @@ const RunDetails = ({ runId, onClose }) => {
                 </Button>
               </div>
               <div className="h-[70vh] overflow-y-auto">
-                <CodeBlock code={codeExamples.knowledge_graph.code} />
+                <CodeBlock 
+                  code={codeExamples.knowledge_graph.code}
+                  filename={codeExamples.knowledge_graph.githubUrl}
+                />
               </div>
             </div>
           </CardContent>

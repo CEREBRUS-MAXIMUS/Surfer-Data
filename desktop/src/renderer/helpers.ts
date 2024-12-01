@@ -48,6 +48,7 @@ export const getCodeExamples = async (run: any) => {
 
   const claudePath = 'cookbook/python/claude-mcp/README.md';
   const claudeCode = await fetchGithubFile(claudePath);
+  console.log(claudeCode);
 
   const dashboardPath = 'cookbook/python/streamlit-chatbot/app.py';
   const dashboardCode = await fetchGithubFile(dashboardPath);
@@ -69,4 +70,28 @@ export const getCodeExamples = async (run: any) => {
       githubUrl: `${GITHUB_BASE_URL}/${claudePath}`
     }
   };    
+};
+
+export const getLanguageFromFilename = (filename: string): string => {
+  const extension = filename.split('.').pop()?.toLowerCase();
+  
+  const extensionMap: { [key: string]: string } = {
+    'js': 'javascript',
+    'jsx': 'jsx',
+    'ts': 'typescript',
+    'tsx': 'tsx',
+    'py': 'python',
+    'md': 'markdown',
+    'json': 'json',
+    'html': 'html',
+    'css': 'css',
+    'yml': 'yaml',
+    'yaml': 'yaml',
+    'sh': 'bash',
+    'bash': 'bash',
+    'sql': 'sql',
+    // Add more mappings as needed
+  };
+
+  return extensionMap[extension || ''] || 'plaintext';
 };

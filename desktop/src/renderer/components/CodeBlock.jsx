@@ -3,9 +3,14 @@ import { Button } from "./ui/button";
 import { Copy, Check } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { getLanguageFromFilename } from '../helpers';
 
-const CodeBlock = ({ title, code, language = "python" }) => {
+const CodeBlock = ({ code, filename }) => {
   const [showCheck, setShowCheck] = useState(false);
+
+  const detectedLanguage = filename 
+    ? getLanguageFromFilename(filename)
+    : 'plaintext';
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(code);
@@ -14,8 +19,7 @@ const CodeBlock = ({ title, code, language = "python" }) => {
   };
 
   return (
-    <div id={title ? title.toLowerCase().replace(/\s+/g, '-') : 'code-block'} className="scroll-mt-16">
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+    <div  className="scroll-mt-16">
       <div className="relative">
         <div className="relative rounded-lg">
           <Button 
@@ -31,7 +35,7 @@ const CodeBlock = ({ title, code, language = "python" }) => {
             )}
           </Button>
           <SyntaxHighlighter
-            language={language}
+            language={detectedLanguage}
             style={oneDark}
             customStyle={{
               margin: 0,
