@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Button } from "./ui/button";
 import { Copy, Check } from 'lucide-react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import MonacoEditor from '@monaco-editor/react';
 import { getLanguageFromFilename } from '../helpers';
 
 const CodeBlock = ({ run, code, filename }) => {
@@ -23,7 +22,6 @@ const CodeBlock = ({ run, code, filename }) => {
   if (detectedLanguage === 'python') {
     formattedCode = code.replace('platform-001', run.platformId);
   }
-
   else if (detectedLanguage === 'markdown') {
     formattedCode = code.replace('[insert-filepath-here]', run.exportPath);
   }
@@ -32,9 +30,9 @@ const CodeBlock = ({ run, code, filename }) => {
   }
 
   return (
-    <div  className="scroll-mt-16">
+    <div className="scroll-mt-16">
       <div className="relative">
-        <div className="relative rounded-lg">
+        <div className="relative rounded-lg overflow-hidden">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -47,16 +45,18 @@ const CodeBlock = ({ run, code, filename }) => {
               <Copy className="h-4 w-4 text-muted-foreground" />
             )}
           </Button>
-          <SyntaxHighlighter
+          <MonacoEditor
+            height="70vh"
             language={detectedLanguage}
-            style={oneDark}
-            customStyle={{
-              margin: 0,
-              borderRadius: '0.5rem',
+            theme="vs-dark"
+            value={formattedCode}
+            options={{ 
+              readOnly: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              wordWrap: 'on',
             }}
-          >
-            {formattedCode}
-          </SyntaxHighlighter>
+          />
         </div>
       </div>
     </div>
