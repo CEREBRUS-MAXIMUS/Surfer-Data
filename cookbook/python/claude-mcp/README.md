@@ -24,4 +24,4 @@
 
 4. You should be able to ask Claude about your data from Surfer. For example, you can ask it to read all the data in the exported folder and tell you what it found.
 
-**Note:** Some files may be too large to read in full by Claude, so it may return an error for this. A solution is to implement a custom MCP server for Surfer that can read files in chunks or vectorize the data locally and expose that function to Claude. Feel free to reach out if you want to implement this!
+**Note:** Some files may be too large to read in full by Claude, so it may return an error for this. A solution is to implement a custom MCP server for Surfer that can read files in chunks or vectorize the data locally and expose that function to Claude. Check out the issue [here](https://github.com/Surfer-Org/Protocol/issues/15) for more details.
