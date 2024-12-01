@@ -156,6 +156,22 @@ const RunDetails = ({ runId, onClose }) => {
       )
     },
     {
+      id: 'claude',
+      title: 'Connect to Claude',
+      icon: <Brain className="h-4 w-4" />,
+      content: (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div className="h-[70vh] overflow-y-auto">
+                <CodeBlock code={codeExamples.claude.code} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )
+    },
+    {
       id: 'dashboard',
       title: 'Build Streamlit Chatbot',
       icon: <Code className="h-4 w-4" />,

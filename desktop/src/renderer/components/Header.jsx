@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Eye, Home, Moon, Sun, Users, GithubIcon } from 'lucide-react';
+import { Eye, Home, Moon, Sun, Users } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import { faDiscord } from '@fortawesome/free-brands-svg-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "./ui/breadcrumb";
 import {
@@ -732,7 +735,7 @@ export const Header = () => {
                   onClick={() => window.electron.ipcRenderer.send('open-external', 'https://discord.gg/5KQkWApkYC')}
                   className="flex items-center gap-2"
                 >
-                  <Users size={16} />
+                  <FontAwesomeIcon icon={faDiscord} size="lg" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -746,10 +749,10 @@ export const Header = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.electron.ipcRenderer.send('open-external', 'https://github.com/Surfer-Org/Protocol/desktop/')}
+                  onClick={() => window.electron.ipcRenderer.send('open-external', 'https://github.com/Surfer-Org/Protocol/tree/main/desktop')}
                   className="flex items-center gap-2"
                 >
-                  <GithubIcon size={16} />
+                  <FontAwesomeIcon icon={faGithub} size="lg" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

@@ -12,11 +12,11 @@
     "hot",
     "reload"
   ],
-  "homepage": "https://github.com/Surfer-Org/Protocol/desktop/",
+  "homepage": "https://github.com/Surfer-Org/Protocol/tree/main/desktop",
   "bugs": {
     "url": "https://github.com/Surfer-Org/Protocol/issues"
   },
-  "repository": "https://github.com/Surfer-Org/Protocol/desktop/",
+  "repository": "https://github.com/Surfer-Org/Protocol/tree/main/desktop",
   "publish": {
     "provider": "github",
     "releaseType": "release"
@@ -90,6 +90,10 @@
     }
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.1",
+    "@fortawesome/free-brands-svg-icons": "^6.7.1",
+    "@fortawesome/free-solid-svg-icons": "^6.7.1",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "@monaco-editor/react": "^4.6.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.1.1",

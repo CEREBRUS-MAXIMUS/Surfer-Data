@@ -92,8 +92,16 @@ export async function getImessageData(
       'Backup',
     );
 
-    if (!fs.existsSync(defaultPath)) {
-      console.log('NEED TO BACKUP YOUR IMESSAGE FOLDER!');
+    if (
+      !fs.existsSync(defaultPath) ||
+      fs.readdirSync(defaultPath).length === 0
+    ) {
+      dialog.showMessageBox({
+        type: 'error',
+        title: 'iMessages Folder Not Found',
+        message:
+          'The iMessages folder was not found. Please backup your iPhone to your PC first using the iTunes Desktop app.',
+      });
       return null;
     }
 

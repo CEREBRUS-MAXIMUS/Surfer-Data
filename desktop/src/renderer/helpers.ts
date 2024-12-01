@@ -46,6 +46,9 @@ export const getCodeExamples = async (run: any) => {
     return response.text();
   };
 
+  const claudePath = 'cookbook/python/claude-mcp/README.md';
+  const claudeCode = await fetchGithubFile(claudePath);
+
   const dashboardPath = 'cookbook/python/streamlit-chatbot/app.py';
   const dashboardCode = await fetchGithubFile(dashboardPath);
 
@@ -60,6 +63,10 @@ export const getCodeExamples = async (run: any) => {
     knowledge_graph: {
       code: knowledgeGraphCode,
       githubUrl: `${GITHUB_BASE_URL}/${knowledgeGraphPath}`
+    },
+    claude: {
+      code: claudeCode,
+      githubUrl: `${GITHUB_BASE_URL}/${claudePath}`
     }
   };    
 };
