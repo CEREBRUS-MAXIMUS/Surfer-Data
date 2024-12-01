@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from "./ui/button";
 import { Copy, Check } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getLanguageFromFilename } from '../helpers';
 
-const CodeBlock = ({ code, filename }) => {
+const CodeBlock = ({ run, code, filename }) => {
   const [showCheck, setShowCheck] = useState(false);
 
   const detectedLanguage = filename 
@@ -17,6 +17,19 @@ const CodeBlock = ({ code, filename }) => {
     setShowCheck(true);
     setTimeout(() => setShowCheck(false), 500);
   };
+
+  let formattedCode;
+
+  if (detectedLanguage === 'python') {
+    formattedCode = code.replace('platform-001', run.platformId);
+  }
+
+  else if (detectedLanguage === 'markdown') {
+    formattedCode = code.replace('[insert-filepath-here]', run.exportPath);
+  }
+  else {
+    formattedCode = code;
+  }
 
   return (
     <div  className="scroll-mt-16">
@@ -42,7 +55,7 @@ const CodeBlock = ({ code, filename }) => {
               borderRadius: '0.5rem',
             }}
           >
-            {code}
+            {formattedCode}
           </SyntaxHighlighter>
         </div>
       </div>

@@ -164,8 +164,19 @@ const RunDetails = ({ runId, onClose }) => {
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-4">
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigator.clipboard.writeText(run.exportPath)}
+                >
+                  <Code className="mr-2 h-4 w-4" />
+                  Get Folder Path for Claude
+                </Button>
+              </div>
               <div className="h-[70vh] overflow-y-auto">
                 <CodeBlock 
+                  run={run}
                   code={codeExamples.claude.code} 
                   filename={codeExamples.claude.githubUrl} 
                 />
@@ -195,6 +206,7 @@ const RunDetails = ({ runId, onClose }) => {
               </div>
               <div className="h-[70vh] overflow-x-auto overflow-y-auto">
                 <CodeBlock 
+                  run={run}
                   code={codeExamples.dashboard.code}
                   filename={codeExamples.dashboard.githubUrl}
                 />
@@ -224,6 +236,7 @@ const RunDetails = ({ runId, onClose }) => {
               </div>
               <div className="h-[70vh] overflow-y-auto">
                 <CodeBlock 
+                  run={run}
                   code={codeExamples.knowledge_graph.code}
                   filename={codeExamples.knowledge_graph.githubUrl}
                 />
