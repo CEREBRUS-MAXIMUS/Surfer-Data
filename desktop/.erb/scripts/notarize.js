@@ -39,8 +39,6 @@ exports.default = async function notarizeMacos(context) {
       appleId: process.env.APPLE_ID,
       appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD,
       teamId: process.env.APPLE_TEAM_ID,
-      // keychainProfile: "jackblair",
-      // tool: 'notarytool'
     });
   } catch (error) {
     console.log(`Failed to notarize ${appName}`);
@@ -48,4 +46,6 @@ exports.default = async function notarizeMacos(context) {
     console.error(`Failed to notarize ${appName}`, error);
     console.error(error)
   }
+
+  console.log('Notarization complete');
 };

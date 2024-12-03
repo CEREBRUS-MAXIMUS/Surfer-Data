@@ -160,7 +160,7 @@ export async function getImessageData(
       }
 
       let isValidPassword = false;
-      let pythonProcess: ChildProcess;
+      let pythonProcess: any;
 
       while (!isValidPassword) {
         const password = await showPasswordPrompt();
@@ -189,20 +189,20 @@ export async function getImessageData(
 
             let output = '';
 
-            pythonProcess.stdout.on('data', (data) => {
+            pythonProcess.stdout.on('data', (data : any) => {
               const dataStr = data.toString();
               output += dataStr;
               console.log('Python script output:', dataStr);
               mainWindow?.webContents.send('console-log', id, dataStr);
             });
 
-            pythonProcess.stderr.on('data', (data) => {
+            pythonProcess.stderr.on('data', (data: any) => {
               const error = data.toString();
               console.error('Python script error:', error);
               mainWindow?.webContents.send('console-error', id, error);
             });
 
-            pythonProcess.on('close', (code) => {
+            pythonProcess.on('close', (code: any) => {
               console.log('Python script exited with code', code);
               if (code === 0) {
                 resolve(output.trim());
@@ -255,11 +255,20 @@ export async function getImessageData(
   else if (process.platform === 'darwin') {
     try {
       const scriptPath = getAssetPath('imessage_mac.py');
+      const userDataPath = app.getPath('userData');
+
+      // Quote paths that may contain spaces
+      const quotedScriptPath = `"${scriptPath}"`;
+      const quotedUserDataPath = `"${userDataPath}"`;
+
       const output = await new Promise<string>((resolve, reject) => {
         const pythonProcess = spawn(
           'python',
-          [scriptPath, company, name, id, app.getPath('userData')],
-          { shell: true },
+          [quotedScriptPath, company, name, id, quotedUserDataPath],
+          {
+            shell: true,
+            windowsVerbatimArguments: process.platform === 'win32'
+          }
         );
 
         let output = '';
