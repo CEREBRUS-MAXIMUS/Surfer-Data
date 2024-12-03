@@ -400,8 +400,8 @@ export class PythonUtils {
       });
 
       ipcMain.once('submit-password', (event, password) => {
-        promptWindow.close();
         resolve(password);
+        promptWindow.close();
       });
 
       promptWindow.on('closed', () => {
