@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from "./ui/button";
 import { Copy, Check } from 'lucide-react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import MonacoEditor from '@monaco-editor/react';
+import { getLanguageFromFilename } from '../helpers';
 
-const CodeBlock = ({ title, code, language = "python" }) => {
+const CodeBlock = ({ run, code, filename }) => {
   const [showCheck, setShowCheck] = useState(false);
+
+  const detectedLanguage = filename 
+    ? getLanguageFromFilename(filename)
+    : 'plaintext';
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(code);
@@ -13,11 +17,22 @@ const CodeBlock = ({ title, code, language = "python" }) => {
     setTimeout(() => setShowCheck(false), 500);
   };
 
+  let formattedCode;
+
+  if (detectedLanguage === 'python') {
+    formattedCode = code.replace('platform-001', run.platformId);
+  }
+  else if (detectedLanguage === 'markdown') {
+    formattedCode = code.replace('[insert-folder-path-of-your-choice-here]', run.exportPath);
+  }
+  else {
+    formattedCode = code;
+  }
+
   return (
-    <div id={title ? title.toLowerCase().replace(/\s+/g, '-') : 'code-block'} className="scroll-mt-16">
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+    <div className="scroll-mt-16">
       <div className="relative">
-        <div className="relative rounded-lg">
+        <div className="relative rounded-lg overflow-hidden">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -30,16 +45,18 @@ const CodeBlock = ({ title, code, language = "python" }) => {
               <Copy className="h-4 w-4 text-muted-foreground" />
             )}
           </Button>
-          <SyntaxHighlighter
-            language={language}
-            style={oneDark}
-            customStyle={{
-              margin: 0,
-              borderRadius: '0.5rem',
+          <MonacoEditor
+            height="70vh"
+            language={detectedLanguage}
+            theme="vs-dark"
+            value={formattedCode}
+            options={{ 
+              readOnly: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              wordWrap: 'on',
             }}
-          >
-            {code}
-          </SyntaxHighlighter>
+          />
         </div>
       </div>
     </div>

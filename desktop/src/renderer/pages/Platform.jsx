@@ -33,14 +33,6 @@ const Platform = ({ platform }) => {
     }
   };
 
-  const onViewRunDetails = (run) => {
-    setSelectedRun({ run, platform });
-  };
-
-  const handleCloseDetails = () => {
-    setSelectedRun(null);
-  };
-
   const renderRunStatus = (run) => {
     switch (run.status) {
       case 'success':
@@ -84,7 +76,7 @@ const Platform = ({ platform }) => {
                   <React.Fragment key={run.id}>
                     <TableRow 
                       className="cursor-pointer"
-                      onClick={() => onViewRunDetails(run)}
+                      onClick={() => setSelectedRun(run)}
                     >
                       <TableCell className="font-medium">
                         {renderRunStatus(run)}
@@ -128,9 +120,8 @@ const Platform = ({ platform }) => {
 
       {selectedRun && (
         <RunDetails
-          runId={selectedRun.run.id}
-          onClose={handleCloseDetails}
-          platform={platform}
+          runId={selectedRun.id}
+          onClose={() => setSelectedRun(null)}
         />
       )}
     </div>

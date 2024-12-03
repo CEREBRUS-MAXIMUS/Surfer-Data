@@ -30,11 +30,12 @@ const StatusIndicator = ({ status }) => {
 const RunDetails = ({ runId, onClose }) => {
   const dispatch = useDispatch();
   const run = useSelector(state => state.app.runs.find(r => r.id === runId));
-  const [activeSection, setActiveSection] = useState('data');
+  const [activeSection, setActiveSection] = useState('claude');
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [codeExamples, setCodeExamples] = useState({
     dashboard: '',
     knowledge_graph: '',
+    claude: ''
   });
   const [files, setFiles] = useState([]);
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
@@ -113,44 +114,82 @@ const RunDetails = ({ runId, onClose }) => {
 
   if (!run) return null;
 
+  const dataContent = (
+    <Card>
+      <CardContent className="pt-6">
+        {run.status === 'success' && files.length > 0 ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Button onClick={handlePrevFile} variant="outline" size="sm" disabled={currentFileIndex === 0}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm">{`${currentFileIndex + 1} / ${files.length}`}</span>
+              <Button onClick={handleNextFile} variant="outline" size="sm" disabled={currentFileIndex === files.length - 1}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            {files[currentFileIndex] && (
+              <div className="rounded-lg overflow-hidden border border-border">
+                <MonacoEditor
+                  height="400px"
+                  language="json"
+                  theme="vs-dark"
+                  value={files[currentFileIndex].content}
+                  options={{ 
+                    readOnly: true, 
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    wordWrap: 'on',
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        ) : (
+          <p>No data available</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const logsContent = (
+    <Card>
+      <CardContent className="pt-6">
+        {run.logs ? (
+          <div className="space-y-2 overflow-y-auto max-h-[75vh]">
+            {run.logs.split('\n').map((log, index) => (
+              <div key={index}>
+                <div className="flex items-start gap-2">
+                  <div className="w-1 h-1 flex-shrink-0 rounded-full bg-primary mt-2" />
+                  <div className="break-all whitespace-pre-wrap min-w-0 flex-1">{log}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No logs available</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   const sections = [
     {
-      id: 'data',
-      title: 'View Data',
-      icon: <Folder className="h-4 w-4" />,
+      id: 'claude',
+      title: 'Connect to Claude',
+      icon: <Brain className="h-4 w-4" />,
       content: (
         <Card>
           <CardContent className="pt-6">
-            {run.status === 'success' && files.length > 0 ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Button onClick={handlePrevFile} variant="outline" size="sm" disabled={currentFileIndex === 0}>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="text-sm">{`${currentFileIndex + 1} / ${files.length}`}</span>
-                  <Button onClick={handleNextFile} variant="outline" size="sm" disabled={currentFileIndex === files.length - 1}>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-                {files[currentFileIndex] && (
-                  <div className="rounded-lg overflow-hidden border border-border">
-                    <MonacoEditor
-                      height="400px"
-                      language="json"
-                      theme="vs-dark"
-                      value={files[currentFileIndex].content}
-                      options={{ 
-                        readOnly: true, 
-                        minimap: { enabled: false },
-                        scrollBeyondLastLine: false
-                      }}
-                    />
-                  </div>
-                )}
+            <div className="space-y-4">
+              <div className="h-[70vh] overflow-y-auto w-full">
+                <CodeBlock 
+                  run={run}
+                  code={codeExamples.claude.code} 
+                  filename={codeExamples.claude.githubUrl} 
+                />
               </div>
-            ) : (
-              <p>No data available</p>
-            )}
+            </div>
           </CardContent>
         </Card>
       )
@@ -173,8 +212,12 @@ const RunDetails = ({ runId, onClose }) => {
                   View Full Code
                 </Button>
               </div>
-              <div className="h-[70vh] overflow-x-auto overflow-y-auto">
-                <CodeBlock code={codeExamples.dashboard.code} />
+              <div className="h-[70vh] overflow-y-auto w-full">
+                <CodeBlock 
+                  run={run}
+                  code={codeExamples.dashboard.code}
+                  filename={codeExamples.dashboard.githubUrl}
+                />
               </div>
             </div>
           </CardContent>
@@ -199,35 +242,14 @@ const RunDetails = ({ runId, onClose }) => {
                   View Full Code
                 </Button>
               </div>
-              <div className="h-[70vh] overflow-y-auto">
-                <CodeBlock code={codeExamples.knowledge_graph.code} />
+              <div className="h-[70vh] overflow-y-auto w-full">
+                <CodeBlock 
+                  run={run}
+                  code={codeExamples.knowledge_graph.code}
+                  filename={codeExamples.knowledge_graph.githubUrl}
+                />
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )
-    },
-    {
-      id: 'logs',
-      title: 'Logs',
-      icon: <Clock className="h-4 w-4" />,
-      content: (
-        <Card>
-          <CardContent className="pt-6">
-            {run.logs ? (
-              <div className="space-y-2 overflow-y-auto max-h-[75vh]">
-                {run.logs.split('\n').map((log, index) => (
-                  <div key={index}>
-                    <div className="flex items-start gap-2">
-                      <div className="w-1 h-1 flex-shrink-0 rounded-full bg-primary mt-2" />
-                      <div className="break-all whitespace-pre-wrap min-w-0 flex-1">{log}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p>No logs available</p>
-            )}
           </CardContent>
         </Card>
       )
@@ -239,37 +261,64 @@ const RunDetails = ({ runId, onClose }) => {
       <DialogContent className="max-w-[90vw] h-[90vh] p-0 gap-0">
         <div className="flex h-full">
           {/* Sidebar */}
-          <div className="w-64 border-r border-border bg-muted/40 p-4 space-y-6">
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Next Steps</h2>
-              {sections.map((section) => (
-                <button
-                  key={section.id}
-                  onClick={() => setActiveSection(section.id)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors
-                    ${activeSection === section.id 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'hover:bg-muted'
-                    }`}
-                >
-                  {section.icon}
-                  {section.title}
-                </button>
-              ))}
-            </div>
+          <div className="w-64 border-r border-border bg-muted/40 p-4 space-y-3">
+            {run?.status === 'success' && (
+              <>
+                <h2 className="text-lg font-semibold">Next Steps</h2>
+                {sections.map((section) => (
+                  <Button
+                    key={section.id}
+                    onClick={() => setActiveSection(section.id)}
+                    variant={activeSection === section.id ? "default" : "ghost"}
+                    className={`w-full justify-start ${activeSection === section.id ? '' : 'border border-border/100'}`}
+                  >
+                    {section.icon}
+                    <span className="ml-2">{section.title}</span>
+                  </Button>
+                ))}
+              </>
+            )}
 
             <div className="space-y-2">
               <h2 className="text-lg font-semibold">Actions</h2>
               <div className="space-y-2">
+                <Button 
+                  variant={activeSection === 'data' ? "default" : "ghost"}
+                  className={`w-full justify-start ${activeSection === 'data' ? '' : 'border border-border/100'}`}
+                  onClick={() => setActiveSection('data')}
+                >
+                  <Folder className="mr-2 h-4 w-4" />
+                  View Data
+                </Button>
+
+                <Button 
+                  variant={activeSection === 'logs' ? "default" : "ghost"}
+                  className={`w-full justify-start ${activeSection === 'logs' ? '' : 'border border-border/100'}`}
+                  onClick={() => setActiveSection('logs')}
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  View Logs
+                </Button>
+
                 {run?.exportPath && (
-                  <Button variant="outline" size="sm" className="w-full justify-start" onClick={handleViewFiles}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className={`w-full justify-start ${activeSection === 'files' ? '' : 'border border-border/100'}`}
+                    onClick={handleViewFiles}
+                  >
                     <Folder className="mr-2 h-4 w-4" />
                     Open Files
                   </Button>
                 )}
                 
                 {(run?.status === 'pending' || run?.status === 'running') && (
-                  <Button variant="destructive" size="sm" className="w-full justify-start" onClick={handleStopRun}>
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    className={`w-full justify-start ${activeSection === 'stop' ? '' : 'border border-border/100'}`}
+                    onClick={handleStopRun}
+                  >
                     <XCircle className="mr-2 h-4 w-4" />
                     Stop Run
                   </Button>
@@ -277,7 +326,11 @@ const RunDetails = ({ runId, onClose }) => {
 
                 <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                   <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className={`w-full justify-start ${activeSection === 'delete' ? '' : 'border border-border/100'}`}
+                    >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete Run
                     </Button>
@@ -311,6 +364,8 @@ const RunDetails = ({ runId, onClose }) => {
           {/* Main Content */}
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="max-w-3xl mx-auto">
+              {activeSection === 'data' && dataContent}
+              {activeSection === 'logs' && logsContent}
               {sections.find(s => s.id === activeSection)?.content}
             </div>
           </div>

@@ -59,7 +59,7 @@ See the [open issues](https://github.com/Surfer-Org/Protocol/issues) for a full 
 
 ## License
 
-Distributed under the MIT License. See [`LICENSE`](https://github.com/Surfer-Org/Protocol/desktop//blob/main/LICENSE) for more information.
+Distributed under the MIT License. See [`LICENSE`](https://github.com/Surfer-Org/Protocol/tree/main/desktop/blob/main/LICENSE) for more information.
 
 ## Built With
 
@@ -72,7 +72,7 @@ Distributed under the MIT License. See [`LICENSE`](https://github.com/Surfer-Org
 
 [Surfer Discord Server](https://discord.gg/Tjg7pjcFNP) - [@SahilLalani0](https://x.com/SahilLalani0) - [@JackBlair87](https://x.com/JackBlair87) - [@T0M_3D](https://x.com/T0M_3D)
 
-Project Link: [https://github.com/Surfer-Org/Protocol/desktop/](https://github.com/Surfer-Org/Protocol/desktop/)
+Project Link: [https://github.com/Surfer-Org/Protocol/tree/main/desktop](https://github.com/Surfer-Org/Protocol/tree/main/desktop)
 
 ## Acknowledgements
 

@@ -16,7 +16,7 @@
     "gpt4",
     "chatbot"
   ],
-  "repository": "https://github.com/Surfer-Org/Protocol/desktop/",
+  "repository": "https://github.com/Surfer-Org/Protocol/tree/main/desktop",
   "publish": {
     "provider": "github",
     "releaseType": "release"
