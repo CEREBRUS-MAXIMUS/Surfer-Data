@@ -2,7 +2,7 @@
   "description": "Surfer is a desktop app that allows you to export your personal data in one click.",
   "productName": "Surfer",
   "name": "surfer",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "keywords": [
     "electron",
     "ai",
