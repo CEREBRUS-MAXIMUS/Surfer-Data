@@ -69,6 +69,32 @@ const showDiskAccessInstructions = async () => {
   }
 };
 
+// Add this helper function at the top level
+async function checkPythonAvailability(): Promise<string | null> {
+  const commands = process.platform === 'win32' 
+    ? ['python', 'py'] 
+    : ['python3', 'python'];
+
+  for (const cmd of commands) {
+    try {
+      const { stdout } = await execAsync(`${cmd} --version`);
+      console.log(`Found Python using '${cmd}':`, stdout);
+      return cmd;
+    } catch (error) {
+      console.log(`${cmd} not found, trying next...`);
+    }
+  }
+  
+  // Show error dialog if no Python version is found
+  await dialog.showMessageBox({
+    type: 'error',
+    title: 'Python Required for iMessage Export',
+    message: 'Python is required for iMessage export. Please go to https://www.python.org/downloads/ and install Python 3.10 or later.',
+  });
+  
+  return null;
+}
+
 export async function getImessageData(
   event: any,
   company: string,
@@ -121,19 +147,8 @@ export async function getImessageData(
       );
 
       // Rest of your Windows logic here
-      try {
-        const { stdout } = await execAsync('python --version');
-        console.log('Found Python:', stdout);
-      } catch (error) {
-        console.log('Python not found, please install...');
-        dialog.showMessageBox({
-          type: 'question',
-          title: 'Python Required for iMessage Export',
-          message:
-            'Python is required for iMessage export. Please go to https://www.python.org/downloads/ and install Python 3.10 or later.',
-        });
-        return null;
-      }
+      const pythonCommand = await checkPythonAvailability();
+      if (!pythonCommand) return null;
 
       const requirementsPath = getAssetPath('imessage_windows_reqs.txt');
       const requirements = fs
@@ -152,7 +167,7 @@ export async function getImessageData(
           console.log('Installing', req.trim());
           try {
             const { stdout, stderr } = await execAsync(
-              `python -m pip install ${req.trim()}`,
+              `${pythonCommand} -m pip install ${req.trim()}`,
             );
             console.log(`Installed ${req.trim()} successfully.`);
             packagesInstalled = true;
@@ -182,7 +197,7 @@ export async function getImessageData(
         try {
           const output = await new Promise<string>((resolve, reject) => {
             pythonProcess = spawn(
-              'python',
+              pythonCommand,
               [
                 scriptPath,
                 selectedFolder, // Use the selected folder path
@@ -262,6 +277,9 @@ export async function getImessageData(
   //Use native ts for macOS
   else if (process.platform === 'darwin') {
     try {
+      const pythonCommand = await checkPythonAvailability();
+      if (!pythonCommand) return null;
+
       const scriptPath = getAssetPath('imessage_mac.py');
       const userDataPath = app.getPath('userData');
 
@@ -271,7 +289,7 @@ export async function getImessageData(
 
       const output = await new Promise<string>((resolve, reject) => {
         const pythonProcess = spawn(
-          'python',
+          pythonCommand,
           [quotedScriptPath, company, name, id, quotedUserDataPath],
           {
             shell: true,
