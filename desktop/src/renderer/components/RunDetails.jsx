@@ -112,6 +112,11 @@ const RunDetails = ({ runId, onClose }) => {
     window.electron.ipcRenderer.send('open-external', url);
   };
 
+  const getSourceName = () => {
+    if (!run?.source) return 'Your data';
+    return `Your ${run.source} data`; // e.g. "Your Notion data" or "Your Twitter data"
+  };
+
   if (!run) return null;
 
   const dataContent = (
@@ -259,114 +264,123 @@ const RunDetails = ({ runId, onClose }) => {
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-[90vw] h-[90vh] p-0 gap-0">
-        <div className="flex h-full">
-          {/* Sidebar */}
-          <div className="w-64 border-r border-border bg-muted/40 p-4 space-y-3">
-            {run?.status === 'success' && (
-              <>
-                <h2 className="text-lg font-semibold">Next Steps</h2>
-                {sections.map((section) => (
-                  <Button
-                    key={section.id}
-                    onClick={() => setActiveSection(section.id)}
-                    variant={activeSection === section.id ? "default" : "ghost"}
-                    className={`w-full justify-start ${activeSection === section.id ? '' : 'border border-border/100'}`}
-                  >
-                    {section.icon}
-                    <span className="ml-2">{section.title}</span>
-                  </Button>
-                ))}
-              </>
-            )}
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="p-6 border-b border-border">
+            <h1 className="text-2xl font-semibold text-center">
+              Your {run?.name} data has been successfully exported!
+            </h1>
+          </div>
+          
+          <div className="flex flex-1">
+            {/* Sidebar */}
+            <div className="w-64 border-r border-border bg-muted/40 p-4 space-y-3">
+              {run?.status === 'success' && (
+                <>
+                  <h2 className="text-lg font-semibold">Next Steps</h2>
+                  {sections.map((section) => (
+                    <Button
+                      key={section.id}
+                      onClick={() => setActiveSection(section.id)}
+                      variant={activeSection === section.id ? "default" : "ghost"}
+                      className={`w-full justify-start ${activeSection === section.id ? '' : 'border border-border/100'}`}
+                    >
+                      {section.icon}
+                      <span className="ml-2">{section.title}</span>
+                    </Button>
+                  ))}
+                </>
+              )}
 
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Actions</h2>
               <div className="space-y-2">
-                <Button 
-                  variant={activeSection === 'data' ? "default" : "ghost"}
-                  className={`w-full justify-start ${activeSection === 'data' ? '' : 'border border-border/100'}`}
-                  onClick={() => setActiveSection('data')}
-                >
-                  <Folder className="mr-2 h-4 w-4" />
-                  View Data
-                </Button>
-
-                <Button 
-                  variant={activeSection === 'logs' ? "default" : "ghost"}
-                  className={`w-full justify-start ${activeSection === 'logs' ? '' : 'border border-border/100'}`}
-                  onClick={() => setActiveSection('logs')}
-                >
-                  <Clock className="mr-2 h-4 w-4" />
-                  View Logs
-                </Button>
-
-                {run?.exportPath && (
+                <h2 className="text-lg font-semibold">Actions</h2>
+                <div className="space-y-2">
                   <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={`w-full justify-start ${activeSection === 'files' ? '' : 'border border-border/100'}`}
-                    onClick={handleViewFiles}
+                    variant={activeSection === 'data' ? "default" : "ghost"}
+                    className={`w-full justify-start ${activeSection === 'data' ? '' : 'border border-border/100'}`}
+                    onClick={() => setActiveSection('data')}
                   >
                     <Folder className="mr-2 h-4 w-4" />
-                    Open Files
+                    View Raw Data
                   </Button>
-                )}
-                
-                {(run?.status === 'pending' || run?.status === 'running') && (
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    className={`w-full justify-start ${activeSection === 'stop' ? '' : 'border border-border/100'}`}
-                    onClick={handleStopRun}
-                  >
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Stop Run
-                  </Button>
-                )}
 
-                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                  <AlertDialogTrigger asChild>
+                  <Button 
+                    variant={activeSection === 'logs' ? "default" : "ghost"}
+                    className={`w-full justify-start ${activeSection === 'logs' ? '' : 'border border-border/100'}`}
+                    onClick={() => setActiveSection('logs')}
+                  >
+                    <Clock className="mr-2 h-4 w-4" />
+                    View Logs
+                  </Button>
+
+                  {run?.exportPath && (
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className={`w-full justify-start ${activeSection === 'delete' ? '' : 'border border-border/100'}`}
+                      className={`w-full justify-start ${activeSection === 'files' ? '' : 'border border-border/100'}`}
+                      onClick={handleViewFiles}
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Run
+                      <Folder className="mr-2 h-4 w-4" />
+                      Open Files
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will permanently delete this run and all associated data.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDeleteRun}>Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                  )}
+                  
+                  {(run?.status === 'pending' || run?.status === 'running') && (
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      className={`w-full justify-start ${activeSection === 'stop' ? '' : 'border border-border/100'}`}
+                      onClick={handleStopRun}
+                    >
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Stop Run
+                    </Button>
+                  )}
+
+                  <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className={`w-full justify-start ${activeSection === 'delete' ? '' : 'border border-border/100'}`}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Run
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete this run and all associated data.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteRun}>Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-border">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <StatusIndicator status={run.status} />
+                  <span className="capitalize">{run.status}</span>
+                  <span>•</span>
+                  <span>{getElapsedTime(run.startDate, run.endDate)}</span>
+                </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-border">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <StatusIndicator status={run.status} />
-                <span className="capitalize">{run.status}</span>
-                <span>•</span>
-                <span>{getElapsedTime(run.startDate, run.endDate)}</span>
+            {/* Main Content */}
+            <div className="flex-1 p-6 overflow-y-auto">
+              <div className="max-w-3xl mx-auto">
+                {activeSection === 'data' && dataContent}
+                {activeSection === 'logs' && logsContent}
+                {sections.find(s => s.id === activeSection)?.content}
               </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 p-6 overflow-y-auto">
-            <div className="max-w-3xl mx-auto">
-              {activeSection === 'data' && dataContent}
-              {activeSection === 'logs' && logsContent}
-              {sections.find(s => s.id === activeSection)?.content}
             </div>
           </div>
         </div>

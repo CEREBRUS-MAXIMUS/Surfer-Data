@@ -1,8 +1,11 @@
 from setuptools import setup, find_packages
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(
     name="surfer-protocol",
-    version="0.1.0",
+    version="0.1.1",
     packages=find_packages(),
     install_requires=[
         "requests>=2.25.1",
@@ -23,5 +26,7 @@ setup(
     author="Sahil Lalani",
     author_email="lihas1002@gmail.com",
     description="Python client for the Surfer Protocol desktop app",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     keywords="surfer-protocol, client, local-first, ai-agent, ai-agent-framework, langchain, langsmith, streamlit, ollama, vector-database, weaviate, personal-data, personal-data-warehouse",
 )
