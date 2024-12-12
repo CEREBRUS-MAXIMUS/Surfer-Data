@@ -4,6 +4,25 @@
 
 2. Create a `claude_desktop_config.json` file in the root of the project with the following content. Look [here](https://github.com/modelcontextprotocol/servers/blob/main/src/filesystem/README.md) for more details:
 
+Mac config:
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          "[insert-folder-path-of-your-choice-here]"
+        ]
+      }
+    }
+}
+```
+
+Windows config:
+
 ```json
 {
   "mcpServers": {
