@@ -6,10 +6,10 @@
 
 ## Demo (click to view)
 
-[![YouTube](http://i.ytimg.com/vi/2P25iOd14qw/hqdefault.jpg)](https://www.youtube.com/watch?v=2P25iOd14qw)
+[![YouTube](http://i.ytimg.com/vi/2P25iOd14qw/hqdefault.jpg)](https://www.youtube.com/watch?v=HuLnEFlQsHE&ab_channel=SahilLalani)
 
 ## Currently Supported Platforms
-- iMessages (Windows only)
+- iMessages
 - Twitter Bookmarks
 - Notion
 - ChatGPT History

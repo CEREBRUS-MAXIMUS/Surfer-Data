@@ -11,6 +11,10 @@
 [![MIT License][license-shield]][license-url]
 [![](https://dcbadge.vercel.app/api/server/5KQkWApkYC)](https://discord.gg/5KQkWApkYC)
 
+## Demo (click to view)
+
+[![YouTube](http://i.ytimg.com/vi/2P25iOd14qw/hqdefault.jpg)](https://www.youtube.com/watch?v=HuLnEFlQsHE&ab_channel=SahilLalani)
+
 ## What is Surfer Protocol?
 
 Surfer Protocol is an open-source framework for exporting and building applications off of your personal data.
