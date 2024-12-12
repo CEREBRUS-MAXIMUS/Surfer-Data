@@ -266,11 +266,11 @@ const RunDetails = ({ runId, onClose }) => {
       <DialogContent className="max-w-[90vw] h-[90vh] p-0 gap-0">
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="p-6 border-b border-border">
+          {/* <div className="p-6 border-b border-border">
             <h1 className="text-2xl font-semibold text-center">
               Your {run?.name} data has been successfully exported!
             </h1>
-          </div>
+          </div> */}
           
           <div className="flex flex-1">
             {/* Sidebar */}
