@@ -3,17 +3,21 @@ import os
 import sys
 from chromadb.utils import embedding_functions
 import json
-
+import uuid
+import base64
 
 embedding_function = embedding_functions.DefaultEmbeddingFunction
 
     # Print script location
 user_data_path = sys.argv[1]
 json_file_path = sys.argv[2]
+latest_run_base64 = sys.argv[3]
+
+# Decode the base64 string back to JSON
+latest_run = json.loads(base64.b64decode(latest_run_base64).decode('utf-8'))
 
 print(f"Vector DB Script Location: {user_data_path}")
 print(f"JSON File Path: {json_file_path}")
-    
     # Read JSON from file
 with open(json_file_path, 'r') as f:
     json_data = json.load(f)
@@ -60,20 +64,26 @@ try:
         
     if not json_data:
         raise ValueError("No JSON data provided")
-
+    docs_key = latest_run['vectorize_config']['documents']
     print('this is the length of the json data: ', len(json_data['content']))
-    for obj in json_data['content']:
-        # Convert metadata values to strings if they're dictionaries
-        # metadata = {}
-        # for k, v in obj.items():
-        #     if k not in ['id', 'text']:
-        #         if isinstance(v, dict):
-        #             metadata[k] = json.dumps(v)
-        #         else:
-        #             metadata[k] = v
+    for index, obj in enumerate(json_data['content']):
+        # Create ID by appending index to the run ID
+        document_id = f"{latest_run['id']}-{index}"
+        
+        # Create metadata dictionary with run name and all obj keys except docs_key
+        metadata = {"name": latest_run['name']}
+        for key, value in obj.items():
+            if key != docs_key and key != 'id':  # Skip the documents key
+                metadata[key] = value
+
+            if value == None:
+                metadata[key] = 'None'
+        
+            
         collection.upsert(
-            documents=[obj['text']],
-            ids=[obj['id']],
+            documents=[obj[docs_key]],
+            ids=[document_id],
+            metadatas=metadata
         )
 
     print(f"Added {len(json_data['content'])} documents to collection {collection_name}")

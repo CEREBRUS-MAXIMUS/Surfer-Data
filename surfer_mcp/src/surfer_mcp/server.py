@@ -137,7 +137,7 @@ async def handle_call_tool(
         return [
             types.TextContent(
                 type="text",
-                text=f"Given the following similar documents, answer the question: {query}\n\n{json.dumps(search_data, indent=2)}",
+                text=f"Given the following similar documents, answer the question to the best of your ability: {query}\n\n{json.dumps(search_data, indent=2)}",
             )
         ]
 

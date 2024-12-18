@@ -50,7 +50,6 @@ export const getCodeExamples = async (run: any) => {
 
   const claudePath = 'cookbook/python/claude-mcp/README.md';
   const claudeCode = await fetchGithubFile(claudePath);
-  console.log(claudeCode);
 
   const dashboardPath = 'cookbook/python/streamlit-chatbot/app.py';
   const dashboardCode = await fetchGithubFile(dashboardPath);

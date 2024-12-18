@@ -18,13 +18,15 @@ try:
     results = collection.query(
         query_texts=[query],
         n_results=5  # Return top 5 results
+    
     )
     
     # Format results for output
     formatted_results = {
         "documents": results["documents"][0],
         "distances": results["distances"][0],
-        "ids": results["ids"][0]
+        "ids": results["ids"][0],
+        "metadata": results["metadatas"][0]
     }
     
     # Print as JSON for easy parsing

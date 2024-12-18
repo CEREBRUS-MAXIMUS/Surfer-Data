@@ -376,6 +376,7 @@ const getPlatforms = async () => {
           connectURL: metadata.connectURL || null,
           connectSelector: metadata.connectSelector || null,
           exportFrequency: metadata.exportFrequency || null,
+          vectorize_config: metadata.vectorize_config || null,
         };
       }),
     );
@@ -467,39 +468,53 @@ ipcMain.handle('vectorize-last-run', async () => {
 
   const jsonFile = fs.readdirSync(latestRun.exportPath).filter(file => file.endsWith('.json'))[0];
   const jsonFilePath = path.join(latestRun.exportPath, jsonFile);
+  const parsedLatestRun = Buffer.from(JSON.stringify(latestRun)).toString('base64');
 
   if (pythonPath) {
-    // Wrap paths in quotes to handle spaces
-    const vectorDB = spawn(pythonPath, [
-      `"${scriptPath}"`, 
-      `"${app.getPath('userData')}"`,
-      `"${jsonFilePath}"`
-    ], {
-      shell: true,
-    });
+    return new Promise((resolve, reject) => {
+      // Wrap paths in quotes to handle spaces
+      const vectorDB = spawn(pythonPath, [
+        `"${scriptPath}"`, 
+        `"${app.getPath('userData')}"`,
+        `"${jsonFilePath}"`,
+        parsedLatestRun,
+      ], {
+        shell: true,
+      });
 
-    // Handle stdout (normal output)
-    vectorDB.stdout.on('data', (data) => {
-      const output = data.toString();
-      console.log('Vector DB Output:', output);
-      mainWindow?.webContents.send('vector-db-output', output);
-    });
+      // Handle stdout (normal output)
+      vectorDB.stdout.on('data', (data) => {
+        const output = data.toString();
+        console.log('Vector DB Output:', output);
+        mainWindow?.webContents.send('vector-db-output', output);
+      });
 
-    // Handle stderr (error output)
-    vectorDB.stderr.on('data', (data) => {
-      const error = data.toString();
-      console.error('Vector DB Error:', error);
-      mainWindow?.webContents.send('vector-db-error', error);
-    });
+      // Handle stderr (error output)
+      vectorDB.stderr.on('data', (data) => {
+        const error = data.toString();
+        console.error('Vector DB Error:', error);
+        mainWindow?.webContents.send('vector-db-error', error);
+      });
 
-    // Handle process completion
-    vectorDB.on('close', (code) => {
-      console.log(`Vector DB process exited with code ${code}`);
-      mainWindow?.webContents.send('vector-db-close', code);
+      // Handle process completion
+      vectorDB.on('close', (code) => {
+        console.log(`Vector DB process exited with code ${code}`);
+        mainWindow?.webContents.send('vector-db-close', code);
+        if (code === 0) {
+          resolve({ success: true, code });
+        } else {
+          reject({ success: false, code });
+        }
+      });
+
+      // Handle errors
+      vectorDB.on('error', (error) => {
+        console.error('Vector DB Process Error:', error);
+        reject({ success: false, error: error.message });
+      });
     });
   } else {
-    console.error('Python not found');
-    mainWindow?.webContents.send('vector-db-error', 'Python not found');
+    throw new Error('Python not found');
   }
 });
 
@@ -529,6 +544,7 @@ async function searchVectorDB(query: string) {
 
     searchProcess.stdout.on('data', (data) => {
       outputData += data.toString();
+      console.log('outputData: ', outputData);
     });
 
     searchProcess.stderr.on('data', (data) => {

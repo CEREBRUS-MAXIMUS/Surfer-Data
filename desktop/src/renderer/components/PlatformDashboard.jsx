@@ -31,6 +31,7 @@ const PlatformDashboard = ({ onPlatformClick, webviewRef }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [isVectorizing, setIsVectorizing] = useState(false);
 
 
 useEffect(() => {
@@ -190,7 +191,8 @@ useEffect(() => {
       status: 'running',
       isUpdated: platform.isUpdated,
       exportSize: null, 
-      url: 'about:blank'
+      url: 'about:blank',
+      vectorize_config: platform.vectorize_config
     }; 
 
 
@@ -243,9 +245,6 @@ useEffect(() => {
     return runs.some(run => run.platformId === platformId && run.status === 'running');
   }, [runs]);
 
-  const handleCloseDetails = () => {
-    setSelectedRun(null);
-  };
 
 const renderRunStatus = (platform) => {
   const latestRun = getLatestRun(platform.id);
@@ -317,6 +316,27 @@ const renderRunStatus = (platform) => {
   }
 };
 
+const vectorizeLastRun = async () => {
+  setIsVectorizing(true);
+  try {
+    const response = await window.electron.ipcRenderer.invoke('vectorize-last-run');
+    console.log('vectorizeLastRun response: ', response);
+    toast({
+      title: 'Vectorization Complete',
+      description: 'The last run has been successfully vectorized',
+    });
+  } catch (error) {
+    console.error('Vectorization failed:', error);
+    toast({
+      title: 'Vectorization Failed',
+      description: 'Failed to vectorize the last run',
+      variant: 'destructive',
+    });
+  } finally {
+    setIsVectorizing(false);
+  }
+};
+
   useEffect(() => {
     const logContainers = document.querySelectorAll('#log-container');
     if (logContainers) {
@@ -355,6 +375,7 @@ const renderRunStatus = (platform) => {
     setIsSearching(true);
     try {
       const results = await window.electron.ipcRenderer.invoke('search-vector-db', searchQuery);
+      console.log('results: ', results);
       setSearchResults(results);
     } catch (error) {
       console.error('Search failed:', error);
@@ -430,9 +451,13 @@ const renderRunStatus = (platform) => {
         )}
       </div>
 
-      <Button className='mb-2 mt-2' variant="outline" size="sm" onClick={() => window.electron.ipcRenderer.invoke('vectorize-last-run')}>
-        <IoSync size={16} className="mr-2 h-4 w-4" />
-        Vectorize Last Run
+
+      <Button className='mb-2 mt-2' variant="outline" size="sm" onClick={vectorizeLastRun} disabled={isVectorizing}>
+        <IoSync 
+          size={16} 
+          className={`mr-2 ${isVectorizing ? 'animate-spin' : ''}`}
+        />
+        {isVectorizing ? 'Vectorizing...' : 'Vectorize Last Run'}
       </Button>
       
       {paginatedPlatforms.length > 0 ? (
