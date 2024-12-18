@@ -1,6 +1,6 @@
 # Surfer Desktop App
 
-> ### ⚠️ Looking for Surfer Protocol or the Surfer Python SDK? 
+> ### ⚠️ Looking for Surfer Protocol or the Surfer Python SDK?
 > Protocol: [Surfer Protocol](https://github.com/Surfer-Org/Protocol)\
 > SDK: [Surfer Python SDK](https://github.com/Surfer-Org/Python-SDK)
 
