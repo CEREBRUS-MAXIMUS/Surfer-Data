@@ -6,6 +6,7 @@ from mcp.server import NotificationOptions, Server
 from pydantic import AnyUrl
 import mcp.server.stdio
 import requests
+import json
 
 # Store notes as a simple key-value dict to demonstrate state management
 notes: dict[str, str] = {}
@@ -130,12 +131,13 @@ async def handle_call_tool(
         if health_response.status_code != 200:
             raise ValueError("Make sure the Surfer desktop app is running!")
 
-        search_response = requests.get(f"http://localhost:2024/api/search?query={query}")
+        search_response = requests.get(f"http://localhost:2024/api/search/{query}")
+        search_data = search_response.json()  # Parse the JSON response
 
         return [
             types.TextContent(
                 type="text",
-                text=f"Given the following similar documents, answer the question: {query} \n\n {search_response}",
+                text=f"Given the following similar documents, answer the question: {query}\n\n{json.dumps(search_data, indent=2)}",
             )
         ]
 

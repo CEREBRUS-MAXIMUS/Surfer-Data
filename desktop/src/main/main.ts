@@ -207,6 +207,7 @@ const setupExpressServer = async () => {
     console.log('Search request: ', req.params);
     const { query } = req.params;
     const searchResponse = await searchVectorDB(query);
+    console.log('Search response: ', searchResponse);
     res.json({ success: true, data: searchResponse });
   });
 
