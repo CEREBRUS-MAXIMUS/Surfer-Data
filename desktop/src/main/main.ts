@@ -33,8 +33,10 @@ import {
   getTwitterCredentials,
 } from './helpers/network';
 import { resolveHtmlPath } from './helpers/util';
+import { spawn } from 'child_process';
 dotenv.config();
 const { download } = require('electron-dl');
+import { checkPythonAvailability } from './helpers/util';
 
 // Preventing multiple instances of Surfer
 
@@ -435,6 +437,107 @@ const RESOURCES_PATH = app.isPackaged
 const getAssetPath = (...paths: string[]): string => {
   return path.join(RESOURCES_PATH, ...paths);
 };
+
+ipcMain.handle('vectorize-last-run', async () => {
+  const scriptPath = getAssetPath('vector_db.py');
+  const pythonPath = await checkPythonAvailability();
+  mainWindow?.webContents.send('get-runs');
+  const runsResponse: any = await new Promise((resolve) => {
+    ipcMain.once('get-runs-response', (event, runs) => resolve(runs));
+  });
+
+  // Filter runs for this platform with successful status
+  const successfulRuns = runsResponse.filter(
+    (r: any) => r.status === 'success',
+  );
+
+  const latestRun = successfulRuns.sort(
+    (a: any, b: any) =>
+      new Date(b.endDate || b.startDate).getTime() -
+      new Date(a.endDate || b.startDate).getTime(),
+  )[0];
+
+  const jsonFile = fs.readdirSync(latestRun.exportPath).filter(file => file.endsWith('.json'))[0];
+  const jsonFilePath = path.join(latestRun.exportPath, jsonFile);
+
+  if (pythonPath) {
+    // Wrap paths in quotes to handle spaces
+    const vectorDB = spawn(pythonPath, [
+      `"${scriptPath}"`, 
+      `"${app.getPath('userData')}"`,
+      `"${jsonFilePath}"`
+    ], {
+      shell: true,
+    });
+
+    // Handle stdout (normal output)
+    vectorDB.stdout.on('data', (data) => {
+      const output = data.toString();
+      console.log('Vector DB Output:', output);
+      mainWindow?.webContents.send('vector-db-output', output);
+    });
+
+    // Handle stderr (error output)
+    vectorDB.stderr.on('data', (data) => {
+      const error = data.toString();
+      console.error('Vector DB Error:', error);
+      mainWindow?.webContents.send('vector-db-error', error);
+    });
+
+    // Handle process completion
+    vectorDB.on('close', (code) => {
+      console.log(`Vector DB process exited with code ${code}`);
+      mainWindow?.webContents.send('vector-db-close', code);
+    });
+  } else {
+    console.error('Python not found');
+    mainWindow?.webContents.send('vector-db-error', 'Python not found');
+  }
+});
+
+ipcMain.handle('search-vector-db', async (event, query) => {
+  const scriptPath = getAssetPath('search_vector_db.py');
+  const pythonPath = await checkPythonAvailability();
+
+  if (!pythonPath) {
+    throw new Error('Python not found');
+  }
+
+  return new Promise((resolve, reject) => {
+    const searchProcess = spawn(pythonPath, [
+      `"${scriptPath}"`,
+      `"${app.getPath('userData')}"`,
+      `"${query}"`
+    ], {
+      shell: true,
+    });
+
+    let outputData = '';
+    let errorData = '';
+
+    searchProcess.stdout.on('data', (data) => {
+      outputData += data.toString();
+    });
+
+    searchProcess.stderr.on('data', (data) => {
+      errorData += data.toString();
+    });
+
+    searchProcess.on('close', (code) => {
+      if (code === 0) {
+        try {
+          const results = JSON.parse(outputData);
+          resolve(results);
+        } catch (e) {
+          reject(new Error('Failed to parse search results'));
+        }
+      } else {
+        reject(new Error(errorData || 'Search failed'));
+      }
+    });
+  });
+});
+
 
 let isQuitting = false;
 

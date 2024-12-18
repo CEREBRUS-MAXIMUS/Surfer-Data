@@ -60,7 +60,7 @@ Currently, Surfer Protocol consists of a Python SDK and a Desktop App. The Deskt
 
 ## Getting Started
 
-To download the app, head over to [https://surferprotocol.org/desktop/installation](https://surferprotocol.org/desktop/installation). Or you can go to the releases page.
+To download the app, head over to [https://docs.surferprotocol.org/desktop/installation](https://docs.surferprotocol.org/desktop/installation). Or you can go to the releases page.
 
 For instructions on setting up the app locally and contributing to the project, please refer to the [Contributing Guidelines](CONTRIBUTING.md) and [Setup Guide](SETUP_GUIDE.md).
 

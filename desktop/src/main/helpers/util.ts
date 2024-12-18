@@ -6,6 +6,10 @@ const fs = require('fs');
 const mime = require('mime');
 import { net } from 'electron';
 import { v4 as uuidv4 } from 'uuid';
+import { dialog } from 'electron';
+import { promisify } from 'util';
+import { exec } from 'child_process';
+const execAsync = promisify(exec);
 
 export function resolveHtmlPath(htmlFileName: string) {
   if (process.env.NODE_ENV === 'development') {
@@ -47,3 +51,28 @@ export function getFilesInFolder(folderPath: string) {
 
   return files;
 }
+
+export async function checkPythonAvailability(): Promise<string | null> {
+  const commands = process.platform === 'win32' 
+    ? ['python', 'py'] 
+    : ['python3', 'python'];
+
+  for (const cmd of commands) {
+    try {
+      const { stdout } = await execAsync(`${cmd} --version`);
+      console.log(`Found Python using '${cmd}':`, stdout);
+      return cmd;
+    } catch (error) {
+      console.log(`${cmd} not found, trying next...`);
+    }
+  }
+  
+  // Show error dialog if no Python version is found
+  await dialog.showMessageBox({
+    type: 'error',
+    title: 'Python Required for iMessage Export',
+    message: 'Python is required for iMessage export. Please go to https://www.python.org/downloads/ and install Python 3.10 or later.',
+  });
+  
+  return null;
+} 

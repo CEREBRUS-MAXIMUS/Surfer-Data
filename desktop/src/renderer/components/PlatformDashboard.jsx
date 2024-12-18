@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { startRun, toggleRunVisibility, setExportRunning, updateExportStatus, addRun } from '../state/actions';
+import { startRun, toggleRunVisibility, setExportRunning } from '../state/actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Button } from "./ui/button";
-import { ArrowUpRight, Check, X, Link, Search, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { ArrowUpRight, Check, X, Link, Search, ChevronLeft, ChevronRight, Eye, Plus } from 'lucide-react';
 import { Input } from "./ui/input";
 import RunDetails from './RunDetails';
 import ConfettiExplosion from 'react-confetti-explosion';
@@ -28,6 +28,9 @@ const PlatformDashboard = ({ onPlatformClick, webviewRef }) => {
   const [filteredPlatforms, setFilteredPlatforms] = useState([]);
   const [allPlatforms, setAllPlatforms] = useState([]);
   const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
 
 
 useEffect(() => {
@@ -346,6 +349,20 @@ const renderRunStatus = (platform) => {
     }, {});
   }, [runs]);
 
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      const results = await window.electron.ipcRenderer.invoke('search-vector-db', searchQuery);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Search failed:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   return (
     <div className="w-full h-full flex-col px-[50px] pt-6 pb-6 select-none">
       <div className="flex-shrink-0 mb-4">
@@ -377,6 +394,47 @@ const renderRunStatus = (platform) => {
           </div>
         </div>
       </div>
+
+      <div className="mt-4 space-y-4">
+        <div className="flex gap-2">
+          <Input
+            type="text"
+            placeholder="Search vector database..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+          />
+          <Button 
+            variant="outline" 
+            onClick={handleSearch}
+            disabled={isSearching}
+          >
+            {isSearching ? 'Searching...' : 'Search'}
+          </Button>
+        </div>
+        
+        {searchResults && (
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold mb-2">Search Results</h3>
+            <div className="space-y-2">
+              {searchResults.documents.map((doc, index) => (
+                <div key={searchResults.ids[index]} className="p-4 border rounded-lg">
+                  <div className="text-sm text-gray-500 mb-1">
+                    Score: {(1 - searchResults.distances[index]).toFixed(4)}
+                  </div>
+                  <div>{doc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Button className='mb-2 mt-2' variant="outline" size="sm" onClick={() => window.electron.ipcRenderer.invoke('vectorize-last-run')}>
+        <IoSync size={16} className="mr-2 h-4 w-4" />
+        Vectorize Last Run
+      </Button>
+      
       {paginatedPlatforms.length > 0 ? (
         <div className="flex flex-col flex-grow overflow-hidden">
           <div className="overflow-x-auto overflow-y-hidden">
