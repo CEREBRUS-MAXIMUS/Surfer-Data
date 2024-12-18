@@ -5,11 +5,12 @@ import mcp.types as types
 from mcp.server import NotificationOptions, Server
 from pydantic import AnyUrl
 import mcp.server.stdio
+import requests
 
 # Store notes as a simple key-value dict to demonstrate state management
 notes: dict[str, str] = {}
 
-server = Server("example")
+server = Server("surfer_mcp")
 
 @server.list_resources()
 async def handle_list_resources() -> list[types.Resource]:
@@ -101,15 +102,14 @@ async def handle_list_tools() -> list[types.Tool]:
     """
     return [
         types.Tool(
-            name="add-note",
-            description="Add a new note",
+            name="search",
+            description="Semantic search over data from Surfer",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "name": {"type": "string"},
-                    "content": {"type": "string"},
+                    "query": {"type": "string"},
                 },
-                "required": ["name", "content"],
+                "required": ["query"],
             },
         )
     ]
@@ -122,30 +122,22 @@ async def handle_call_tool(
     Handle tool execution requests.
     Tools can modify server state and notify clients of changes.
     """
-    if name != "add-note":
-        raise ValueError(f"Unknown tool: {name}")
+    if name == "search":
+        query = arguments.get("query")
 
-    if not arguments:
-        raise ValueError("Missing arguments")
+        # send a request to the surfer api to search for the query
+        health_response = requests.get(f"http://localhost:2024/api/health")
+        if health_response.status_code != 200:
+            raise ValueError("Make sure the Surfer desktop app is running!")
 
-    note_name = arguments.get("name")
-    content = arguments.get("content")
+        search_response = requests.get(f"http://localhost:2024/api/search?query={query}")
 
-    if not note_name or not content:
-        raise ValueError("Missing name or content")
-
-    # Update server state
-    notes[note_name] = content
-
-    # Notify clients that resources have changed
-    await server.request_context.session.send_resource_list_changed()
-
-    return [
-        types.TextContent(
-            type="text",
-            text=f"Added note '{note_name}' with content: {content}",
-        )
-    ]
+        return [
+            types.TextContent(
+                type="text",
+                text=f"Given the following similar documents, answer the question: {query} \n\n {search_response}",
+            )
+        ]
 
 async def main():
     # Run the server using stdin/stdout streams
@@ -154,7 +146,7 @@ async def main():
             read_stream,
             write_stream,
             InitializationOptions(
-                server_name="example",
+                server_name="surfer_mcp",
                 server_version="0.1.0",
                 capabilities=server.get_capabilities(
                     notification_options=NotificationOptions(),

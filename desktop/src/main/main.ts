@@ -203,6 +203,13 @@ const setupExpressServer = async () => {
     }
   });
 
+  expressApp.get('/api/search/:query', async (req, res) => {
+    console.log('Search request: ', req.params);
+    const { query } = req.params;
+    const searchResponse = await searchVectorDB(query);
+    res.json({ success: true, data: searchResponse });
+  });
+
   expressApp
     .listen(port, () => {
       console.log(`Server is running on port ${port}`);
@@ -496,6 +503,10 @@ ipcMain.handle('vectorize-last-run', async () => {
 });
 
 ipcMain.handle('search-vector-db', async (event, query) => {
+  return searchVectorDB(query);
+});
+
+async function searchVectorDB(query: string) {
   const scriptPath = getAssetPath('search_vector_db.py');
   const pythonPath = await checkPythonAvailability();
 
@@ -536,7 +547,7 @@ ipcMain.handle('search-vector-db', async (event, query) => {
       }
     });
   });
-});
+}
 
 
 let isQuitting = false;

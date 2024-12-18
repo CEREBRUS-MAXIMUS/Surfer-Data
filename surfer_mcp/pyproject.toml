@@ -1,10 +1,10 @@
 [project]
-name = "example"
+name = "surfer-mcp"
 version = "0.1.0"
-description = "example"
+description = "This is the MCP server for Surfer that connects to the Claude Desktop App"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [ "mcp>=1.1.2",]
+dependencies = [ "mcp>=1.1.2", "requests"]
 [[project.authors]]
 name = "Sahil Lalani"
 email = "99920148+sahil-lalani@users.noreply.github.com"
@@ -14,4 +14,4 @@ requires = [ "hatchling",]
 build-backend = "hatchling.build"
 
 [project.scripts]
-example = "example:main"
+surfer-mcp = "surfer_mcp:main"
