@@ -2,7 +2,7 @@ import networkx as nx
 from pyvis.network import Network
 import matplotlib.pyplot as plt
 from surfer_protocol import SurferClient
-from llm import extract_nodes, extract_edges
+from helpers import extract_nodes, extract_edges
 import json
 from datetime import datetime
 

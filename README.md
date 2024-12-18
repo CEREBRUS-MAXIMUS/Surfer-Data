@@ -29,6 +29,18 @@ Currently, Surfer Protocol consists of a Python SDK and a Desktop App. The Deskt
 - Python SDK for building applications off of your personal data
 - Cookbook for examples of how to use the Surfer Protocol Python SDK to build applications
 
+## Currently Supported Platforms
+- iMessages
+- Twitter Bookmarks
+- Notion
+- ChatGPT History
+- Gmail
+- LinkedIn Connections
+- Reddit (coming soon!)
+- GitHub (coming soon!)
+- Discord (coming soon!)
+- Spotify (coming soon!)
+
 ## How it works
 
 ![Surfer Diagram](desktop/assets/SurferDiagram.png)
