@@ -1,6 +1,6 @@
 # Surfer Protocol: An open-source framework for exporting and building applications off of your personal data
 
-> ### ⚠️ Looking for the Surfer Desktop App or the Surfer Python SDK? 
+> ### ⚠️ Looking for the Surfer Desktop App or the Surfer Python SDK?
 > Desktop App: [Surfer Desktop App](https://github.com/Surfer-Org/Protocol/blob/main/desktop/README.md)\
 > SDK: [Surfer Python SDK](https://github.com/Surfer-Org/Protocol/blob/main/sdk/python/README.md)
 

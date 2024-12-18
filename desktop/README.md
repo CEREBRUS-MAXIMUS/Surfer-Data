@@ -1,6 +1,6 @@
 # Surfer Desktop App
 
-> ### ⚠️ Looking for Surfer Protocol or the Surfer Python SDK? 
+> ### ⚠️ Looking for Surfer Protocol or the Surfer Python SDK?
 > Protocol: [Surfer Protocol](https://github.com/Surfer-Org/Protocol)\
 > SDK: [Surfer Python SDK](https://github.com/Surfer-Org/Python-SDK)
 
@@ -77,3 +77,12 @@ Project Link: [https://github.com/Surfer-Org/Protocol/tree/main/desktop](https:/
 ## Acknowledgements
 
 - [Electron React Boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate)
+
+[React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
+[React-url]: https://reactjs.org/
+[Tailwind.css]: https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white
+[Tailwind-url]: https://tailwindcss.com/
+[Electron.js]: https://img.shields.io/badge/Electron-2B2E3A?style=for-the-badge&logo=electron&logoColor=9FEAF9
+[Electron-url]: https://www.electronjs.org/
+[Shadcn.ui]: https://img.shields.io/badge/Shadcn_UI-F05032?style=for-the-badge&logo=shadcn&logoColor=white
+[Shadcn-url]: https://ui.shadcn.com/
