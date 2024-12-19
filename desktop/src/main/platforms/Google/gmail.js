@@ -238,7 +238,7 @@ else {
               .join(':')
               .trim(),
           ).toISOString() || null,
-        text: email.innerText || '',
+        body: email.innerText || '',
       };
 
       const emailExists = await checkIfEmailExists(id, platformId, company, name, emailJSON);

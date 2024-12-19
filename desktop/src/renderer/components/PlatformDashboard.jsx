@@ -12,6 +12,7 @@ import { formatLastRunTime} from '../helpers';
 import { MoonLoader } from 'react-spinners';
 import { IoSync } from "react-icons/io5";
 import { useToast } from "./ui/use-toast";
+import { Progress } from './ui/progress'
 
 const PlatformDashboard = ({ onPlatformClick, webviewRef }) => {
   const dispatch = useDispatch();
@@ -32,6 +33,7 @@ const PlatformDashboard = ({ onPlatformClick, webviewRef }) => {
   const [searchResults, setSearchResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isVectorizing, setIsVectorizing] = useState(false);
+  const [vectorizationProgress, setVectorizationProgress] = useState({});
 
 
 useEffect(() => {
@@ -325,6 +327,7 @@ const vectorizeLastRun = async () => {
       title: 'Vectorization Complete',
       description: 'The last run has been successfully vectorized',
     });
+    setVectorizationProgress({});
   } catch (error) {
     console.error('Vectorization failed:', error);
     toast({
@@ -383,6 +386,38 @@ const vectorizeLastRun = async () => {
       setIsSearching(false);
     }
   };
+useEffect(() => {
+  // console.log('vectorizationProgress: ', vectorizationProgress);
+}, [vectorizationProgress]);
+
+  useEffect(() => {
+    const handleVectorDBProgress = (progress) => {
+      const [platformId, current, total] = progress.split(':');
+      
+      if (parseInt(current) === parseInt(total)) {
+        setVectorizationProgress(prev => {
+          const newProgress = { ...prev };
+          delete newProgress[platformId];
+          return newProgress;
+        });
+        return;
+      }
+
+      setVectorizationProgress(prev => ({
+        ...prev,
+        [platformId]: {
+          current: parseInt(current),
+          total: parseInt(total),
+          percentage: Math.round((parseInt(current) / parseInt(total)) * 100)
+        }
+      }));
+    };
+
+    window.electron.ipcRenderer.on('vector-db-progress', handleVectorDBProgress);
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('vector-db-progress');
+    };
+  }, [runs.length]);
 
   return (
     <div className="w-full h-full flex-col px-[50px] pt-6 pb-6 select-none">
@@ -416,7 +451,7 @@ const vectorizeLastRun = async () => {
         </div>
       </div>
 
-      <div className="mt-4 space-y-4">
+      {/* <div className="mt-4 space-y-4">
         <div className="flex gap-2">
           <Input
             type="text"
@@ -449,16 +484,16 @@ const vectorizeLastRun = async () => {
             </div>
           </div>
         )}
-      </div>
+      </div> */}
 
 
-      <Button className='mb-2 mt-2' variant="outline" size="sm" onClick={vectorizeLastRun} disabled={isVectorizing}>
+      {/* <Button className='mb-2 mt-2' variant="outline" size="sm" onClick={vectorizeLastRun} disabled={isVectorizing}>
         <IoSync 
           size={16} 
           className={`mr-2 ${isVectorizing ? 'animate-spin' : ''}`}
         />
         {isVectorizing ? 'Vectorizing...' : 'Vectorize Last Run'}
-      </Button>
+      </Button> */}
       
       {paginatedPlatforms.length > 0 ? (
         <div className="flex flex-col flex-grow overflow-hidden">
@@ -471,6 +506,7 @@ const vectorizeLastRun = async () => {
                     <TableHead></TableHead>
                     <TableHead>Latest Run</TableHead>
                     <TableHead>Actions</TableHead>
+                    {Object.keys(vectorizationProgress).length > 0 && <TableHead>Vectorization Progress</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -535,6 +571,21 @@ const vectorizeLastRun = async () => {
                           )}
                         </div>
                       </TableCell>
+                      {Object.keys(vectorizationProgress).length > 0 && <TableCell>
+                        {vectorizationProgress[platform.id] ? (
+                          <div className="flex items-center gap-2">
+                            <Progress 
+                              value={vectorizationProgress[platform.id].percentage} 
+                              className="w-[100px]"
+                            />
+                            <span className="text-sm text-gray-500">
+                              {vectorizationProgress[platform.id].percentage}%
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-500">N/A</span>
+                        )}
+                      </TableCell>}
                     </TableRow>
                   ))}
                 </TableBody>

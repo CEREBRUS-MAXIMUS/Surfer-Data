@@ -104,13 +104,15 @@ async def handle_list_tools() -> list[types.Tool]:
     return [
         types.Tool(
             name="search",
-            description="Semantic search over data from Surfer",
+            description="Semantic search over data from Surfer. The options for platform are 'iMessage', 'LinkedIn Connections', 'Twitter Bookmarks', 'Gmail', 'Notion', and 'ChatGPT'. Only use the platform that corresponds to the data you are searching over.",
+
             inputSchema={
                 "type": "object",
                 "properties": {
                     "query": {"type": "string"},
+                    "platform": {"type": "string"},
                 },
-                "required": ["query"],
+                "required": ["query", "platform"],
             },
         )
     ]
@@ -125,13 +127,14 @@ async def handle_call_tool(
     """
     if name == "search":
         query = arguments.get("query")
+        platform = arguments.get("platform")
 
         # send a request to the surfer api to search for the query
         health_response = requests.get(f"http://localhost:2024/api/health")
         if health_response.status_code != 200:
             raise ValueError("Make sure the Surfer desktop app is running!")
 
-        search_response = requests.get(f"http://localhost:2024/api/search/{query}")
+        search_response = requests.get(f"http://localhost:2024/api/search/{query}/{platform}")
         search_data = search_response.json()  # Parse the JSON response
 
         return [

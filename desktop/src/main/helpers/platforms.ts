@@ -45,7 +45,7 @@ export async function convertMboxToJson(
             to: message.to?.text || message.to,
             subject: message.subject,
             timestamp: message.date,
-            text: message.text,
+            body: message.text,
             added_to_db: new Date().toISOString(),
           };
 

@@ -203,10 +203,10 @@ const setupExpressServer = async () => {
     }
   });
 
-  expressApp.get('/api/search/:query', async (req, res) => {
+  expressApp.get('/api/search/:query/:platform', async (req, res) => {
     console.log('Search request: ', req.params);
-    const { query } = req.params;
-    const searchResponse = await searchVectorDB(query);
+    const { query, platform } = req.params;
+    const searchResponse = await searchVectorDB(query, platform);
     console.log('Search response: ', searchResponse);
     res.json({ success: true, data: searchResponse });
   });
@@ -448,7 +448,7 @@ const getAssetPath = (...paths: string[]): string => {
 };
 
 ipcMain.handle('vectorize-last-run', async () => {
-  const scriptPath = getAssetPath('vector_db.py');
+  const scriptPath = getAssetPath('vectorize.py');
   const pythonPath = await checkPythonAvailability();
   mainWindow?.webContents.send('get-runs');
   const runsResponse: any = await new Promise((resolve) => {
@@ -468,11 +468,13 @@ ipcMain.handle('vectorize-last-run', async () => {
 
   const jsonFile = fs.readdirSync(latestRun.exportPath).filter(file => file.endsWith('.json'))[0];
   const jsonFilePath = path.join(latestRun.exportPath, jsonFile);
+  console.log('jsonFilePath: ', jsonFilePath);
   const parsedLatestRun = Buffer.from(JSON.stringify(latestRun)).toString('base64');
 
   if (pythonPath) {
     return new Promise((resolve, reject) => {
       // Wrap paths in quotes to handle spaces
+      
       const vectorDB = spawn(pythonPath, [
         `"${scriptPath}"`, 
         `"${app.getPath('userData')}"`,
@@ -485,8 +487,17 @@ ipcMain.handle('vectorize-last-run', async () => {
       // Handle stdout (normal output)
       vectorDB.stdout.on('data', (data) => {
         const output = data.toString();
-        console.log('Vector DB Output:', output);
-        mainWindow?.webContents.send('vector-db-output', output);
+        
+        // Check if the output contains progress information
+        if (output.includes('progress:')) {
+          // Format: "progress:platformId:current/total"
+          const [_, platformId, progress] = output.trim().split(':');
+          const [current, total] = progress.split('/');
+          const formattedProgress = `${platformId}:${current}:${total}`;
+          mainWindow?.webContents.send('vector-db-progress', formattedProgress);
+        } else {
+          mainWindow?.webContents.send('vector-db-output', output);
+        }
       });
 
       // Handle stderr (error output)
@@ -518,11 +529,11 @@ ipcMain.handle('vectorize-last-run', async () => {
   }
 });
 
-ipcMain.handle('search-vector-db', async (event, query) => {
-  return searchVectorDB(query);
+ipcMain.handle('search-vector-db', async (event, query, platform) => {
+  return searchVectorDB(query, platform);
 });
 
-async function searchVectorDB(query: string) {
+async function searchVectorDB(query: string, platform: string) {
   const scriptPath = getAssetPath('search_vector_db.py');
   const pythonPath = await checkPythonAvailability();
 
@@ -534,7 +545,8 @@ async function searchVectorDB(query: string) {
     const searchProcess = spawn(pythonPath, [
       `"${scriptPath}"`,
       `"${app.getPath('userData')}"`,
-      `"${query}"`
+      `"${query}"`,
+      `"${platform}"`
     ], {
       shell: true,
     });
@@ -544,7 +556,6 @@ async function searchVectorDB(query: string) {
 
     searchProcess.stdout.on('data', (data) => {
       outputData += data.toString();
-      console.log('outputData: ', outputData);
     });
 
     searchProcess.stderr.on('data', (data) => {

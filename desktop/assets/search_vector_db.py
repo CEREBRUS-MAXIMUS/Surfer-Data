@@ -5,6 +5,7 @@ import json
 
 user_data_path = sys.argv[1]
 query = sys.argv[2]
+platform = sys.argv[3]
 
 try:
     # Initialize ChromaDB client with persistent storage
@@ -17,7 +18,8 @@ try:
     # Perform search
     results = collection.query(
         query_texts=[query],
-        n_results=5  # Return top 5 results
+        n_results=5,
+        where={"name": platform}  # Return top 5 results
     
     )
     
